@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\states">
+      <UniqueIdentifier>{8e966c73-b41c-4847-9bf5-b805d7751957}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\cards">
+      <UniqueIdentifier>{8d9f29fb-3efa-49eb-938d-02e7f4f29c48}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core">
+      <UniqueIdentifier>{3ea895e1-d4ed-44d7-8449-4577cbaf8cd2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\gui">
+      <UniqueIdentifier>{4e609d32-6dbb-4399-b443-e16aa58d48f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\external">
+      <UniqueIdentifier>{3f36d84e-0dff-46b4-8f7e-96063a04ddc9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\russian">
+      <UniqueIdentifier>{92e25992-4aa6-4e72-9057-388405776f2a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\entities">
+      <UniqueIdentifier>{bbd32fd6-e1a0-454a-bbea-b101cc4efcc8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\source\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\states\cmgApplicationState.cpp">
+      <Filter>Source Files\states</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\states\StudyState.cpp">
+      <Filter>Source Files\states</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\Scheduler.cpp">
+      <Filter>Source Files\cards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\CardSet.cpp">
+      <Filter>Source Files\cards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\CardSetPackage.cpp">
+      <Filter>Source Files\cards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\Card.cpp">
+      <Filter>Source Files\cards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\Graphics.cpp">
+      <Filter>Source Files\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\AccentedText.cpp">
+      <Filter>Source Files\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\CardDatabase.cpp">
+      <Filter>Source Files\cards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\StudySet.cpp">
+      <Filter>Source Files\cards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\Russian.cpp">
+      <Filter>Source Files\russian</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\RussianApp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\source\macros.h">
+      <Filter>Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\states\cmgApplicationState.h">
+      <Filter>Source Files\states</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\states\StudyState.h">
+      <Filter>Source Files\states</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\Scheduler.h">
+      <Filter>Source Files\cards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\CardSet.h">
+      <Filter>Source Files\cards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\CardSetPackage.h">
+      <Filter>Source Files\cards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\Card.h">
+      <Filter>Source Files\cards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\Graphics.h">
+      <Filter>Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\AccentedText.h">
+      <Filter>Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\CardDatabase.h">
+      <Filter>Source Files\cards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\StudySet.h">
+      <Filter>Source Files\cards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\Russian.h">
+      <Filter>Source Files\russian</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\RussianApp.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\Resources.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
