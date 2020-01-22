@@ -5,6 +5,8 @@
 #include "Russian.h"
 #include "CardDatabase.h"
 #include "states/StudyState.h"
+#include "states/TestState.h"
+#include "study/StudyDatabase.h"
 
 /*
 Done:
@@ -32,6 +34,7 @@ ROADMAP:
 Wheel Input
 GameState
 StudyState
+MainMenuState
 StudyData
 Word
 Noun
@@ -54,11 +57,15 @@ public:
 	void OnUpdate(float timeDelta) override;
 	void OnRender() override;
 
+	CardDatabase& GetCardDatabase() { return m_cardDatabase; }
+	StudyDatabase& GetStudyDatabase() { return m_studyDatabase; }
+
 private:
 	CardDatabase m_cardDatabase;
+	StudyDatabase m_studyDatabase;
 	RenderParams m_renderParams;
 	Font::sptr m_font;
-	StudyState* m_state;
+	TestState* m_state;
 	Joystick* m_joystick;
 	bool m_joystickButtonState[3] = { false, false, false };
 	bool m_joystickButtonStatePrev[3] = { false, false, false };

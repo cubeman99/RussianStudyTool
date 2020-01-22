@@ -3,6 +3,8 @@
 #include "cmgApplicationState.h"
 #include "Graphics.h"
 #include "Scheduler.h"
+#include "gui/GUIManager.h"
+#include "gui/Label.h"
 
 class StudyState : public cmg::ApplicationState<AppGraphics&>
 {
@@ -28,4 +30,5 @@ private:
 	Scheduler m_scheduler;
 	bool m_isRevealed;
 	Language m_shownSide;
+	GUIManager m_gui;
 };

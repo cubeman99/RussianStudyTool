@@ -34,6 +34,9 @@
     <Filter Include="Source Files\entities">
       <UniqueIdentifier>{bbd32fd6-e1a0-454a-bbea-b101cc4efcc8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\study">
+      <UniqueIdentifier>{9ecab9f7-d2c9-4493-a567-2af97b74dce3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\source\main.cpp">
@@ -75,11 +78,35 @@
     <ClCompile Include="..\source\RussianApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\study\StudyDatabase.cpp">
+      <Filter>Source Files\study</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\gui\Label.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\gui\Layout.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\gui\Widget.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\gui\GUIObject.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\gui\GUIManager.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\states\TestState.cpp">
+      <Filter>Source Files\states</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\gui\BoxLayout.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\gui\AnchorLayout.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\source\macros.h">
-      <Filter>Source Files\core</Filter>
-    </ClInclude>
     <ClInclude Include="..\source\states\cmgApplicationState.h">
       <Filter>Source Files\states</Filter>
     </ClInclude>
@@ -118,6 +145,42 @@
     </ClInclude>
     <ClInclude Include="..\source\Resources.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\Macros.h">
+      <Filter>Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\study\StudyDatabase.h">
+      <Filter>Source Files\study</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\Config.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\gui\Label.h">
+      <Filter>Source Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\gui\Layout.h">
+      <Filter>Source Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\gui\Widget.h">
+      <Filter>Source Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\gui\GUIObject.h">
+      <Filter>Source Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\gui\GUIManager.h">
+      <Filter>Source Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\states\TestState.h">
+      <Filter>Source Files\states</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\gui\BoxLayout.h">
+      <Filter>Source Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\gui\gui.h">
+      <Filter>Source Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\gui\AnchorLayout.h">
+      <Filter>Source Files\gui</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

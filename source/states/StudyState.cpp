@@ -14,6 +14,7 @@ void StudyState::OnEnd()
 
 void StudyState::OnUpdate(float timeDelta)
 {
+	auto app = (RussianStudyToolApp*) GetApp();
 	Keyboard* keyboard = GetKeyboard();
 	bool ctrl = keyboard->IsKeyDown(Keys::left_control) ||
 		keyboard->IsKeyDown(Keys::right_control);
@@ -22,14 +23,14 @@ void StudyState::OnUpdate(float timeDelta)
 
 	// Mark as did know
 	if (keyboard->IsKeyPressed(Keys::enter) ||
-		((RussianStudyToolApp*) GetApp())->m_joystickButtonPressed[1])
+		app->m_joystickButtonPressed[1])
 	{
 		NextCard();
 	}
 
 	// Mark as didn't know
 	if (keyboard->IsKeyPressed(Keys::backspace) ||
-		((RussianStudyToolApp*) GetApp())->m_joystickButtonPressed[0])
+		app->m_joystickButtonPressed[0])
 	{
 		if (m_isRevealed)
 		{
@@ -41,10 +42,12 @@ void StudyState::OnUpdate(float timeDelta)
 		}
 	}
 	
+	m_gui.Update(timeDelta);
 }
 
 void StudyState::OnRender(AppGraphics& g, float timeDelta)
 {
+	auto app = (RussianStudyToolApp*) GetApp();
 	Vector2f windowSize(
 		(float) GetWindow()->GetWidth(),
 		(float) GetWindow()->GetHeight());
@@ -60,7 +63,13 @@ void StudyState::OnRender(AppGraphics& g, float timeDelta)
 			Language::k_english : Language::k_russian);
 		if (m_isRevealed)
 			g.DrawAccentedText(font.get(), m_card->GetText(hiddenSide), pos + Vector2f(24, 60), Color::WHITE, TextAlign::CENTERED);
+
+		CardStudyData studyData = app->GetStudyDatabase().GetCardStudyData(m_card);
+		String profName = EnumToString(studyData.GetProficiencyLevel());
+		g.DrawAccentedText(font.get(), profName, pos + Vector2f(24, 200), Color::GRAY, TextAlign::CENTERED);
 	}
+
+	m_gui.Render(g, timeDelta);
 }
 
 void StudyState::NextCard()

@@ -6,7 +6,7 @@
 #include <locale>
 #include <iostream>
 #include <string>
-#include "macros.h"
+#include "Macros.h"
 
 using unichar = uint16_t;
 using unistr = std::u16string;

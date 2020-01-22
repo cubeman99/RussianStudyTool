@@ -34,11 +34,13 @@ void RussianStudyToolApp::OnInitialize()
 	//resourceManager->LoadBuiltInFont(m_font, BuiltInFonts::FONT_CONSOLE);
 	resourceManager->LoadFont(m_font, Res::FONT, 14, 0x20, 0x500);
 
-	m_cardDatabase.LoadCardData(g_assetsPath / "cards.json");
-	m_cardDatabase.LoadCardSets(g_cardSetRootPath);
+	// m_studyDatabase.LoadStudyData(g_assetsPath / "study_data.json");
+	// m_cardDatabase.LoadCardData(g_assetsPath / "cards.json");
+	// m_cardDatabase.LoadCardSets(g_cardSetRootPath);
 
 	StudySet::sptr studySet = m_cardDatabase.GetCardSet(CardSetKey(u"cars & automotive"));
-	m_state = new StudyState(studySet);
+	m_state = new TestState();
+	//m_state = new StudyState(nullptr);
 	m_state->Begin(this);
 
 	m_joystick = GetInputManager()->AddDevice<Joystick>(
