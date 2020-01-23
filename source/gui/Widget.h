@@ -7,6 +7,8 @@ class Layout;
 class Widget : public GUIObject
 {
 public:
+	friend class GUIManager;
+
 	Widget();
 	virtual ~Widget();
 
@@ -26,9 +28,12 @@ public:
 	virtual void OnUpdate(float timeDelta) {}
 	virtual void OnRender(AppGraphics& g, float timeDelta) {}
 
-	virtual void CalcSizes();
-	virtual void Update(float timeDelta);
-	virtual void Render(AppGraphics& g, float timeDelta);
+	virtual bool IsWidget() const override { return true; }
+	virtual uint32 GetNumChildren() const override;
+	virtual GUIObject* GetChild(uint32 index) override;
+	virtual void CalcSizes() override;
+	virtual void Update(float timeDelta) override;
+	virtual void Render(AppGraphics& g, float timeDelta) override;
 
 private:
 	AccentedText m_windowTitle = "";

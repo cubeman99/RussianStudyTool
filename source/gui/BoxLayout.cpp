@@ -7,6 +7,16 @@ BoxLayout::BoxLayout(uint32 axis) :
 	SetSpacing(4);
 }
 
+uint32 BoxLayout::GetNumChildren() const
+{
+	return m_children.size();
+}
+
+GUIObject* BoxLayout::GetChild(uint32 index)
+{
+	return m_children[index];
+}
+
 void BoxLayout::CalcSizes()
 {
 	for (auto child : m_children)

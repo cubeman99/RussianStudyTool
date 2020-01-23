@@ -18,6 +18,17 @@ void Widget::SetLayout(Layout* layout)
 		m_layout->SetParent(this);
 }
 
+uint32 Widget::GetNumChildren() const
+{
+	return 1;
+}
+
+GUIObject* Widget::GetChild(uint32 index)
+{
+	CMG_ASSERT(index < 1);
+	return m_layout;
+}
+
 void Widget::CalcSizes()
 {
 	if (m_layout)
@@ -46,7 +57,7 @@ void Widget::Render(AppGraphics& g, float timeDelta)
 	OnRender(g, timeDelta);
 
 	if (m_isFocused)
-		g.DrawRect(m_bounds, Color::BLUE);
+		g.DrawRect(m_bounds, Color::CYAN);
 	else
 		g.DrawRect(m_bounds, Color::GRAY);
 }

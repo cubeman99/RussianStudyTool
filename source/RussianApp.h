@@ -4,6 +4,7 @@
 #include <cmgMath/cmg_math.h>
 #include "Russian.h"
 #include "CardDatabase.h"
+#include "Resources.h"
 #include "states/StudyState.h"
 #include "states/TestState.h"
 #include "study/StudyDatabase.h"
@@ -60,7 +61,11 @@ public:
 	CardDatabase& GetCardDatabase() { return m_cardDatabase; }
 	StudyDatabase& GetStudyDatabase() { return m_studyDatabase; }
 
+	static RussianStudyToolApp* GetInstance() { return s_instance; }
+
 private:
+	static RussianStudyToolApp* s_instance;
+
 	CardDatabase m_cardDatabase;
 	StudyDatabase m_studyDatabase;
 	RenderParams m_renderParams;

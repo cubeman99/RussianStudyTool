@@ -11,6 +11,7 @@ Label::Label(const AccentedText& text, Font::sptr font,
 	m_color(color),
 	m_align(align)
 {
+	SetFocusable(true);
 }
 
 void Label::CalcSizes()
@@ -27,5 +28,21 @@ void Label::OnUpdate(float timeDelta)
 
 void Label::OnRender(AppGraphics& g, float timeDelta)
 {
-	g.DrawAccentedText(m_font.get(), m_text, GetBounds().GetTopLeft(), m_color, m_align);
+	Vector2f anchor = Vector2f::ZERO;
+
+	if (m_align != TextAlign::TOP_LEFT)
+	{
+		if ((int) m_align & (int) TextAlign::RIGHT)
+			anchor.x = 1.0f;
+		else if (!((int) m_align & (int) TextAlign::LEFT))
+			anchor.x = 0.5f;
+		if ((int) m_align & (int) TextAlign::BOTTOM)
+			anchor.y = 1.0f;
+		else if (!((int) m_align & (int) TextAlign::TOP))
+			anchor.y = 0.5f;
+	}
+
+	auto rect = GetBounds();
+	Vector2f point = rect.position + anchor * rect.size;
+	g.DrawAccentedText(m_font.get(), m_text, point, m_color, m_align);
 }

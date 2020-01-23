@@ -4,8 +4,13 @@
 static const Path g_assetsPath = "../assets";
 static const Path g_cardSetRootPath = "C:/workspace/python/russian-study-tool/data/cards";
 
+RussianStudyToolApp* RussianStudyToolApp::s_instance = nullptr;
+
+
 RussianStudyToolApp::RussianStudyToolApp()
 {
+	s_instance = this;
+
 	SetConsoleOutputCP(CP_UTF8);
 
 	m_renderParams.SetClearColor(Color::BLACK);

@@ -8,8 +8,13 @@ public:
 	AnchorLayout();
 
 	void Clear();
+	void Add(GUIObject* child);
 	void Add(GUIObject* child, const Vector2f& position);
+	void Add(GUIObject* child, const Vector2f& percentMin, const Vector2f& percentMax,
+		const Vector2f& offset = Vector2f::ZERO, TextAlign align = TextAlign::TOP_LEFT);
 
+	virtual uint32 GetNumChildren() const override;
+	virtual GUIObject* GetChild(uint32 index) override;
 	virtual void CalcSizes();
 	virtual void Update(float timeDelta);
 	virtual void Render(AppGraphics& g, float timeDelta);
@@ -17,7 +22,10 @@ public:
 private:
 	struct AnchorChild
 	{
-		Vector2f position;
+		Vector2f percentMin = Vector2f::ZERO;
+		Vector2f percentMax = Vector2f::ONE;
+		Vector2f offset = Vector2f::ZERO;
+		TextAlign align = TextAlign::TOP_LEFT;
 		GUIObject* object;
 	};
 

@@ -6,7 +6,7 @@
 
 class Layout;
 
-class GUIObject
+class GUIObject : public cmg::EventSubscriber
 {
 public:
 	friend class Widget;
@@ -21,6 +21,10 @@ public:
 	const Vector2f& GetMaxSize() const { return m_maxSize; }
 	GUIObject* GetParent() const { return m_parent; }
 
+	virtual uint32 GetNumChildren() const;
+	virtual GUIObject* GetChild(uint32 index);
+
+	virtual bool IsWidget() const { return false; }
 	void SetParent(GUIObject* parent);
 	void SetBounds(const Rect2f& bounds);
 

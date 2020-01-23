@@ -105,6 +105,9 @@
     <ClCompile Include="..\source\gui\AnchorLayout.cpp">
       <Filter>Source Files\gui</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\states\MainMenuWidget.cpp">
+      <Filter>Source Files\states</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\states\cmgApplicationState.h">
@@ -181,6 +184,9 @@
     </ClInclude>
     <ClInclude Include="..\source\gui\AnchorLayout.h">
       <Filter>Source Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\states\MainMenuWidget.h">
+      <Filter>Source Files\states</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -13,6 +13,8 @@ public:
 	void SetSpacing(float spacing);
 	void SetMargins(float margins);
 
+	virtual uint32 GetNumChildren() const override;
+	virtual GUIObject* GetChild(uint32 index) override;
 	virtual void CalcSizes();
 	virtual void Update(float timeDelta);
 	virtual void Render(AppGraphics& g, float timeDelta);

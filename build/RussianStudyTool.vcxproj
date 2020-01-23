@@ -29,6 +29,7 @@
     <ClCompile Include="..\source\Russian.cpp" />
     <ClCompile Include="..\source\Scheduler.cpp" />
     <ClCompile Include="..\source\states\cmgApplicationState.cpp" />
+    <ClCompile Include="..\source\states\MainMenuWidget.cpp" />
     <ClCompile Include="..\source\states\StudyState.cpp" />
     <ClCompile Include="..\source\states\TestState.cpp" />
     <ClCompile Include="..\source\StudySet.cpp" />
@@ -56,6 +57,7 @@
     <ClInclude Include="..\source\Russian.h" />
     <ClInclude Include="..\source\Scheduler.h" />
     <ClInclude Include="..\source\states\cmgApplicationState.h" />
+    <ClInclude Include="..\source\states\MainMenuWidget.h" />
     <ClInclude Include="..\source\states\StudyState.h" />
     <ClInclude Include="..\source\states\TestState.h" />
     <ClInclude Include="..\source\StudySet.h" />
