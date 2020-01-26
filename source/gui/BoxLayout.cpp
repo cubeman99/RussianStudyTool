@@ -14,59 +14,109 @@ uint32 BoxLayout::GetNumChildren() const
 
 GUIObject* BoxLayout::GetChild(uint32 index)
 {
-	return m_children[index];
+	return m_children[index].object;
 }
 
 void BoxLayout::CalcSizes()
 {
-	for (auto child : m_children)
+	for (auto& item : m_children)
+		item.object->CalcSizes();
+
+	m_minSize = Vector2f::ZERO;
+	m_maxSize = Vector2f(GUIObject::DEFAULT_MAX_SIZE);
+	m_maxSize[m_axis] = 0.0f;
+	for (auto& item : m_children)
 	{
-		child->CalcSizes();
+		if (item.object->IsVisible())
+		{
+			Vector2f childMaxSize = item.object->GetMaxSize();
+			m_maxSize[m_axis] += childMaxSize[m_axis];
+			m_maxSize[1 - m_axis] = Math::Min(
+				m_maxSize[1 - m_axis], childMaxSize[1 - m_axis]);
+			Vector2f childMinSize = item.object->GetMinSize();
+			m_minSize[m_axis] += childMinSize[m_axis];
+			m_minSize[1 - m_axis] = Math::Max(
+				m_minSize[1 - m_axis], childMinSize[1 - m_axis]);
+		}
 	}
 }
 
 void BoxLayout::Update(float timeDelta)
 {
+	if (m_children.empty())
+		return;
+
 	Rect2f rect = GetBounds();
 	rect.Inflate(-m_marginTopLeft.x, -m_marginTopLeft.y,
 		-m_marginBottomRight.x, -m_marginBottomRight.y);
 
-	float y = m_spacing[m_axis];
+	float stretchSpace = rect.size[m_axis];
+	stretchSpace -= m_spacing[m_axis] * (m_children.size() - 1);
+	float stretchFactorSum = 0.0f;
+	bool fixedStretch = false;
+	for (auto& item : m_children)
+		stretchFactorSum += item.stretch;
+	if (stretchFactorSum == 0.0f)
+		fixedStretch = true; 
+
+	float offset = 0.0f;
 	for (uint32 i = 0; i < m_children.size(); i++)
 	{
-		auto child = m_children[i];
-		rect.position[m_axis] = y;
-		rect.size.x = child->GetMinSize().x;
-		rect.size.y = child->GetMinSize().y;
-		m_children[i]->SetBounds(rect);
-		y += rect.size[m_axis] + m_spacing[m_axis];
+		auto& item = m_children[i];
+		float percent = 1.0f / m_children.size();
+		if (!fixedStretch)
+			percent = item.stretch / stretchFactorSum;
+		item.size = stretchSpace * percent;
+		item.offset = offset;
+		offset += item.size + m_spacing[m_axis];
 	}
 
-	for (auto child : m_children)
+	for (auto& item : m_children)
 	{
-		child->Update(timeDelta);
+		Rect2f childRect;
+		childRect.position[m_axis] = rect.position[m_axis] + item.offset;
+		childRect.size[m_axis] = item.size;
+		childRect.position[1 - m_axis] = rect.position[1 - m_axis];
+		childRect.size[1 - m_axis] = rect.size[1 - m_axis];
+		item.object->SetBounds(childRect);
 	}
+
+	for (auto& item : m_children)
+		item.object->Update(timeDelta);
 }
 
 void BoxLayout::Render(AppGraphics& g, float timeDelta)
 {
-	for (auto child : m_children)
+	for (uint32 i = 0; i < m_children.size(); i++)
 	{
-		child->Render(g, timeDelta);
+		auto& item = m_children[i];
+
+		if (m_showBackgroundColors)
+		{
+			Color color = GUIConfig::color_background;
+			if (i % 2 == 1)
+				color = GUIConfig::color_background_alternate;
+			g.FillRect(item.object->GetBounds(), color);
+		}
+
+		item.object->Render(g, timeDelta);
 	}
 }
 
 void BoxLayout::Clear()
 {
-	for (auto child : m_children)
-		child->SetParent(nullptr);
+	for (auto& item : m_children)
+		item.object->SetParent(nullptr);
 	m_children.clear();
 }
 
-void BoxLayout::Add(GUIObject* child)
+void BoxLayout::Add(GUIObject* child, float stretch)
 {
+	BoxChild item;
+	item.object = child;
+	item.stretch = stretch;
 	child->SetParent(this);
-	m_children.push_back(child);
+	m_children.push_back(item);
 }
 
 void BoxLayout::SetSpacing(float spacing)
@@ -78,6 +128,11 @@ void BoxLayout::SetMargins(float margins)
 {
 	m_marginBottomRight = Vector2f(margins);
 	m_marginTopLeft = Vector2f(margins);
+}
+
+void BoxLayout::SetItemBackgroundColors(bool enabled)
+{
+	m_showBackgroundColors = enabled;
 }
 
 HBoxLayout::HBoxLayout() :

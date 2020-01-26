@@ -25,8 +25,10 @@ public:
 	
 	AccentedText& operator +=(const AccentedText& other);
 	AccentedText& operator +=(const unistr& str);
-	AccentedText operator +(const AccentedText& other);
-	AccentedText operator +(const unistr& str);
+	AccentedText operator +(const AccentedText& other) const;
+	AccentedText operator +(const unistr& str) const;
+	AccentedText operator +(const char* str) const;
+	AccentedText operator +(const unichar* str) const;
 	unichar operator [](uint32 index) const;
 
 	const unistr& GetString() const { return m_string; }
@@ -43,6 +45,8 @@ private:
 };
 
 std::ostream& operator <<(std::ostream &out, const AccentedText& text);
+AccentedText operator +(const String& left, const AccentedText& right);
+AccentedText operator +(const unistr& left, const AccentedText& right);
 
 
 struct TranslationPair

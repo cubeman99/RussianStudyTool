@@ -1,7 +1,8 @@
 ﻿#include "TestState.h"
 #include "Resources.h"
 #include "gui/gui.h"
-#include "MainMenuWidget.h"
+#include "widgets/MainMenuWidget.h"
+#include "RussianApp.h"
 
 void TestState::OnBegin()
 {
@@ -33,7 +34,11 @@ void TestState::OnBegin()
 	package->AddCardSet(cmg::make_shared<CardSet>("Card Set 1"));
 	package->AddCardSet(cmg::make_shared<CardSet>("Card Set 2"));
 	package->AddPackage(cmg::make_shared<CardSetPackage>("Sub Package 1"));
-	m_gui.SetRootWidget(new MainMenuWidget(package));
+
+
+	CardDatabase& cardDatabase = RussianStudyToolApp::GetInstance()->GetCardDatabase();
+
+	m_gui.SetRootWidget(new MainMenuWidget(cardDatabase.GetRootPackage()));
 }
 
 void TestState::OnEnd()

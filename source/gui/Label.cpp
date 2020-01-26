@@ -1,4 +1,5 @@
 ﻿#include "Label.h"
+#include "RussianApp.h"
 
 Label::Label()
 {
@@ -11,11 +12,12 @@ Label::Label(const AccentedText& text, Font::sptr font,
 	m_color(color),
 	m_align(align)
 {
-	SetFocusable(true);
 }
 
 void Label::CalcSizes()
 {
+	if (!m_font)
+		m_font = RussianStudyToolApp::GetInstance()->GetResourceManager()->Get<Font>(Res::FONT);
 	m_minSize.y = m_font->GetSize() * 2.0f;
 	m_maxSize.y = m_minSize.y;
 	Rect2f box = Graphics2D::MeasureString(m_font.get(), m_text.GetString());
@@ -28,6 +30,9 @@ void Label::OnUpdate(float timeDelta)
 
 void Label::OnRender(AppGraphics& g, float timeDelta)
 {
+	if (!m_font)
+		m_font = RussianStudyToolApp::GetInstance()->GetResourceManager()->Get<Font>(Res::FONT);
+
 	Vector2f anchor = Vector2f::ZERO;
 
 	if (m_align != TextAlign::TOP_LEFT)

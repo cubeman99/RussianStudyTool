@@ -47,6 +47,11 @@ CardSet::sptr CardDatabase::GetCardSet(const CardSetKey & key)
 	return nullptr;
 }
 
+const Set<CardSet::sptr>& CardDatabase::GetCardSetsWithCard(Card::sptr card)
+{
+	return card->m_cardSets;
+}
+
 void CardDatabase::CardLoadThread(CardDatabase* self, CardLoadThreadData* data)
 {
 	// Deserialize all card data
@@ -149,7 +154,7 @@ Error CardDatabase::LoadCardSets(const Path& path)
 {
 	CMG_LOG_INFO() << "Loading card sets from directory: " << path;
 
-	LoadCardSetPackage(String(path), u"root");
+	m_rootPackage = LoadCardSetPackage(String(path), u"root");
 	return CMG_ERROR_SUCCESS;
 }
 
@@ -227,6 +232,7 @@ CardSet::sptr CardDatabase::DeserializeCardSet(rapidjson::Value& data)
 		if (card)
 		{
 			cardSet->AddCard(card);
+			card->m_cardSets.insert(cardSet);
 		}
 		else
 		{
@@ -251,7 +257,10 @@ CardSetPackage::sptr CardDatabase::LoadCardSetPackage(
 			CardSetPackage::sptr subPackage = LoadCardSetPackage(
 				p.path(), p.path().filename().wstring());
 			if (subPackage)
+			{
+				subPackage->SetParent(package);
 				package->AddPackage(subPackage);
+			}
 		}
 		else if (p.is_regular_file())
 		{
@@ -260,7 +269,10 @@ CardSetPackage::sptr CardDatabase::LoadCardSetPackage(
 			{
 				CardSet::sptr cardSet = LoadCardSet(p.path());
 				if (cardSet)
+				{
+					cardSet->SetParent(package);
 					package->AddCardSet(cardSet);
+				}
 			}
 		}
 	}

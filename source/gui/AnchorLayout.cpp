@@ -29,10 +29,10 @@ void AnchorLayout::Update(float timeDelta)
 	for (auto item : m_children)
 	{
 		Rect2f itemRect = rect;
-		Vector2f mins = rect.position + (item.percentMin * rect.size);
-		Vector2f maxs = rect.position + (item.percentMax * rect.size);
+		Vector2f mins = rect.position + (item.percentMin * rect.size) + item.offsetMin;
+		Vector2f maxs = rect.position + (item.percentMax * rect.size) + item.offsetMax;
 		Vector2f minSize = item.object->GetMinSize();
-		itemRect.position = mins + item.offset;
+		itemRect.position = mins;
 		itemRect.size = maxs - mins;
 		Vector2f newSize(
 			Math::Max(minSize.x, itemRect.size.x),
@@ -95,7 +95,8 @@ void AnchorLayout::Add(GUIObject* child, const Vector2f& position)
 {
 	AnchorChild item;
 	item.object = child;
-	item.offset = position;
+	item.offsetMin = position;
+	item.offsetMax = position;
 	Add(item);
 }
 
@@ -106,7 +107,21 @@ void AnchorLayout::Add(GUIObject* child, const Vector2f& percentMin, const Vecto
 	item.object = child;
 	item.percentMin = percentMin;
 	item.percentMax = percentMax;
-	item.offset = offset;
+	item.offsetMin = offset;
+	item.offsetMax = offset;
+	item.align = align;
+	Add(item);
+}
+
+void AnchorLayout::Add(GUIObject* child, const Vector2f& percentMin, const Vector2f& percentMax,
+	const Vector2f& offsetMin, const Vector2f& offsetMax, TextAlign align)
+{
+	AnchorChild item;
+	item.object = child;
+	item.percentMin = percentMin;
+	item.percentMax = percentMax;
+	item.offsetMin = offsetMin;
+	item.offsetMax = offsetMax;
 	item.align = align;
 	Add(item);
 }

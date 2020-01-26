@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "CardSetPackage.h"
+#include "cards/CardSetPackage.h"
 #include "rapidjson/document.h"
 #include <mutex>
 #include <fstream>
@@ -20,6 +20,7 @@ public:
 	Card::sptr GetCard(const CardEnKey& enKey);
 	Card::sptr GetCard(const CardRuKey& ruKey);
 	CardSet::sptr GetCardSet(const CardSetKey& key);
+	const Set<CardSet::sptr>& GetCardSetsWithCard(Card::sptr card);
 
 	Error LoadCardData(const Path& path);
 	Error SaveCardData(const Path& path);

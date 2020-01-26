@@ -1,4 +1,5 @@
 ﻿#include "GUIManager.h"
+#include "RussianApp.h"
 
 GUIManager::GUIManager()
 {
@@ -16,6 +17,11 @@ void GUIManager::SetApplication(Application * app)
 void GUIManager::SetRootWidget(Widget* rootWidget)
 {
 	m_rootWidget = rootWidget;
+}
+
+Widget* GUIManager::GetRootWidget()
+{
+	return m_rootWidget;
 }
 
 void GUIManager::GetFocusableWidgets(GUIObject* object, Array<Widget*>& outWidgets)
@@ -38,17 +44,16 @@ void GUIManager::GetFocusableWidgets(GUIObject* object, Array<Widget*>& outWidge
 
 Widget* GUIManager::CycleFocus(bool reverse)
 {
-	if (m_focusedWidget)
-		m_focusedWidget->m_isFocused = false;
+	Widget* widgetToFocus = nullptr;
 
 	if (m_focusableWidgets.empty())
-		m_focusedWidget = nullptr;
+		widgetToFocus = nullptr;
 	else if (!m_focusedWidget)
 	{
 		if (reverse)
-			m_focusedWidget = m_focusableWidgets.back();
+			widgetToFocus = m_focusableWidgets.back();
 		else
-			m_focusedWidget = m_focusableWidgets.front();
+			widgetToFocus = m_focusableWidgets.front();
 	}
 	else
 	{
@@ -57,31 +62,86 @@ Widget* GUIManager::CycleFocus(bool reverse)
 		if (it == m_focusableWidgets.end() || 
 			(!reverse && it + 1 == m_focusableWidgets.end()))
 		{
-			m_focusedWidget = m_focusableWidgets.front();
+			widgetToFocus = m_focusableWidgets.front();
 		}
 		else if (reverse && it == m_focusableWidgets.begin())
 		{
-			m_focusedWidget = m_focusableWidgets.back();
+			widgetToFocus = m_focusableWidgets.back();
 		}
 		else if (reverse)
-			m_focusedWidget = *(it - 1);
+			widgetToFocus = *(it - 1);
 		else
-			m_focusedWidget = *(it + 1);
+			widgetToFocus = *(it + 1);
 	}
 
+	SetFocus(widgetToFocus);
+	return m_focusedWidget;
+}
+
+void GUIManager::SetFocus(Widget* widget)
+{
+	if (m_focusedWidget)
+		m_focusedWidget->m_isFocused = false;
+	m_focusedWidget = widget;
 	if (m_focusedWidget)
 		m_focusedWidget->m_isFocused = true;
+}
 
-	return m_focusedWidget;
+void GUIManager::OnKeyDown(Window::KeyDownEvent* e)
+{
+	if (m_focusedWidget)
+	{
+		uint32 mods = 0;
+		auto keyboard = m_app->GetKeyboard();
+		if (keyboard->IsKeyDown(Keys::left_shift) || keyboard->IsKeyDown(Keys::right_shift))
+			mods |= KeyMods::k_shift;
+		if (keyboard->IsKeyDown(Keys::left_control) || keyboard->IsKeyDown(Keys::right_control))
+			mods |= KeyMods::k_control;
+		if (keyboard->IsKeyDown(Keys::left_alt) || keyboard->IsKeyDown(Keys::right_alt))
+			mods |= KeyMods::k_alt;
+		m_focusedWidget->OnKeyDown(e->key, mods);
+	}
+}
+
+void GUIManager::OnKeyTyped(Window::KeyTypedEvent* e)
+{
+	if (m_focusedWidget)
+	{
+		uint32 mods = 0;
+		auto keyboard = m_app->GetKeyboard();
+		if (keyboard->IsKeyDown(Keys::left_shift) || keyboard->IsKeyDown(Keys::right_shift))
+			mods |= KeyMods::k_shift;
+		if (keyboard->IsKeyDown(Keys::left_control) || keyboard->IsKeyDown(Keys::right_control))
+			mods |= KeyMods::k_control;
+		if (keyboard->IsKeyDown(Keys::left_alt) || keyboard->IsKeyDown(Keys::right_alt))
+			mods |= KeyMods::k_alt;
+		m_focusedWidget->OnKeyTyped(e->keyCharUTF32, e->key, mods);
+	}
+}
+
+void GUIManager::Begin()
+{
+	m_app->GetEventManager()->Subscribe(this, &GUIManager::OnKeyTyped);
+	m_app->GetEventManager()->Subscribe(this, &GUIManager::OnKeyDown);
+}
+
+void GUIManager::End()
+{
+	//m_app->GetEventManager()->UnsubscribeAll(this);
 }
 
 void GUIManager::Update(float timeDelta)
 {
-
 	if (m_rootWidget)
 	{
 		m_focusableWidgets.clear();
 		GetFocusableWidgets(m_rootWidget, m_focusableWidgets);
+		if (m_focusedWidget && std::find(m_focusableWidgets.begin(),
+			m_focusableWidgets.end(), m_focusedWidget) == m_focusableWidgets.end())
+			m_focusedWidget = nullptr;
+		if (m_cursorWidget && std::find(m_focusableWidgets.begin(),
+			m_focusableWidgets.end(), m_cursorWidget) == m_focusableWidgets.end())
+			m_cursorWidget = nullptr;
 
 		if (m_app)
 		{
@@ -92,7 +152,12 @@ void GUIManager::Update(float timeDelta)
 			m_bounds.position = Vector2f::ZERO;
 			m_bounds.size = windowSize;
 
-			Keyboard* keyboard = m_app->GetKeyboard();
+			auto app = RussianStudyToolApp::GetInstance();
+			Keyboard* keyboard = app->GetKeyboard();
+			Joystick* joystick = app->GetJoystick();
+			const PedalInput& leftPedal = app->GetLeftPedalInput();
+			const PedalInput& rightPedal = app->GetRightPedalInput();
+			const PedalInput& middlePedal = app->GetMiddlePedalInput();
 			bool ctrl = keyboard->IsKeyDown(Keys::left_control) ||
 				keyboard->IsKeyDown(Keys::right_control);
 			bool shift = keyboard->IsKeyDown(Keys::left_shift) ||
@@ -107,20 +172,31 @@ void GUIManager::Update(float timeDelta)
 			{
 				CycleFocus(true);
 			}
+			if (keyboard->IsKeyPressed(Keys::enter) ||
+				middlePedal.IsPressed())
+			{
+				if (m_focusedWidget)
+				{
+					m_focusedWidget->OnPress();
+				}
+			}
 
 			float move = 0.0f;
-			float speed = 20.0f;
+			float speed = 10.0f;
+			move += rightPedal.GetAmount();
+			move -= leftPedal.GetAmount();
 			if (keyboard->IsKeyDown(Keys::down))
 				move += 1.0f;
 			if (keyboard->IsKeyDown(Keys::up))
 				move -= 1.0f;
+			move = Math::Sign(move) * Math::Abs(move);
 			if (Math::Abs(move) > 0.001f)
 			{
 				if (!m_cursorWidget)
-					m_cursorPosition = 0.5f;
+					m_cursorPosition = 0.0f;
 				m_cursorPosition += move * timeDelta * speed;
 				if (!m_focusedWidget)
-					CycleFocus(true);
+					CycleFocus(false);
 				m_cursorWidget = m_focusedWidget;
 
 				if (m_cursorPosition > 1.0f)
@@ -139,6 +215,7 @@ void GUIManager::Update(float timeDelta)
 
 		m_rootWidget->m_bounds = m_bounds;
 		m_rootWidget->CalcSizes();
+		m_rootWidget->m_bounds = m_bounds;
 		m_rootWidget->Update(timeDelta);
 	}
 }
@@ -148,5 +225,18 @@ void GUIManager::Render(AppGraphics& g, float timeDelta)
 	if (m_rootWidget)
 	{
 		m_rootWidget->Render(g, timeDelta);
+	}
+
+	if (m_cursorWidget)
+	{
+		float fract = m_cursorPosition - Math::Floor(m_cursorPosition);
+		Rect2f bounds = m_cursorWidget->GetBounds();
+		int axis = 1;
+		Vector2f a, b;
+		a[axis] = bounds.position[axis] + fract * bounds.size[axis];
+		b[axis] = a[axis];
+		a[1 - axis] = bounds.position[1 - axis];
+		b[1 - axis] = bounds.GetBottomRight()[1 - axis];
+		g.DrawLine(a, b, GUIConfig::color_outline_focused, 2.0f);
 	}
 }

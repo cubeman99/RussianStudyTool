@@ -1,7 +1,5 @@
 ﻿#include "Card.h"
 
-DEFINE_ENUM(CardTags, ENUM_MACRO_CARD_TAG)
-
 
 Card::Card()
 {

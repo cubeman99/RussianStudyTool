@@ -8,10 +8,12 @@ public:
 	BoxLayout(uint32 axis);
 
 	void Clear();
-	void Add(GUIObject* child);
+	void Add(GUIObject* child, float stretch = 0.0f);
 
 	void SetSpacing(float spacing);
 	void SetMargins(float margins);
+
+	void SetItemBackgroundColors(bool enabled);
 
 	virtual uint32 GetNumChildren() const override;
 	virtual GUIObject* GetChild(uint32 index) override;
@@ -20,7 +22,18 @@ public:
 	virtual void Render(AppGraphics& g, float timeDelta);
 
 private:
-	Array<GUIObject*> m_children;
+	struct BoxChild
+	{
+		float stretch = 0.0f;
+		GUIObject* object = nullptr;
+
+		// used internally for layout
+		float offset = 0.0f;
+		float size = 0.0f;
+	};
+
+	bool m_showBackgroundColors = false;
+	Array<BoxChild> m_children;
 	uint32 m_axis = 1;
 	Vector2f m_marginTopLeft;
 	Vector2f m_marginBottomRight;

@@ -1,7 +1,8 @@
 ﻿#pragma once
 
-#include "StudySet.h"
+#include "cards/StudySet.h"
 
+class CardSetPackage;
 
 struct CardSetKey
 {
@@ -39,10 +40,14 @@ public:
 	}
 	virtual ~CardSet() {}
 
+	void SetParent(cmg::shared_ptr<CardSetPackage> parent) { m_parent = parent; }
+
 	const CardSetKey& GetKey() const { return m_key; }
+	cmg::shared_ptr<CardSetPackage> GetParent() const { return m_parent; }
 	CardSetType GetCardSetType() const { return m_cardSetType; }
 
 private:
 	CardSetKey m_key;
 	CardSetType m_cardSetType;
+	cmg::shared_ptr<CardSetPackage> m_parent;
 };

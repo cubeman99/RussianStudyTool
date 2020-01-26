@@ -4,8 +4,18 @@
 #include <cmgGraphics/cmg_graphics.h>
 #include <cmgInput/cmg_input.h>
 #include <cmgApplication/cmg_application.h>
+#include "gui/gui.h"
 #include "RussianApp.h"
 
+class TestClass
+{
+public:
+
+	void Callback(int32 x)
+	{
+		CMG_LOG_INFO() << "x = " << x;
+	}
+};
 
 int main(int argc, char* argv[])
 {
@@ -13,8 +23,18 @@ int main(int argc, char* argv[])
 
 	Random::SeedTime();
 	cmg::core::console::EnableUnicode();
-	
+
 	/*
+	
+	TestClass test;
+	EventSignal<int32> signal;
+
+	signal.Connect(&test, &TestClass::Callback);
+
+	signal.Emit(42);
+	signal.Emit(37);
+	signal.Clear();
+	signal.Emit(37);
 	
 	std::cout << EnumToString(CardTags::k_inanimate) << std::endl;
 	std::cout << EnumToString(CardTags::k_past) << std::endl;

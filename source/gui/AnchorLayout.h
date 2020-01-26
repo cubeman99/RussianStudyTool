@@ -12,6 +12,8 @@ public:
 	void Add(GUIObject* child, const Vector2f& position);
 	void Add(GUIObject* child, const Vector2f& percentMin, const Vector2f& percentMax,
 		const Vector2f& offset = Vector2f::ZERO, TextAlign align = TextAlign::TOP_LEFT);
+	void Add(GUIObject* child, const Vector2f& percentMin, const Vector2f& percentMax,
+		const Vector2f& offsetMin, const Vector2f& offsetMax, TextAlign align = TextAlign::TOP_LEFT);
 
 	virtual uint32 GetNumChildren() const override;
 	virtual GUIObject* GetChild(uint32 index) override;
@@ -24,9 +26,10 @@ private:
 	{
 		Vector2f percentMin = Vector2f::ZERO;
 		Vector2f percentMax = Vector2f::ONE;
-		Vector2f offset = Vector2f::ZERO;
+		Vector2f offsetMin = Vector2f::ZERO;
+		Vector2f offsetMax = Vector2f::ZERO;
 		TextAlign align = TextAlign::TOP_LEFT;
-		GUIObject* object;
+		GUIObject* object = nullptr;
 	};
 
 	void Add(const AnchorChild& item);

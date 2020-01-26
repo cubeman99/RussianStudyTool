@@ -5,7 +5,7 @@
 
 class Layout;
 
-class GUIManager
+class GUIManager : public cmg::EventSubscriber
 {
 public:
 	GUIManager();
@@ -14,9 +14,16 @@ public:
 	void SetApplication(Application* app);
 	void SetRootWidget(Widget* rootWidget);
 
+	Widget* GetRootWidget();
 	void GetFocusableWidgets(GUIObject* object, Array<Widget*>& outWidgets);
 	Widget* CycleFocus(bool reverse = false);
+	void SetFocus(Widget* widget);
 
+	void OnKeyDown(Window::KeyDownEvent* e);
+	void OnKeyTyped(Window::KeyTypedEvent* e);
+
+	void Begin();
+	void End();
 	void Update(float timeDelta);
 	void Render(AppGraphics& g, float timeDelta);
 

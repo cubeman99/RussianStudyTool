@@ -37,40 +37,22 @@
     <Filter Include="Source Files\study">
       <UniqueIdentifier>{9ecab9f7-d2c9-4493-a567-2af97b74dce3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\widgets">
+      <UniqueIdentifier>{5bbdc0d7-09d8-4628-9e8b-cc315295db2a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\source\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\source\states\cmgApplicationState.cpp">
-      <Filter>Source Files\states</Filter>
-    </ClCompile>
     <ClCompile Include="..\source\states\StudyState.cpp">
       <Filter>Source Files\states</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\Scheduler.cpp">
-      <Filter>Source Files\cards</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\CardSet.cpp">
-      <Filter>Source Files\cards</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\CardSetPackage.cpp">
-      <Filter>Source Files\cards</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\Card.cpp">
-      <Filter>Source Files\cards</Filter>
     </ClCompile>
     <ClCompile Include="..\source\Graphics.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>
     <ClCompile Include="..\source\AccentedText.cpp">
       <Filter>Source Files\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\CardDatabase.cpp">
-      <Filter>Source Files\cards</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\StudySet.cpp">
-      <Filter>Source Files\cards</Filter>
     </ClCompile>
     <ClCompile Include="..\source\Russian.cpp">
       <Filter>Source Files\russian</Filter>
@@ -105,40 +87,82 @@
     <ClCompile Include="..\source\gui\AnchorLayout.cpp">
       <Filter>Source Files\gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\source\states\MainMenuWidget.cpp">
+    <ClCompile Include="..\source\gui\Events.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\gui\Button.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\states\GUIState.cpp">
       <Filter>Source Files\states</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\PedalInput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\Config.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\Types.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\states\ApplicationState.cpp">
+      <Filter>Source Files\states</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\states\ApplicationStateStack.cpp">
+      <Filter>Source Files\states</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\widgets\StudyProficiencyBar.cpp">
+      <Filter>Source Files\widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\study\CardStudyData.cpp">
+      <Filter>Source Files\study</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\study\StudySetMetrics.cpp">
+      <Filter>Source Files\study</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\widgets\MenuWidget.cpp">
+      <Filter>Source Files\widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\study\Scheduler.cpp">
+      <Filter>Source Files\study</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\widgets\MainMenuWidget.cpp">
+      <Filter>Source Files\widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\cards\Card.cpp">
+      <Filter>Source Files\cards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\cards\CardDatabase.cpp">
+      <Filter>Source Files\cards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\cards\CardSet.cpp">
+      <Filter>Source Files\cards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\cards\CardSetPackage.cpp">
+      <Filter>Source Files\cards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\cards\StudySet.cpp">
+      <Filter>Source Files\cards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\widgets\AppWidget.cpp">
+      <Filter>Source Files\widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\gui\TextEdit.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\widgets\CardSearchWidget.cpp">
+      <Filter>Source Files\widgets</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\source\states\cmgApplicationState.h">
-      <Filter>Source Files\states</Filter>
-    </ClInclude>
     <ClInclude Include="..\source\states\StudyState.h">
       <Filter>Source Files\states</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\Scheduler.h">
-      <Filter>Source Files\cards</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\CardSet.h">
-      <Filter>Source Files\cards</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\CardSetPackage.h">
-      <Filter>Source Files\cards</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\Card.h">
-      <Filter>Source Files\cards</Filter>
     </ClInclude>
     <ClInclude Include="..\source\Graphics.h">
       <Filter>Source Files\core</Filter>
     </ClInclude>
     <ClInclude Include="..\source\AccentedText.h">
       <Filter>Source Files\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\CardDatabase.h">
-      <Filter>Source Files\cards</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\StudySet.h">
-      <Filter>Source Files\cards</Filter>
     </ClInclude>
     <ClInclude Include="..\source\Russian.h">
       <Filter>Source Files\russian</Filter>
@@ -185,8 +209,68 @@
     <ClInclude Include="..\source\gui\AnchorLayout.h">
       <Filter>Source Files\gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\source\states\MainMenuWidget.h">
+    <ClInclude Include="..\source\gui\Events.h">
+      <Filter>Source Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\gui\Button.h">
+      <Filter>Source Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\states\GUIState.h">
       <Filter>Source Files\states</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\PedalInput.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\Types.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\states\ApplicationState.h">
+      <Filter>Source Files\states</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\states\ApplicationStateStack.h">
+      <Filter>Source Files\states</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\StudyProficiencyBar.h">
+      <Filter>Source Files\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\study\CardStudyData.h">
+      <Filter>Source Files\study</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\study\StudySetMetrics.h">
+      <Filter>Source Files\study</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\MenuWidget.h">
+      <Filter>Source Files\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\study\Scheduler.h">
+      <Filter>Source Files\study</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\MainMenuWidget.h">
+      <Filter>Source Files\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\cards\Card.h">
+      <Filter>Source Files\cards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\cards\CardDatabase.h">
+      <Filter>Source Files\cards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\cards\CardSet.h">
+      <Filter>Source Files\cards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\cards\CardSetPackage.h">
+      <Filter>Source Files\cards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\cards\StudySet.h">
+      <Filter>Source Files\cards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\AppWidget.h">
+      <Filter>Source Files\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\gui\TextEdit.h">
+      <Filter>Source Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\CardSearchWidget.h">
+      <Filter>Source Files\widgets</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

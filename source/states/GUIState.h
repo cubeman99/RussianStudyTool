@@ -1,15 +1,15 @@
 ﻿#pragma once
 
-#include "states/ApplicationState.h"
+#include "ApplicationState.h"
 #include "Graphics.h"
-#include "gui/GUIManager.h"
-#include "gui/Label.h"
+#include "gui/gui.h"
 
-class TestState : public ApplicationState
+class GUIState : public ApplicationState
 {
 public:
-	TestState() {}
-	~TestState() {}
+	GUIState(Widget* widget);
+
+	GUIManager& GetGUIManager() { return m_gui; }
 
 	void OnBegin() override;
 	void OnEnd() override;

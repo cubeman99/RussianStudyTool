@@ -93,7 +93,7 @@ AccentedText & AccentedText::operator+=(const unistr & str)
 	return (*this += AccentedText(str));
 }
 
-AccentedText AccentedText::operator+(const AccentedText& other)
+AccentedText AccentedText::operator+(const AccentedText& other) const
 {
 	AccentedText result = *this;
 	uint32 length = result.m_string.length();
@@ -103,7 +103,17 @@ AccentedText AccentedText::operator+(const AccentedText& other)
 	return result;
 }
 
-AccentedText AccentedText::operator+(const unistr & str)
+AccentedText AccentedText::operator+(const unistr & str) const
+{
+	return (*this + AccentedText(str));
+}
+
+AccentedText AccentedText::operator+(const char* str) const
+{
+	return (*this + AccentedText(str));
+}
+
+AccentedText AccentedText::operator+(const unichar* str) const
 {
 	return (*this + AccentedText(str));
 }
@@ -139,7 +149,18 @@ AccentedText AccentedText::FromUTF8(const char* data)
 	return AccentedText(ConvertFromUTF8(data));
 }
 
-std::ostream& operator<<(std::ostream & out, const AccentedText & text)
+std::ostream& operator<<(std::ostream& out, const AccentedText& text)
 {
 	return text.StreamOut(out);
+}
+
+AccentedText operator+(const String& left, const AccentedText& right)
+{
+	return AccentedText(left) + right;
+}
+
+
+AccentedText operator+(const unistr& left, const AccentedText& right)
+{
+	return AccentedText(left) + right;
 }
