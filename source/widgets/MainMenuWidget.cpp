@@ -1,5 +1,6 @@
 ﻿#include "MainMenuWidget.h"
 #include "RussianApp.h"
+#include "widgets/CardSetEditWidget.h"
 #include "states/StudyState.h"
 
 MainMenuItemWidget::MainMenuItemWidget(const AccentedText& name, IStudySet* studySet) :
@@ -11,8 +12,8 @@ MainMenuItemWidget::MainMenuItemWidget(const AccentedText& name, IStudySet* stud
 	m_labelName.SetAlign(TextAlign::MIDDLE_LEFT);
 	m_labelName.SetColor(GUIConfig::color_text);
 
-	m_layout.Add(&m_labelName);
-	m_layout.Add(&m_proficiencyBar);
+	m_layout.Add(&m_labelName, 0.0f);
+	m_layout.Add(&m_proficiencyBar, 1.0f);
 	SetLayout(&m_layout);
 }
 
@@ -37,8 +38,8 @@ MainMenuWidget::MainMenuWidget(CardSetPackage::sptr package) :
 
 	m_labelTitle.SetAlign(TextAlign::MIDDLE_LEFT);
 	m_titleWidget.SetBackgroundColor(GUIConfig::color_background_light);
-	m_titleLayout.Add(&m_labelTitle);
-	m_titleLayout.Add(&m_topProficiencyBar);
+	m_titleLayout.Add(&m_labelTitle, 0.0f);
+	m_titleLayout.Add(&m_topProficiencyBar, 1.0f);
 	m_titleWidget.SetLayout(&m_titleLayout);
 
 	m_optionLayout.SetItemBackgroundColors(true);
@@ -78,6 +79,7 @@ void MainMenuWidget::SetPackage(CardSetPackage::sptr package)
 		});
 	}
 
+
 	// Sub Card Packages
 	for (auto subPackage : m_package->GetPackages())
 	{
@@ -99,7 +101,7 @@ void MainMenuWidget::SetPackage(CardSetPackage::sptr package)
 				// TODO:
 			});
 			menu->AddMenuOption("Edit", true, [this, cardSet]() {
-				// TODO:
+				GetApp()->PushState(new CardSetEditWidget(cardSet));
 			});
 			menu->AddCancelOption();
 			GetApp()->PushState(menu);
@@ -121,9 +123,9 @@ void MainMenuWidget::SetPackage(CardSetPackage::sptr package)
 MainMenuItemWidget* MainMenuWidget::AddMenuOption(
 	const AccentedText& name, IStudySet* studySet)
 {
-	MainMenuItemWidget* button = new MainMenuItemWidget(name, studySet);
-	m_optionLayout.Add(button);
-	return button;
+	MainMenuItemWidget* option = new MainMenuItemWidget(name, studySet);
+	m_optionLayout.Add(option);
+	return option;
 }
 
 void MainMenuWidget::OnUpdate(float timeDelta)

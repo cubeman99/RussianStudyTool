@@ -6,12 +6,14 @@ class Button : public Label
 {
 public:
 	Button();
-	Button(const AccentedText& text, Font::sptr font,
-		const Color& color = Color::WHITE, TextAlign align = TextAlign::TOP_LEFT);
+	Button(const AccentedText& text, Font::sptr font = nullptr,
+		const Color& color = Color::WHITE);
 
-	virtual void CalcSizes();
-	virtual void OnUpdate(float timeDelta);
-	virtual void OnRender(AppGraphics& g, float timeDelta);
+	virtual bool OnMouseDown(MouseButtons::value_type buttons, const Vector2f& location) override;
+	virtual void OnMouseUp(MouseButtons::value_type buttons, const Vector2f& location) override;
+	virtual void CalcSizes() override;
+	virtual void OnUpdate(float timeDelta) override;
+	virtual void OnRender(AppGraphics& g, float timeDelta) override;
 
 	virtual void OnPress() override { m_clicked.Emit(); }
 
@@ -19,4 +21,5 @@ public:
 
 private:
 	EventSignal<> m_clicked;
+	bool m_isDown = false;
 };

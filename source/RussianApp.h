@@ -37,6 +37,7 @@ Scheduler logic
 
 FIXME:
 accent in english vs russian causing problems with card keys
+study metrics are not correct, they are counting duplicate cards
 
 ROADMAP:
 More GUI Widgets and text editing

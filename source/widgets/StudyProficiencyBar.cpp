@@ -2,9 +2,12 @@
 
 StudyProficiencyBar::StudyProficiencyBar()
 {
-	m_layout.Add(&m_labelScore, 0.15f);
+	//m_layout.Add(&m_labelScore, 0.15f);
+	//m_layout.Add(&m_bar, 1.0f);
+	//m_layout.Add(&m_labelCount, 0.15f);
+	m_layout.Add(&m_labelScore, 1.0f);
 	m_layout.Add(&m_bar, 1.0f);
-	m_layout.Add(&m_labelCount, 0.15f);
+	m_layout.Add(&m_labelCount, 1.0f);
 	m_labelScore.SetAlign(TextAlign::MIDDLE_RIGHT);
 	m_labelCount.SetAlign(TextAlign::MIDDLE_LEFT);
 	m_layout.SetMargins(0.0f);

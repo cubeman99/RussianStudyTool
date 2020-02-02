@@ -16,10 +16,6 @@ GUIObject* AnchorLayout::GetChild(uint32 index)
 
 void AnchorLayout::CalcSizes()
 {
-	for (auto item : m_children)
-	{
-		item.object->CalcSizes();
-	}
 }
 
 void AnchorLayout::Update(float timeDelta)
@@ -71,15 +67,15 @@ void AnchorLayout::Render(AppGraphics& g, float timeDelta)
 
 void AnchorLayout::Add(const AnchorChild& item)
 {
-	item.object->SetParent(this);
 	m_children.push_back(item);
+	item.object->SetParent(this);
 }
 
 void AnchorLayout::Clear()
 {
+	m_children.clear();
 	for (auto child : m_children)
 		child.object->SetParent(nullptr);
-	m_children.clear();
 }
 
 void AnchorLayout::Add(GUIObject * child)

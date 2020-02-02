@@ -19,6 +19,7 @@ public:
 	StudySetMetrics GetStudyMetrics(CardSetPackage::sptr package);
 	StudySetMetrics GetStudySetMetrics(const IStudySet* studySet);
 
+	void SetReadOnly(bool readOnly) { m_readOnly = readOnly; }
 	void RecalcStudySetMetrics(CardSet::sptr cardSet);
 	void RecalcStudySetMetrics(CardSetPackage::sptr package);
 	StudySetMetrics& CalcStudyMetrics(CardSet::sptr cardSet);
@@ -36,15 +37,26 @@ public:
 		CardKey& outKey, CardStudyData& outCardStudyData);
 
 private:
+	void OnCardKeyChanged(Card::sptr card, CardRuKey oldKey);
+	void OnCardDeleted(Card::sptr card);
 	void OnCardStudyDataChanged(Card::sptr card);
+	void MarkDirty(bool dirty = true);
 
+	StudyDatabase(const StudyDatabase& copy) = delete;
+	StudyDatabase& operator=(const StudyDatabase& copy) = delete;
+
+private:
 	CardDatabase& m_cardDatabase;
 
 	Path m_path;
+	bool m_readOnly = false;
 
+	// TODO: use RU key
 	Map<CardKey, CardStudyData> m_cardStudyData;
 	Map<CardSet::sptr, StudySetMetrics> m_cardSetMetrics;
 	Map<CardSetPackage::sptr, StudySetMetrics> m_packageMetrics;
 
 	std::recursive_mutex m_mutexStudyData;
+	std::mutex m_mutexDity;
+	bool m_isDirty = false;
 };

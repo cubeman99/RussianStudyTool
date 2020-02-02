@@ -7,13 +7,8 @@
 #include <iostream>
 #include <string>
 #include "Macros.h"
-
-using unichar = uint16_t;
-using unistr = std::u16string;
-
-std::string ConvertToUTF8(std::u16string str);
-unistr ConvertFromUTF8(const char* data);
-unistr ConvertFromUTF8(const std::string& data);
+#include "core/Unicode.h"
+#include <regex>
 
 namespace ru
 {
@@ -100,10 +95,3 @@ DECLARE_ENUM_WITH_COUNT(Tense, ENUM_MACRO_TENSE)
 	_ex(_context, animate, , anim) \
 	_ex(_context, inanimate, , inanim)
 DECLARE_ENUM_WITH_COUNT(Animacy, ENUM_MACRO_ANIMACY)
-
-#define ENUM_MACRO_CARD_SET_TYPE(_context, _ex) \
-	_ex(_context, other, , oth) \
-	_ex(_context, categorical, , categ) \
-	_ex(_context, grammatical, , gram) \
-	_ex(_context, media, , media)
-DECLARE_ENUM_WITH_COUNT(CardSetType, ENUM_MACRO_CARD_SET_TYPE)

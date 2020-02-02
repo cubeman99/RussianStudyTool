@@ -20,6 +20,11 @@ const AccentedText & Card::GetText(Language language) const
 	return m_text.GetText(language);
 }
 
+AppTimestamp Card::GetCreationTimestamp() const
+{
+	return m_creationTimestamp;
+}
+
 CardKey Card::GetKey() const
 {
 	CardKey key;
@@ -33,48 +38,27 @@ CardKey Card::GetKey() const
 
 CardRuKey Card::GetRuKey() const
 {
-	CardRuKey key;
-	key.type = m_type;
-	key.russian = m_text.russian.GetString();
-	ru::ToLowerIP(key.russian);
-	return key;
+	return CardRuKey(m_type, m_text.russian);
 }
 
 CardEnKey Card::GetEnKey() const
 {
-	CardEnKey key;
-	key.type = m_type;
-	key.english = m_text.english.GetString();
-	key.keyTags = m_tags.GetValue(0);
-	ru::ToLowerIP(key.english);
-	return key;
+	return CardEnKey(m_type, m_text.english, m_tags);
 }
 
-bool CardKey::operator<(const CardKey & other) const
+Set<Card::sptr>& Card::GetRelatedCards()
 {
-	auto a = std::tuple<uint32, unistr, unistr>(
-		(uint32) type, russian, english);
-	auto b = std::tuple<uint32, unistr, unistr>(
-		(uint32) other.type, other.russian, other.english);
-	return a < b;
+	return m_relatedCards;
 }
 
-std::ostream & operator<<(std::ostream & out, const CardKey & key)
+EnumFlags<CardTags>& Card::GetTags()
 {
-	out << "<CardKey(" << EnumToString(key.type) << ", "
-		<< key.russian << ", " << key.english << ")>";
-	return out;
+	return m_tags;
 }
 
-std::ostream & operator<<(std::ostream & out, const CardEnKey & key)
+void Card::SetData(const CardData& data)
 {
-	out << "<CardKey(" << EnumToString(key.type) << ", " << ", "
-		<< key.english << ", " << key.keyTags << ")>";
-	return out;
-}
-
-std::ostream & operator<<(std::ostream & out, const CardRuKey & key)
-{
-	out << "<CardRuKey(" << EnumToString(key.type) << ", " << key.russian << ")>";
-	return out;
+	m_type = data.type;
+	m_text = data.text;
+	m_tags = data.tags;
 }

@@ -60,6 +60,12 @@
 	}
 
 template <typename T_Enum>
+String EnumToShortString(T_Enum value)
+{
+	return EnumToString(value, true);
+}
+
+template <typename T_Enum>
 String EnumToString(T_Enum value, bool shortName = false)
 {
 	return std::to_string((uint32) value);
@@ -82,6 +88,47 @@ bool TryStringToEnum(const String& str, T_Enum& outValue, bool shortName = false
 
 template
 <
+	class T_Flags,
+	typename T_Enum,
+	uint32 T_Count = (uint32) T_Enum::k_count,
+	typename T_Value = uint32
+>
+class EnumFlagsIterator
+{
+public:
+	using value_type = std::pair<T_Enum, bool>;
+
+	EnumFlagsIterator(const T_Flags& flags, uint32 index) :
+		m_flags(flags),
+		m_index(index)
+	{
+	}
+
+	value_type operator *() const
+	{
+		T_Enum item = (T_Enum) m_index;
+		return value_type(item, m_flags[item]);
+	}
+
+
+	bool operator !=(const EnumFlagsIterator& other) const
+	{
+		return (m_index != other.m_index);
+	}
+
+
+	const EnumFlagsIterator& operator ++()
+	{
+		++m_index;
+		return *this;
+	}
+
+	uint32 m_index;
+	const T_Flags& m_flags;
+};
+
+template
+<
 	typename T_Enum,
 	uint32 T_Count = (uint32) T_Enum::k_count,
 	typename T_Value = uint32
@@ -89,14 +136,46 @@ template
 class EnumFlags
 {
 public:
+	using this_type = EnumFlags<T_Enum, T_Count, T_Value>;
+	using iterator = EnumFlagsIterator<this_type, T_Enum, T_Count, T_Value>;
+
 	EnumFlags() {}
 	EnumFlags(T_Enum value)
 	{
 		Set(value, true);
 	}
 
+	static constexpr uint32 GetElementCount()
+	{
+		uint32 count = T_Count / s_bitsPerElement;
+		if (count % 8 != 0)
+			count++;
+		return count;
+	}
+
 	static constexpr uint32 s_bitsPerElement = sizeof(T_Value) * 8;
-	static constexpr uint32 s_arrayCount = (T_Count / s_bitsPerElement) + 1;
+	static constexpr uint32 s_arrayCount = GetElementCount();
+
+
+	iterator begin()
+	{
+		return iterator(*this, 0);
+	}
+
+	iterator end()
+	{
+		return iterator(*this, T_Count);
+	}
+
+	bool IsZero() const
+	{
+		for (uint32 i = 0; i < s_arrayCount; i++)
+		{
+			if (m_array[i] != T_Value(0))
+				return false;
+		}
+		return true;
+	}
 
 	uint32 Size() const
 	{
@@ -144,6 +223,21 @@ public:
 	bool operator >(const EnumFlags& other) const
 	{
 		return m_value > other.m_value;
+	}
+
+	bool operator==(const EnumFlags& other) const
+	{
+		for (uint32 i = 0; i < s_arrayCount; i++)
+		{
+			if (m_array[i] != other.m_array[i])
+				return false;
+		}
+		return true;
+	}
+
+	bool operator!=(const EnumFlags& other) const
+	{
+		return !(*this == other);
 	}
 
 	void Set(T_Enum item, bool enabled)

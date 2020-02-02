@@ -6,7 +6,7 @@ class Label : public Widget
 {
 public:
 	Label();
-	Label(const AccentedText& text, Font::sptr font,
+	Label(const AccentedText& text, Font::sptr font = nullptr,
 		const Color& color = GUIConfig::color_text,
 		TextAlign align = TextAlign::TOP_LEFT);
 

@@ -1,12 +1,12 @@
 ﻿#include "StudyDatabase.h"
 #include "Config.h"
-#include "rapidjson/prettywriter.h"
-#include "rapidjson/filewritestream.h"
-#include "rapidjson/document.h"
+#include "core/JsonUtility.h"
 
 StudyDatabase::StudyDatabase(CardDatabase& cardDatabase) :
 	m_cardDatabase(cardDatabase)
 {
+	m_cardDatabase.CardKeyChanged().Connect(this, &StudyDatabase::OnCardKeyChanged);
+	m_cardDatabase.CardDeleted().Connect(this, &StudyDatabase::OnCardDeleted);
 }
 
 StudyDatabase::~StudyDatabase()
@@ -83,7 +83,7 @@ void StudyDatabase::RecalcStudySetMetrics(CardSetPackage::sptr package)
 {
 	m_packageMetrics.erase(package);
 	if (package->GetParent())
-		RecalcStudySetMetrics(package);
+		RecalcStudySetMetrics(package->GetParent());
 }
 
 StudySetMetrics& StudyDatabase::CalcStudyMetrics(CardSet::sptr cardSet)
@@ -111,12 +111,12 @@ StudySetMetrics& StudyDatabase::CalcStudyMetrics(CardSetPackage::sptr package)
 	StudySetMetrics metrics;
 	for (auto cardSet : package->GetCardSets())
 	{
-		const StudySetMetrics& cardSetMetrics = CalcStudyMetrics(cardSet);
+		const StudySetMetrics& cardSetMetrics = GetStudyMetrics(cardSet);
 		metrics += cardSetMetrics;
 	}
 	for (auto subPackage : package->GetPackages())
 	{
-		const StudySetMetrics& subPackageMetrics = CalcStudyMetrics(subPackage);
+		const StudySetMetrics& subPackageMetrics = GetStudyMetrics(subPackage);
 		metrics += subPackageMetrics;
 	}
 	m_packageMetrics[package] = metrics;
@@ -175,12 +175,10 @@ Error StudyDatabase::LoadStudyData(const Path& path)
 
 	// Open the json file
 	m_path = path;
-	String json;
 	rapidjson::Document document;
-	File::OpenAndGetContents(path, json);
-	document.Parse(json.c_str());
-	if (document.HasParseError())
-		return CMG_ERROR(CommonErrorTypes::k_file_corrupt);
+	Error loadError = json::LoadDocumentFromFile(path, document);
+	if (loadError.Failed())
+		return loadError.Uncheck();
 
 	// Gather all card data
 	rapidjson::Value& cardDataList = document["cards"];
@@ -192,6 +190,7 @@ Error StudyDatabase::LoadStudyData(const Path& path)
 		m_cardStudyData[key] = studyData;
 	}
 
+	MarkDirty(false);
 	return CMG_ERROR_SUCCESS;
 }
 
@@ -202,6 +201,9 @@ Error StudyDatabase::SaveStudyData()
 
 Error StudyDatabase::SaveStudyData(const Path & path)
 {
+	if (m_readOnly)
+		return CMG_ERROR_SUCCESS;
+
 	std::lock_guard<std::recursive_mutex> guard(m_mutexStudyData);
 
 	rapidjson::Document document(rapidjson::kObjectType);
@@ -224,12 +226,7 @@ Error StudyDatabase::SaveStudyData(const Path & path)
 			historyString[studyData.m_history.size()] = '\0';
 
 			rapidjson::Value jsonStudyData(rapidjson::kArrayType);
-			jsonStudyData.PushBack(rapidjson::Value(
-				EnumToString(key.type).c_str(), allocator).Move(), allocator);
-			jsonStudyData.PushBack(rapidjson::Value(
-				ConvertToUTF8(key.russian).c_str(), allocator).Move(), allocator);
-			jsonStudyData.PushBack(rapidjson::Value(
-				ConvertToUTF8(key.english).c_str(), allocator).Move(), allocator);
+			CardDatabase::SerializeCardKey(jsonStudyData, key, allocator);
 			jsonStudyData.PushBack((int32_t) studyData.m_proficiencyLevel, allocator);
 			jsonStudyData.PushBack(studyData.m_lastEncounterTime, allocator);
 			jsonStudyData.PushBack(rapidjson::Value(
@@ -242,16 +239,8 @@ Error StudyDatabase::SaveStudyData(const Path & path)
 	document.AddMember("cards", studyDataList, allocator);
 
 	// Save to the file
-	FILE* fp;
-	fopen_s(&fp, path.c_str(), "wb");
-	char writeBuffer[65536];
-	rapidjson::FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
-	rapidjson::PrettyWriter<rapidjson::FileWriteStream> writer(os);
-	writer.SetIndent('\t', 1);
-	document.Accept(writer);
-	fclose(fp);
-
-	return CMG_ERROR_SUCCESS;
+	MarkDirty(false);
+	return json::SaveDocumentToFile(path, document);
 }
 
 Error StudyDatabase::DeserializeCardStudyData(rapidjson::Value& data,
@@ -274,10 +263,27 @@ Error StudyDatabase::DeserializeCardStudyData(rapidjson::Value& data,
 	return CMG_ERROR_SUCCESS;
 }
 
+void StudyDatabase::OnCardKeyChanged(Card::sptr card, CardRuKey oldKey)
+{
+	// TODO:
+	MarkDirty();
+}
+
+void StudyDatabase::OnCardDeleted(Card::sptr card)
+{
+	// TODO:
+	MarkDirty();
+}
+
 void StudyDatabase::OnCardStudyDataChanged(Card::sptr card)
 {
+	MarkDirty();
 	for (CardSet::sptr cardSet : m_cardDatabase.GetCardSetsWithCard(card))
-	{
 		RecalcStudySetMetrics(cardSet);
-	}
+}
+
+void StudyDatabase::MarkDirty(bool dirty)
+{
+	std::lock_guard<std::mutex> guard(m_mutexDity);
+	m_isDirty = dirty;
 }

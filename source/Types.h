@@ -10,6 +10,14 @@ class RussianStudyToolApp;
 
 using AppTimestamp = double;
 
+
+#define ENUM_MACRO_CARD_SET_TYPE(_context, _ex) \
+	_ex(_context, other, , oth) \
+	_ex(_context, categorical, , categ) \
+	_ex(_context, grammatical, , gram) \
+	_ex(_context, media, , media)
+DECLARE_ENUM_WITH_COUNT(CardSetType, ENUM_MACRO_CARD_SET_TYPE)
+
 #define ENUM_MACRO_PROFICIENCY_LEVEL(_context, _ex) \
 	_ex(_context, new, , new) \
 	_ex(_context, hard, , hard) \

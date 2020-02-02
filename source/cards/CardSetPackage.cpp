@@ -1,17 +1,36 @@
 ﻿#include "CardSetPackage.h"
 
-const Set<Card::sptr>& CardSetPackage::GetCards() const
+CardSetPackage::CardSetPackage()
+{
+}
+
+CardSetPackage::CardSetPackage(const AccentedText& name) :
+	m_name(name)
+{
+}
+
+CardSetPackage::~CardSetPackage()
+{
+}
+
+const Array<Card::sptr>& CardSetPackage::GetCards() const
 {
 	m_cards.clear();
 	for (auto package : m_packages)
 	{
 		for (Card::sptr card : package->GetCards())
-			m_cards.insert(card);
+		{
+			if (std::find(m_cards.begin(), m_cards.end(), card) == m_cards.end())
+				m_cards.push_back(card);
+		}
 	}
 	for (auto cardSet : m_cardSets)
 	{
 		for (Card::sptr card : cardSet->GetCards())
-			m_cards.insert(card);
+		{
+			if (std::find(m_cards.begin(), m_cards.end(), card) == m_cards.end())
+				m_cards.push_back(card);
+		}
 	}
 	return m_cards;
 }

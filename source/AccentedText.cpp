@@ -123,6 +123,29 @@ unichar AccentedText::operator[](uint32 index) const
 	return m_string[index];
 }
 
+bool AccentedText::operator==(const AccentedText& other) const
+{
+	return (m_string == other.m_string && m_accents == other.m_accents);
+}
+
+bool AccentedText::operator!=(const AccentedText& other) const
+{
+	return !(*this == other);
+}
+
+bool AccentedText::empty() const
+{
+	return m_string.empty();
+}
+
+unistr AccentedText::ToMarkedString() const
+{
+	unistr str = m_string;
+	for (uint32 i = 0; i < m_accents.size(); i++)
+		str.insert(m_accents[i] + i + 1, 1, ACCENT_OUTPUT_CHAR);
+	return str;
+}
+
 std::ostream& AccentedText::StreamOut(std::ostream& out) const
 {
 	return (out << ConvertToUTF8(m_string));

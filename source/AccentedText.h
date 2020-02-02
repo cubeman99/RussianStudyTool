@@ -30,10 +30,14 @@ public:
 	AccentedText operator +(const char* str) const;
 	AccentedText operator +(const unichar* str) const;
 	unichar operator [](uint32 index) const;
+	bool operator==(const AccentedText& other) const;
+	bool operator!=(const AccentedText& other) const;
 
+	bool empty() const;
 	const unistr& GetString() const { return m_string; }
 	uint32 GetAccentCount() const { return m_accents.size(); }
 	uint32 GetAccentIndex(uint32 i) const { return m_accents[i]; }
+	unistr ToMarkedString() const;
 
 	std::ostream& StreamOut(std::ostream &out) const;
 
@@ -71,6 +75,16 @@ public:
 			return english;
 		else
 			return russian;
+	}
+
+	bool operator==(const TranslationPair& other) const
+	{
+		return (english == other.english && russian == other.russian);
+	}
+
+	bool operator!=(const TranslationPair& other) const
+	{
+		return !(*this == other);
 	}
 };
 

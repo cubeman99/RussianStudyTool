@@ -10,38 +10,6 @@ namespace
 }
 
 
-std::string ConvertToUTF8(std::u16string str)
-{
-	int sizeNeeded = WideCharToMultiByte(
-		CP_UTF8, 0, (const wchar_t*) &str[0], str.size(), NULL, 0, NULL, NULL);
-	std::string result(sizeNeeded, 0);
-	WideCharToMultiByte(CP_UTF8, 0, (const wchar_t*) str.c_str(),
-		str.length(), &result[0], sizeNeeded, NULL, NULL);
-	return result;
-}
-
-unistr ConvertFromUTF8(const char* data)
-{
-	int numChars = MultiByteToWideChar(CP_UTF8, 0, data, -1, NULL, 0);
-	wchar_t* wstr = new wchar_t[numChars];
-	MultiByteToWideChar(CP_UTF8, 0, data, -1, wstr, numChars);
-	unistr result((const char16_t*) wstr);
-	delete[] wstr;
-	return result;
-}
-
-unistr ConvertFromUTF8(const std::string& str)
-{
-	size_t length = str.length();
-	wchar_t* wstr = new wchar_t[length + 1];
-	memset(wstr, 0, length + 1);
-	MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, wstr, length);
-	unistr result((const char16_t*) wstr);
-	delete[] wstr;
-	return result;
-}
-
-
 namespace ru
 {
 
@@ -156,5 +124,4 @@ DEFINE_ENUM(Case, ENUM_MACRO_CASE)
 DEFINE_ENUM(Aspect, ENUM_MACRO_ASPECT)
 DEFINE_ENUM(Tense, ENUM_MACRO_TENSE)
 DEFINE_ENUM(Animacy, ENUM_MACRO_ANIMACY)
-DEFINE_ENUM(CardSetType, ENUM_MACRO_CARD_SET_TYPE)
 

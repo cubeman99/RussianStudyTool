@@ -9,7 +9,7 @@ public:
 	virtual ~IStudySet() {}
 
 	virtual const AccentedText& GetName() const = 0;
-	virtual const Set<Card::sptr>& GetCards() const = 0;
+	virtual const Array<Card::sptr>& GetCards() const = 0;
 };
 
 
@@ -25,12 +25,12 @@ public:
 	virtual ~StudySet() {}
 
 	virtual const AccentedText& GetName() const override { return m_name; }
-	virtual const Set<Card::sptr>& GetCards() const override { return m_cards; }
-	Set<Card::sptr>& GetCards() { return m_cards; }
+	virtual const Array<Card::sptr>& GetCards() const override { return m_cards; }
+	Array<Card::sptr>& GetCards() { return m_cards; }
 
 	void AddCard(Card::sptr card);
 
 private:
 	AccentedText m_name;
-	Set<Card::sptr> m_cards;
+	Array<Card::sptr> m_cards;
 };

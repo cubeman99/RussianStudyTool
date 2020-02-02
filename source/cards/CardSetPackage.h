@@ -9,14 +9,12 @@ public:
 	friend class CardDatabase;
 	using sptr = cmg::shared_ptr<CardSetPackage>;
 
-	CardSetPackage() {}
-	CardSetPackage(const AccentedText& name) :
-		m_name(name)
-	{}
-	virtual ~CardSetPackage() {}
+	CardSetPackage();
+	CardSetPackage(const AccentedText& name);
+	virtual ~CardSetPackage();
 
 	virtual const AccentedText& GetName() const override { return m_name; }
-	virtual const Set<Card::sptr>& GetCards() const override;
+	virtual const Array<Card::sptr>& GetCards() const override;
 
 	const unistr& GetKey() const { return m_key; }
 	const Path& GetPath() const { return m_path; }
@@ -37,5 +35,5 @@ private:
 	Array<CardSet::sptr> m_cardSets;
 
 	// Cached
-	mutable Set<Card::sptr> m_cards;
+	mutable Array<Card::sptr> m_cards;
 };

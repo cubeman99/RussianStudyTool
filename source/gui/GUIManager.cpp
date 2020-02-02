@@ -17,6 +17,8 @@ void GUIManager::SetApplication(Application * app)
 void GUIManager::SetRootWidget(Widget* rootWidget)
 {
 	m_rootWidget = rootWidget;
+	if (rootWidget)
+		InitializeObjects(rootWidget);
 }
 
 Widget* GUIManager::GetRootWidget()
@@ -24,7 +26,8 @@ Widget* GUIManager::GetRootWidget()
 	return m_rootWidget;
 }
 
-void GUIManager::GetFocusableWidgets(GUIObject* object, Array<Widget*>& outWidgets)
+void GUIManager::GetFocusableWidgets(GUIObject* object,
+	Array<Widget*>& outWidgets)
 {
 	if (object->IsWidget())
 	{
@@ -40,6 +43,30 @@ void GUIManager::GetFocusableWidgets(GUIObject* object, Array<Widget*>& outWidge
 		if (child)
 			GetFocusableWidgets(child, outWidgets);
 	}
+}
+
+Widget* GUIManager::GetWidgetAtPoint(const Vector2f& point)
+{
+	return GetWidgetAtPoint(m_rootWidget, point);
+}
+
+Widget* GUIManager::GetWidgetAtPoint(GUIObject* object, const Vector2f& point)
+{
+	uint32 numChildren = object->GetNumChildren();
+	for (uint32 i = 0; i < numChildren; i++)
+	{
+		auto child = object->GetChild(i);
+		if (child && child->IsEnabled() && child->IsVisible())
+		{
+			Widget* widget = GetWidgetAtPoint(child, point);
+			if (widget)
+				return widget;
+		}
+	}
+
+	if (object->IsWidget() && object->IsEnabled() && object->IsVisible())
+		return (Widget*) object;
+	return nullptr;
 }
 
 Widget* GUIManager::CycleFocus(bool reverse)
@@ -87,6 +114,49 @@ void GUIManager::SetFocus(Widget* widget)
 		m_focusedWidget->m_isFocused = true;
 }
 
+void GUIManager::OnMouseDown(Window::MouseDownEvent* e)
+{
+	m_mouseDownWidgets.clear();
+	TriggerMouseDown(m_rootWidget, e);
+}
+
+void GUIManager::OnMouseUp(Window::MouseUpEvent * e)
+{
+	for (Widget* widget : m_mouseDownWidgets)
+		widget->OnMouseUp(e->button, Vector2f(e->location));
+	m_mouseDownWidgets.clear();
+}
+
+bool GUIManager::TriggerMouseDown(GUIObject* object, Window::MouseDownEvent* e)
+{
+	uint32 numChildren = object->GetNumChildren();
+	for (uint32 i = 0; i < numChildren; i++)
+	{
+		auto child = object->GetChild(i);
+		if (child && child->IsEnabled() && child->IsVisible())
+		{
+			if (TriggerMouseDown(child, e))
+				return true;
+		}
+	}
+
+	if (object->IsWidget() && object->IsEnabled() && object->IsVisible() &&
+		object->GetBounds().Contains(Vector2f(e->location)))
+	{
+		Widget* widget = (Widget*) object;
+		bool captured = widget->OnMouseDown(e->button, Vector2f(e->location));
+		if (widget->IsFocusable())
+		{
+			SetFocus(widget);
+			captured = true;
+		}
+		m_mouseDownWidgets.push_back(widget);
+		return captured;
+	}
+
+	return false;
+}
+
 void GUIManager::OnKeyDown(Window::KeyDownEvent* e)
 {
 	if (m_focusedWidget)
@@ -123,11 +193,36 @@ void GUIManager::Begin()
 {
 	m_app->GetEventManager()->Subscribe(this, &GUIManager::OnKeyTyped);
 	m_app->GetEventManager()->Subscribe(this, &GUIManager::OnKeyDown);
+	m_app->GetEventManager()->Subscribe(this, &GUIManager::OnMouseDown);
+	m_app->GetEventManager()->Subscribe(this, &GUIManager::OnMouseUp);
 }
 
 void GUIManager::End()
 {
 	//m_app->GetEventManager()->UnsubscribeAll(this);
+}
+
+void GUIManager::InitializeObjects(GUIObject* object)
+{
+	object->m_guiManager = this;
+	IterateObjects(object, [this](GUIObject* childObject) {
+		childObject->m_guiManager = this;
+		return false;
+	});
+}
+
+void GUIManager::UninitializeObjects(GUIObject* object)
+{
+	// TODO: GUIObject garbage collection?
+	// Would need to know how it was allocated.
+
+	// Move focus if focus object was removed
+	if (m_focusedWidget == object)
+	{
+		m_focusedWidget->m_isFocused = false;
+		GetFocusableWidgets(m_rootWidget, m_focusableWidgets);
+		CycleFocus(false);
+	}
 }
 
 void GUIManager::Update(float timeDelta)
@@ -214,7 +309,7 @@ void GUIManager::Update(float timeDelta)
 		}
 
 		m_rootWidget->m_bounds = m_bounds;
-		m_rootWidget->CalcSizes();
+		CalcSizes(m_rootWidget);
 		m_rootWidget->m_bounds = m_bounds;
 		m_rootWidget->Update(timeDelta);
 	}
@@ -239,4 +334,16 @@ void GUIManager::Render(AppGraphics& g, float timeDelta)
 		b[1 - axis] = bounds.GetBottomRight()[1 - axis];
 		g.DrawLine(a, b, GUIConfig::color_outline_focused, 2.0f);
 	}
+}
+
+void GUIManager::CalcSizes(GUIObject* object)
+{
+	uint32 numChildren = object->GetNumChildren();
+	for (uint32 i = 0; i < numChildren; i++)
+	{
+		GUIObject* child = object->GetChild(i);
+		if (child)
+			CalcSizes(child);
+	}
+	object->CalcSizes();
 }

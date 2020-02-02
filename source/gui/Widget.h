@@ -26,7 +26,6 @@ public:
 	Layout* GetLayout() const { return m_layout; }
 	bool IsFocused() const { return m_isFocused; }
 	bool IsFocusable() const { return m_isFocusable; }
-	bool IsEnabled() const { return m_isEnabled; }
 
 	void SetLayout(Layout* layout);
 	void SetWindowTitle(const AccentedText& windowTitle) { m_windowTitle = windowTitle; }
@@ -35,7 +34,10 @@ public:
 	void SetFocusable(bool focusable) { m_isFocusable = focusable; }
 	void SetBackgroundColor(const Color& backgroundColor) { m_backgroundColor = backgroundColor; }
 	void Close();
+	void Focus();
 
+	virtual bool OnMouseDown(MouseButtons::value_type buttons, const Vector2f& location) { return false; }
+	virtual void OnMouseUp(MouseButtons::value_type buttons, const Vector2f& location) {}
 	virtual void OnKeyDown(Keys key, uint32 mods) {}
 	virtual void OnKeyTyped(unichar charCode, Keys key, uint32 mods) {}
 	virtual void OnUpdate(float timeDelta) {}
@@ -43,6 +45,7 @@ public:
 
 	virtual bool IsWidget() const override { return true; }
 	virtual bool IsVisible() const override { return m_isVisible; }
+	virtual bool IsEnabled() const override { return m_isEnabled; }
 	virtual uint32 GetNumChildren() const override;
 	virtual GUIObject* GetChild(uint32 index) override;
 	virtual void CalcSizes() override;

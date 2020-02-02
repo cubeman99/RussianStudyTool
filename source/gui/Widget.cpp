@@ -1,5 +1,6 @@
 ﻿#include "Widget.h"
 #include "Layout.h"
+#include "GUIManager.h"
 
 Widget::Widget()
 {
@@ -23,9 +24,18 @@ void Widget::Close()
 	m_isVisible = false;
 }
 
+void Widget::Focus()
+{
+	if (m_guiManager && m_isFocusable && !m_isFocused
+		&& m_isEnabled && m_isVisible)
+	{
+		m_guiManager->SetFocus(this);
+	}
+}
+
 uint32 Widget::GetNumChildren() const
 {
-	return 1;
+	return (m_layout ? 1 : 0);
 }
 
 GUIObject* Widget::GetChild(uint32 index)
@@ -38,8 +48,8 @@ void Widget::CalcSizes()
 {
 	if (m_layout)
 	{
-		m_layout->SetBounds(m_bounds);
-		m_layout->CalcSizes();
+		m_minSize = m_layout->GetMinSize();
+		m_maxSize = m_layout->GetMaxSize();
 	}
 }
 
@@ -68,6 +78,11 @@ void Widget::Render(AppGraphics& g, float timeDelta)
 
 	if (m_isFocused)
 		g.DrawRect(m_bounds, GUIConfig::color_outline_focused);
-	//else
-	//	g.DrawRect(m_bounds, GUIConfig::color_outline);
+	else
+		g.DrawRect(m_bounds, GUIConfig::color_outline);
+
+	if (!m_isEnabled)
+	{
+		g.FillRect(m_bounds, GUIConfig::color_background * 0.5f);
+	}
 }

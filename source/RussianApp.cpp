@@ -2,9 +2,19 @@
 #include "Resources.h"
 #include "states/GUIState.h"
 #include "widgets/CardSearchWidget.h"
+#include "widgets/TestWidget.h"
+#include "widgets/CardSetEditWidget.h"
+
+// Comment this out to use the REAL card dataset
+#define USE_TEST_DATA
 
 static const Path g_assetsPath = "../assets";
-static const Path g_cardSetRootPath = "../assets/data/cards";
+
+#ifdef USE_TEST_DATA
+static const Path g_dataPath = g_assetsPath / "data";
+#else
+static const Path g_dataPath = "C:/workspace/python/russian-study-tool/data";
+#endif
 
 RussianStudyToolApp* RussianStudyToolApp::s_instance = nullptr;
 
@@ -46,15 +56,24 @@ void RussianStudyToolApp::OnInitialize()
 	//resourceManager->LoadBuiltInFont(m_font, BuiltInFonts::FONT_CONSOLE);
 	resourceManager->LoadFont(m_font, Res::FONT, 14, 0x20, 0x500);
 
-	m_studyDatabase.LoadStudyData(g_assetsPath / "data/study_data.json");
-	m_cardDatabase.LoadCardData(g_assetsPath / "data/cards.json");
-	m_cardDatabase.LoadCardSets(g_cardSetRootPath);
+#ifndef USE_TEST_DATA
+	m_studyDatabase.SetReadOnly(true);
+#endif
 
-	//StudySet::sptr studySet = m_cardDatabase.GetCardSet(CardSetKey(u"cars & automotive"));
+	// Load all datasets
+	m_studyDatabase.LoadStudyData(g_dataPath / "study_data.yaml");
+	m_cardDatabase.LoadCardData(g_dataPath / "card_data.yaml");
+	m_cardDatabase.LoadCardSets(g_dataPath / "cards");
+
+	CardSet::sptr cardSet = m_cardDatabase.GetCardSet(CardSetKey(u"common words"));
 
 	m_mainMenuWidget = new MainMenuWidget(m_cardDatabase.GetRootPackage());
-	m_stateStack.Push(new GUIState(m_mainMenuWidget));
+	PushState(new GUIState(m_mainMenuWidget));
+	PushState(new CardSetEditWidget(cardSet));
 	//PushState(new CardSearchWidget());
+	//PushState(new TestWidget());
+
+	//m_cardDatabase.SaveCardData();
 
 	m_stateStack.Begin(this);
 

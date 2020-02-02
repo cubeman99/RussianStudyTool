@@ -23,6 +23,7 @@ int main(int argc, char* argv[])
 
 	Random::SeedTime();
 	cmg::core::console::EnableUnicode();
+	Config::Initialize();
 
 	/*
 	

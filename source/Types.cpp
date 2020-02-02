@@ -1,9 +1,9 @@
 ﻿#include "Types.h"
 #include <chrono>
 
-DEFINE_ENUM(CardTags, ENUM_MACRO_CARD_TAG)
 DEFINE_ENUM(ProficiencyLevel, ENUM_MACRO_PROFICIENCY_LEVEL)
-
+DEFINE_ENUM(CardSetType, ENUM_MACRO_CARD_SET_TYPE)
+DEFINE_ENUM(CardTags, ENUM_MACRO_CARD_TAG)
 
 AppTimestamp GetAppTimestamp()
 {

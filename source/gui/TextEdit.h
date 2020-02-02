@@ -6,12 +6,17 @@ class TextEdit : public Widget
 {
 public:
 	TextEdit();
-	TextEdit(const unistr& text, Font::sptr font);
+	TextEdit(const String& text);
+	TextEdit(const char* text);
+	TextEdit(const AccentedText& text);
+	TextEdit(const unistr& text, Font::sptr font = nullptr);
 
 	bool HasSelection() const;
-	const AccentedText& GetText() const { return m_text; }
+	const unistr& GetText() const { return m_text; }
 
 	void SetText(const unistr& text);
+	void SetText(const AccentedText& text);
+	void SetCursorPosition(uint32 cursorPosition);
 	void SetBackgroundText(const unistr& text);
 	void SetFont(Font::sptr font) { m_font = font; }
 	void Deselect();

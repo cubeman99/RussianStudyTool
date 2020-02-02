@@ -7,7 +7,28 @@
 #include "Config.h"
 
 class Layout;
+class GUIManager;
+class GUIObject;
 
+
+class GUIObjectIterator
+{
+public:
+	using value_type = GUIObject*;
+
+	GUIObjectIterator(GUIObject* object);
+
+	GUIObject* operator->() const;
+	GUIObject* operator*() const;
+	GUIObjectIterator& operator++();
+	GUIObjectIterator operator++(int);
+	bool operator==(const GUIObjectIterator& other) const;
+	bool operator!=(const GUIObjectIterator& other) const;
+
+private:
+	GUIObject* m_object = nullptr;
+	Array<uint32> m_indices;
+};
 
 class GUIObject : public cmg::EventSubscriber
 {
@@ -15,6 +36,8 @@ public:
 	friend class Widget;
 	friend class Layout;
 	friend class GUIManager;
+
+	using iterator = GUIObjectIterator;
 
 	GUIObject();
 	virtual ~GUIObject();
@@ -29,6 +52,7 @@ public:
 
 	virtual bool IsWidget() const { return false; }
 	virtual bool IsVisible() const { return true; }
+	virtual bool IsEnabled() const { return true; }
 	void SetParent(GUIObject* parent);
 	void SetBounds(const Rect2f& bounds);
 
@@ -37,9 +61,13 @@ public:
 	virtual void Update(float timeDelta) = 0;
 	virtual void Render(AppGraphics& g, float timeDelta) = 0;
 
+	GUIObjectIterator objects_begin();
+	GUIObjectIterator objects_end();
+
 protected:
 	static constexpr float DEFAULT_MAX_SIZE = 16777215;
 
+	GUIManager* m_guiManager = nullptr;
 	GUIObject* m_parent = nullptr;
 	Rect2f m_bounds = Rect2f::ZERO;
 	Vector2f m_minSize = Vector2f(10, 10);

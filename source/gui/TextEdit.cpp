@@ -2,7 +2,22 @@
 #include "RussianApp.h"
 
 TextEdit::TextEdit() :
-	TextEdit(u"Hello, Привет!", nullptr)
+	TextEdit(u"", nullptr)
+{
+}
+
+TextEdit::TextEdit(const String& text) :
+	TextEdit(ConvertFromUTF8(text))
+{
+}
+
+TextEdit::TextEdit(const char* text) :
+	TextEdit(ConvertFromUTF8(text))
+{
+}
+
+TextEdit::TextEdit(const AccentedText& text) :
+	TextEdit(text.ToMarkedString())
 {
 }
 
@@ -31,6 +46,16 @@ void TextEdit::SetText(const unistr& text)
 	m_text = text;
 	m_cursorPosition = m_text.length();
 	m_cursorTimer = 0.0f;
+}
+
+void TextEdit::SetText(const AccentedText& text)
+{
+	SetText(text.ToMarkedString());
+}
+
+void TextEdit::SetCursorPosition(uint32 cursorPosition)
+{
+	m_cursorPosition = Math::Min(cursorPosition, m_text.length());
 }
 
 void TextEdit::SetBackgroundText(const unistr& text)

@@ -9,6 +9,7 @@ public:
 
 	void Clear();
 	void Add(GUIObject* child, float stretch = 0.0f);
+	void AddStretch(float stretch = 1.0f);
 
 	void SetSpacing(float spacing);
 	void SetMargins(float margins);
@@ -30,6 +31,8 @@ private:
 		// used internally for layout
 		float offset = 0.0f;
 		float size = 0.0f;
+		bool isMaxed = false;
+		bool isMinned = false;
 	};
 
 	bool m_showBackgroundColors = false;
@@ -45,6 +48,14 @@ class HBoxLayout : public BoxLayout
 {
 public:
 	HBoxLayout();
+
+	template <class... T>
+	HBoxLayout(const Array<GUIObject*>& children) :
+		HBoxLayout()
+	{
+		for (GUIObject* child : children)
+			Add(child);
+	}
 };
 
 
@@ -52,4 +63,12 @@ class VBoxLayout : public BoxLayout
 {
 public:
 	VBoxLayout();
+
+	template <class... T>
+	VBoxLayout(const Array<GUIObject*>& children) :
+		VBoxLayout()
+	{
+		for (GUIObject* child : children)
+			Add(child);
+	}
 };
