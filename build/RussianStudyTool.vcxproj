@@ -14,14 +14,18 @@
     <ClCompile Include="..\source\AccentedText.cpp" />
     <ClCompile Include="..\source\cards\Card.cpp" />
     <ClCompile Include="..\source\cards\CardDatabase.cpp" />
+    <ClCompile Include="..\source\cards\CardKey.cpp" />
     <ClCompile Include="..\source\cards\CardSet.cpp" />
     <ClCompile Include="..\source\cards\CardSetPackage.cpp" />
     <ClCompile Include="..\source\cards\StudySet.cpp" />
     <ClCompile Include="..\source\Config.cpp" />
+    <ClCompile Include="..\source\core\JsonUtility.cpp" />
+    <ClCompile Include="..\source\core\Unicode.cpp" />
     <ClCompile Include="..\source\gui\BoxLayout.cpp" />
     <ClCompile Include="..\source\gui\AnchorLayout.cpp" />
     <ClCompile Include="..\source\gui\Button.cpp" />
     <ClCompile Include="..\source\gui\Events.cpp" />
+    <ClCompile Include="..\source\gui\GridLayout.cpp" />
     <ClCompile Include="..\source\gui\GUIManager.cpp" />
     <ClCompile Include="..\source\gui\GUIObject.cpp" />
     <ClCompile Include="..\source\gui\TextEdit.cpp" />
@@ -45,22 +49,29 @@
     <ClCompile Include="..\source\Types.cpp" />
     <ClCompile Include="..\source\widgets\AppWidget.cpp" />
     <ClCompile Include="..\source\widgets\CardSearchWidget.cpp" />
+    <ClCompile Include="..\source\widgets\CardSetEditWidget.cpp" />
+    <ClCompile Include="..\source\widgets\GenericTableWidget.cpp" />
     <ClCompile Include="..\source\widgets\MainMenuWidget.cpp" />
     <ClCompile Include="..\source\widgets\MenuWidget.cpp" />
     <ClCompile Include="..\source\widgets\StudyProficiencyBar.cpp" />
+    <ClCompile Include="..\source\widgets\TestWidget.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\AccentedText.h" />
     <ClInclude Include="..\source\cards\Card.h" />
     <ClInclude Include="..\source\cards\CardDatabase.h" />
+    <ClInclude Include="..\source\cards\CardKey.h" />
     <ClInclude Include="..\source\cards\CardSet.h" />
     <ClInclude Include="..\source\cards\CardSetPackage.h" />
     <ClInclude Include="..\source\cards\StudySet.h" />
     <ClInclude Include="..\source\Config.h" />
+    <ClInclude Include="..\source\core\JsonUtility.h" />
+    <ClInclude Include="..\source\core\Unicode.h" />
     <ClInclude Include="..\source\gui\BoxLayout.h" />
     <ClInclude Include="..\source\gui\AnchorLayout.h" />
     <ClInclude Include="..\source\gui\Button.h" />
     <ClInclude Include="..\source\gui\Events.h" />
+    <ClInclude Include="..\source\gui\GridLayout.h" />
     <ClInclude Include="..\source\gui\gui.h" />
     <ClInclude Include="..\source\gui\GUIManager.h" />
     <ClInclude Include="..\source\gui\GUIObject.h" />
@@ -86,9 +97,12 @@
     <ClInclude Include="..\source\Types.h" />
     <ClInclude Include="..\source\widgets\AppWidget.h" />
     <ClInclude Include="..\source\widgets\CardSearchWidget.h" />
+    <ClInclude Include="..\source\widgets\CardSetEditWidget.h" />
+    <ClInclude Include="..\source\widgets\GenericTableWidget.h" />
     <ClInclude Include="..\source\widgets\MainMenuWidget.h" />
     <ClInclude Include="..\source\widgets\MenuWidget.h" />
     <ClInclude Include="..\source\widgets\StudyProficiencyBar.h" />
+    <ClInclude Include="..\source\widgets\TestWidget.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{142D2E50-20DD-4504-BEDF-5A1296D97DB2}</ProjectGuid>

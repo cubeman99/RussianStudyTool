@@ -153,6 +153,27 @@
     <ClCompile Include="..\source\widgets\CardSearchWidget.cpp">
       <Filter>Source Files\widgets</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\widgets\GenericTableWidget.cpp">
+      <Filter>Source Files\widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\gui\GridLayout.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\widgets\CardSetEditWidget.cpp">
+      <Filter>Source Files\widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\widgets\TestWidget.cpp">
+      <Filter>Source Files\widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\core\Unicode.cpp">
+      <Filter>Source Files\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\core\JsonUtility.cpp">
+      <Filter>Source Files\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\cards\CardKey.cpp">
+      <Filter>Source Files\cards</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\states\StudyState.h">
@@ -271,6 +292,27 @@
     </ClInclude>
     <ClInclude Include="..\source\widgets\CardSearchWidget.h">
       <Filter>Source Files\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\GenericTableWidget.h">
+      <Filter>Source Files\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\gui\GridLayout.h">
+      <Filter>Source Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\CardSetEditWidget.h">
+      <Filter>Source Files\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\TestWidget.h">
+      <Filter>Source Files\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\core\Unicode.h">
+      <Filter>Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\core\JsonUtility.h">
+      <Filter>Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\cards\CardKey.h">
+      <Filter>Source Files\cards</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
