@@ -169,6 +169,14 @@ void GUIManager::OnKeyDown(Window::KeyDownEvent* e)
 			mods |= KeyMods::k_control;
 		if (keyboard->IsKeyDown(Keys::left_alt) || keyboard->IsKeyDown(Keys::right_alt))
 			mods |= KeyMods::k_alt;
+		for (const auto& shortcut : m_focusedWidget->m_keyShortcuts)
+		{
+			if (shortcut.Matches(e->key, mods))
+			{
+				if (shortcut.GetCallback()())
+					return;
+			}
+		}
 		m_focusedWidget->OnKeyDown(e->key, mods);
 	}
 }

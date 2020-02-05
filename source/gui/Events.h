@@ -7,11 +7,11 @@
 #include <functional>
 
 // This is the interface for MemberFunctionHandler that each specialization will use
-template <typename... T_Args>
+template <typename T_Return, typename... T_Args>
 class EventHandlerFunctionBase
 {
 public:
-	virtual void Call(T_Args... args) = 0;
+	virtual T_Return Call(T_Args... args) = 0;
 	virtual void* GetInstance()
 	{
 		return nullptr;
@@ -19,11 +19,11 @@ public:
 };
 
 
-template<class T_Instance, typename... T_Args>
-class MemberFunctionHandler : public EventHandlerFunctionBase<T_Args...>
+template<class T_Instance, typename T_Return, typename... T_Args>
+class MemberFunctionHandler : public EventHandlerFunctionBase<T_Return, T_Args...>
 {
 public:
-	typedef void (T_Instance::*MemberFunction)(T_Args...);
+	typedef T_Return (T_Instance::*MemberFunction)(T_Args...);
 
 	MemberFunctionHandler(T_Instance* instance, MemberFunction memberFunction) :
 		m_instance{instance},
@@ -31,9 +31,9 @@ public:
 	{
 	}
 
-	virtual void Call(T_Args... args) override
+	virtual T_Return Call(T_Args... args) override
 	{
-		(m_instance->*m_memberFunction)(args...);
+		return (m_instance->*m_memberFunction)(args...);
 	}
 
 	void* GetInstance() override
@@ -50,11 +50,11 @@ private:
 };
 
 
-template<typename... T_Args>
-class StaticFunctionHandler : public EventHandlerFunctionBase<T_Args...>
+template<typename T_Return, typename... T_Args>
+class StaticFunctionHandler : public EventHandlerFunctionBase<T_Return, T_Args...>
 {
 public:
-	using StaticFunction = std::function<void(T_Args...)>;
+	using StaticFunction = std::function<T_Return(T_Args...)>;
 
 	template <typename T_Function>
 	StaticFunctionHandler(T_Function& function) :
@@ -62,13 +62,13 @@ public:
 	{
 	}
 
-	virtual void Call(T_Args... args) override
+	virtual T_Return Call(T_Args... args) override
 	{
-		m_staticFunction(args...);
+		return m_staticFunction(args...);
 	}
 
 private:
-	std::function<void(T_Args...)> m_staticFunction;
+	StaticFunction m_staticFunction;
 };
 
 
@@ -93,21 +93,21 @@ public:
 	template <typename T_Function>
 	void Connect(T_Function& function)
 	{
-		m_handlers.push_back(new StaticFunctionHandler<T_Args...>(
+		m_handlers.push_back(new StaticFunctionHandler<void, T_Args...>(
 			function));
 	}
 
 	template<class T_Instance>
 	void Connect(T_Instance& instance, void (T_Instance::*memberFunction)(T_Args...))
 	{
-		m_handlers.push_back(new MemberFunctionHandler<T_Instance, T_Args...>(
+		m_handlers.push_back(new MemberFunctionHandler<T_Instance, void, T_Args...>(
 			&instance, memberFunction));
 	}
 
 	template<class T_Instance>
 	void Connect(T_Instance* instance, void (T_Instance::*memberFunction)(T_Args...))
 	{
-		m_handlers.push_back(new MemberFunctionHandler<T_Instance, T_Args...>(
+		m_handlers.push_back(new MemberFunctionHandler<T_Instance, void, T_Args...>(
 			instance, memberFunction));
 	}
 
@@ -120,5 +120,5 @@ public:
 	}
 
 private:
-	std::list<EventHandlerFunctionBase<T_Args...>*> m_handlers;
+	std::list<EventHandlerFunctionBase<void, T_Args...>*> m_handlers;
 };

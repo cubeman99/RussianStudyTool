@@ -41,7 +41,12 @@ CardSearchWidget::CardSearchWidget() :
 	OnSearchTextChanged();
 }
 
-void CardSearchWidget::OnSearchTextChanged()
+void CardSearchWidget::SetSearchText(const unistr& text)
+{
+	m_inputSearch.SetText(text);
+}
+
+void CardSearchWidget::RefreshResults()
 {
 	unistr searchText = m_inputSearch.GetText();
 	ru::ToLowerIP(searchText);
@@ -49,17 +54,35 @@ void CardSearchWidget::OnSearchTextChanged()
 	auto& cards = GetApp()->GetCardDatabase().GetCards();
 
 	uint32 resultCount = 0;
-	for (auto it : cards)
+	if (!searchText.empty())
 	{
-		Card::sptr card = it.second;
-		CardKey key = card->GetKey();
-		if (key.english.find(searchText) != unistr::npos ||
-			key.russian.find(searchText) != unistr::npos)
+		for (auto it : cards)
 		{
-			m_table.AddItem(card);
-			resultCount++;
+			Card::sptr card = it.second;
+			CardKey key = card->GetKey();
+			if (key.english.find(searchText) != unistr::npos ||
+				key.russian.find(searchText) != unistr::npos)
+			{
+				if (!m_filterFunction || m_filterFunction->Call(card))
+				{
+					m_table.AddItem(card);
+					resultCount++;
+				}
+			}
 		}
 	}
 
 	m_labelResultCount.SetText(std::to_string(resultCount));
+}
+
+void CardSearchWidget::OnSearchTextChanged()
+{
+	RefreshResults();
+}
+
+Card::sptr CardSearchWidget::GetTopResult()
+{
+	if (m_table.GetCount() > 0)
+		return m_table.GetItem(0);
+	return nullptr;
 }

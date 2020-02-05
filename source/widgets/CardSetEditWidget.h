@@ -3,8 +3,9 @@
 #include "widgets/CardSearchWidget.h"
 #include "cards/CardSet.h"
 
-struct CardRow
+class CardRow
 {
+public:
 	using sptr = cmg::shared_ptr<CardRow>;
 
 	bool IsEmpty() const;
@@ -17,24 +18,26 @@ struct CardRow
 	AccentedText GetEnglish() const;
 
 	void Initialize();
-	void OnRussianChanged();
-	void OnEnglishChanged();
-	void OnTypeChanged();
-	void RefreshAll();
-	void RefreshType();
-	void RefreshRussian();
-	void RefreshEnglish();
 	void UpdateState();
-	void OnModified();
+	void Refresh();
 
+private:
+	void OnTypeModified();
+	void OnEnglishModified();
+	void OnRussianModified();
+
+public:
 	Card::sptr m_card;
 	bool m_isNewCard = false;
+	bool m_isNewToSet = false;
 	RussianStudyToolApp* m_app = nullptr;
 	CardSet::sptr m_cardSet;
 
+	EnumFlags<CardTags> m_cardTags;
 	TextEdit* m_inputRussian = nullptr;
 	TextEdit* m_inputEnglish = nullptr;
 	TextEdit* m_inputType = nullptr;
+	TextEdit* m_inputCardTags = nullptr;
 	Button* m_buttonEdit = nullptr;
 	Button* m_buttonRemove = nullptr;
 	EventSignal<> typeModified;
@@ -44,15 +47,16 @@ struct CardRow
 
 	// Cached
 	WordType m_wordType;
+	TranslationPair m_text;
 	CardRuKey m_ruKey;
 	CardEnKey m_enKey;
-	TranslationPair m_text;
 	bool m_isModified = false;
 	bool m_validType = false;
 	bool m_validRussian = false;
 	bool m_validEnglish = false;
 	bool m_isEnKeyUnique = true;
 	bool m_isRuKeyUnique = true;
+	bool m_isEmpty = true;
 };
 
 class CardSetEditWidget : public AppWidget
@@ -61,22 +65,24 @@ public:
 	CardSetEditWidget(CardSet::sptr cardSet);
 
 	void SelectCardSet(CardSet::sptr cardSet);
-	CardRow::sptr AddCard(Card::sptr card);
-	CardRow::sptr AddEmptyRow();
+	CardRow::sptr AddCard(Card::sptr card, int32 index = - 1);
+	CardRow::sptr AddEmptyRow(int32 index = -1);
 	void ApplyChanges();
 	void Refresh();
 
 private:
 	bool IsEnglishKeyUnique(Card::sptr card, const CardEnKey& key);
 	bool IsRussianKeyUnique(Card::sptr card, const CardRuKey& key);
-	void AddRow(CardRow::sptr row);
-	void OnRemoveRow(CardRow::sptr row);
+	void AddRow(CardRow::sptr row, int32 index = -1);
+	void RemoveRow(CardRow::sptr row);
 	void OnCardEdited(CardRow::sptr row);
 	CardRow::sptr GetOrCreateAdjacentRow(CardRow::sptr row, bool previous);
 	CardRow::sptr GetOrCreateRow(uint32 index);
+	CardRow::sptr AutoCompleteRow(CardRow::sptr row);
 
 	CardSet::sptr m_cardSet;
-	VBoxLayout m_mainLayout;
+	VBoxLayout m_setEditLayout;
+	HBoxLayout m_mainLayout;
 	HBoxLayout m_layoutName;
 	HBoxLayout m_layoutType;
 	Button m_buttonSave;

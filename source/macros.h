@@ -110,7 +110,6 @@ public:
 		return value_type(item, m_flags[item]);
 	}
 
-
 	bool operator !=(const EnumFlagsIterator& other) const
 	{
 		return (m_index != other.m_index);
@@ -123,6 +122,7 @@ public:
 		return *this;
 	}
 
+private:
 	uint32 m_index;
 	const T_Flags& m_flags;
 };
@@ -248,6 +248,11 @@ public:
 			m_array[index] |= (T_Value(1) << bit);
 		else
 			m_array[index] &= ~(T_Value(1) << bit);
+	}
+
+	void Toggle(T_Enum item)
+	{
+		Set(item, !(*this)[item]);
 	}
 
 	EnumFlags& operator |=(const EnumFlags& other)

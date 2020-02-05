@@ -20,6 +20,7 @@ public:
 	void Clear();
 	void AddItem(T_Item item);
 	void RemoveItem(T_Item item);
+	void InsertItem(uint32 index, T_Item item);
 
 private:
 	struct Column
@@ -98,15 +99,21 @@ inline void GenericTableWidget<T_Item>::Clear()
 template <class T_Item>
 inline void GenericTableWidget<T_Item>::AddItem(T_Item item)
 {
-	uint32 rowIndex = m_items.size() + 1;
-	m_items.push_back(item);
+	InsertItem(m_items.size(), item);
+}
+
+template<class T_Item>
+inline void GenericTableWidget<T_Item>::InsertItem(uint32 index, T_Item item)
+{
+	m_items.insert(m_items.begin() + index, item);
+	m_gridLayout.InsertRow(index + 1);
 	for (uint32 columnIndex = 0; columnIndex < m_columns.size(); columnIndex++)
 	{
 		Column& column = m_columns[columnIndex];
 		if (column.createFunction)
 		{
 			Widget* widget = column.createFunction(item);
-			m_gridLayout.Add(widget, rowIndex, columnIndex);
+			m_gridLayout.Add(widget, index + 1, columnIndex);
 		}
 	}
 }

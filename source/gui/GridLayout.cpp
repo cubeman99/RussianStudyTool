@@ -88,6 +88,11 @@ void GridLayout::RemoveRow(uint32 row, bool shiftUp)
 	RemoveSlice(Axis::k_row, row, shiftUp);
 }
 
+void GridLayout::InsertRow(uint32 row)
+{
+	InsertSlice(Axis::k_row, row, 1);
+}
+
 void GridLayout::MoveRow(uint32 from, uint32 to)
 {
 	MoveSlice(Axis::k_row, from, to);
@@ -227,6 +232,14 @@ void GridLayout::Render(AppGraphics& g, float timeDelta)
 		child.second->Render(g, timeDelta);
 }
 
+void GridLayout::InsertSlice(uint32 axis, uint32 sliceIndex, uint32 count)
+{
+	Axis& axisInfo = m_axes[axis];
+	SetSliceCount(axis, axisInfo.count + count);
+	for (uint32 i = axisInfo.count - 1; i >= sliceIndex + count; i--)
+		MoveSlice(axis, i - count, i);
+}
+
 void GridLayout::RemoveSlice(uint32 axis, uint32 index, bool shiftUp)
 {
 	// Remove children from this slice
@@ -239,7 +252,7 @@ void GridLayout::RemoveSlice(uint32 axis, uint32 index, bool shiftUp)
 	for (const GridLoc& location: toRemove)
 		DoRemove(location);
 
-	// Shift slices up
+	// Shift slices forward
 	if (shiftUp)
 	{
 		Axis& axisInfo = m_axes[axis];

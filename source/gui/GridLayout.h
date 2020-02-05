@@ -23,6 +23,7 @@ public:
 	void Add(GUIObject* item, uint32 row, uint32 column);
 	GUIObject* Remove(uint32 row, uint32 column);
 	void RemoveRow(uint32 row, bool shiftUp);
+	void InsertRow(uint32 row);
 	void MoveRow(uint32 from, uint32 to);
 
 	virtual uint32 GetNumChildren() const override;
@@ -32,7 +33,8 @@ public:
 	virtual void Render(AppGraphics& g, float timeDelta);
 
 private:
-	void RemoveSlice(uint32 axis, uint32 row, bool shiftUp);
+	void InsertSlice(uint32 axis, uint32 sliceIndex, uint32 count = 1);
+	void RemoveSlice(uint32 axis, uint32 sliceIndex, bool shiftUp);
 	void MoveSlice(uint32 axis, uint32 from, uint32 to);
 	void SetSliceCount(uint32 axis, uint32 count);
 
