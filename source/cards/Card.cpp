@@ -61,4 +61,15 @@ void Card::SetData(const CardData& data)
 	m_type = data.type;
 	m_text = data.text;
 	m_tags = data.tags;
+	m_relatedCards = data.relatedCards;
+}
+
+CardData Card::GetData()
+{
+	CardData data;
+	data.type = m_type;
+	data.text = m_text;
+	data.tags = m_tags;
+	data.relatedCards = m_relatedCards;
+	return data;
 }

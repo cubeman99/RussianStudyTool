@@ -591,6 +591,27 @@ Error CardDatabase::ModifyCard(Card::sptr card, const CardData& changes)
 			changed = true;
 			card->m_tags = changes.tags;
 		}
+		if (card->m_relatedCards != changes.relatedCards)
+		{
+			Set<Card::sptr> oldRelatedCards = card->GetRelatedCards();
+			Set<Card::sptr> newRelatedCards = changes.relatedCards;
+			for (Card::sptr relatedCard : oldRelatedCards)
+			{
+				if (!cmg::container::Contains(newRelatedCards, relatedCard))
+				{
+					UnlinkRelatedCards(card, relatedCard);
+					changed = true;
+				}
+			}
+			for (Card::sptr relatedCard : newRelatedCards)
+			{
+				if (!cmg::container::Contains(oldRelatedCards, relatedCard))
+				{
+					LinkRelatedCards(card, relatedCard);
+					changed = true;
+				}
+			}
+		}
 	}
 	if (changed)
 		MarkCardDirty(card, ruKeyChanged);

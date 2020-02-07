@@ -27,6 +27,10 @@ public:
 
 	virtual void OnBegin() {}
 	virtual void OnEnd() {}
+	virtual void OnMouseDown(Window::MouseDownEvent* e) {}
+	virtual void OnMouseUp(Window::MouseUpEvent* e) {}
+	virtual void OnKeyDown(Window::KeyDownEvent* e) {}
+	virtual void OnKeyTyped(Window::KeyTypedEvent* e) {}
 	virtual void OnUpdate(float timeDelta) {}
 	virtual void OnRender(AppGraphics& g, float timeDelta) {}
 

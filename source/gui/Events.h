@@ -5,79 +5,16 @@
 #include "AccentedText.h"
 #include "Graphics.h"
 #include <functional>
-
-// This is the interface for MemberFunctionHandler that each specialization will use
-template <typename T_Return, typename... T_Args>
-class EventHandlerFunctionBase
-{
-public:
-	virtual T_Return Call(T_Args... args) = 0;
-	virtual void* GetInstance()
-	{
-		return nullptr;
-	}
-};
-
-
-template<class T_Instance, typename T_Return, typename... T_Args>
-class MemberFunctionHandler : public EventHandlerFunctionBase<T_Return, T_Args...>
-{
-public:
-	typedef T_Return (T_Instance::*MemberFunction)(T_Args...);
-
-	MemberFunctionHandler(T_Instance* instance, MemberFunction memberFunction) :
-		m_instance{instance},
-		m_memberFunction{memberFunction}
-	{
-	}
-
-	virtual T_Return Call(T_Args... args) override
-	{
-		return (m_instance->*m_memberFunction)(args...);
-	}
-
-	void* GetInstance() override
-	{
-		return m_instance;
-	}
-
-private:
-	// Pointer to class instance
-	T_Instance* m_instance;
-
-	// Pointer to member function
-	MemberFunction m_memberFunction;
-};
-
-
-template<typename T_Return, typename... T_Args>
-class StaticFunctionHandler : public EventHandlerFunctionBase<T_Return, T_Args...>
-{
-public:
-	using StaticFunction = std::function<T_Return(T_Args...)>;
-
-	template <typename T_Function>
-	StaticFunctionHandler(T_Function& function) :
-		m_staticFunction(function)
-	{
-	}
-
-	virtual T_Return Call(T_Args... args) override
-	{
-		return m_staticFunction(args...);
-	}
-
-private:
-	StaticFunction m_staticFunction;
-};
+#include "core/Delegate.h"
 
 
 template <typename... T_Args>
 class EventSignal
 {
 public:
-	using Function = void (*)(T_Args...);
-
+	EventSignal()
+	{
+	}
 	virtual ~EventSignal()
 	{
 		Clear();
@@ -90,25 +27,29 @@ public:
 		m_handlers.clear();
 	}
 
-	template <typename T_Function>
-	void Connect(T_Function& function)
+	void Connect(Delegate<void, T_Args...>* function)
 	{
-		m_handlers.push_back(new StaticFunctionHandler<void, T_Args...>(
-			function));
+		m_handlers.push_back(function);
 	}
 
 	template<class T_Instance>
-	void Connect(T_Instance& instance, void (T_Instance::*memberFunction)(T_Args...))
+	void Connect(T_Instance* instance, void (T_Instance::*method)(T_Args...))
 	{
-		m_handlers.push_back(new MemberFunctionHandler<T_Instance, void, T_Args...>(
-			&instance, memberFunction));
+		Connect(new MethodDelegate<T_Instance, void, T_Args...>(
+			instance, method));
 	}
 
-	template<class T_Instance>
-	void Connect(T_Instance* instance, void (T_Instance::*memberFunction)(T_Args...))
+	template<class T_Instance, typename T_Capture>
+	void Connect(T_Instance* instance, T_Capture state,
+		void (T_Instance::*method)(T_Capture, T_Args...))
 	{
-		m_handlers.push_back(new MemberFunctionHandler<T_Instance, void, T_Args...>(
-			instance, memberFunction));
+		Connect(new CaptureMethodDelegate<T_Instance, T_Capture, void, T_Args...>(
+			instance, state, method));
+	}
+
+	void Connect(void (*function)(T_Args...))
+	{
+		Connect(new FunctionDelegate<void, T_Args...>(function));
 	}
 
 	void Emit(T_Args... args)
@@ -120,5 +61,5 @@ public:
 	}
 
 private:
-	std::list<EventHandlerFunctionBase<void, T_Args...>*> m_handlers;
+	std::list<Delegate<void, T_Args...>*> m_handlers;
 };

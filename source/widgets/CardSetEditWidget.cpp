@@ -2,13 +2,15 @@
 #include "RussianApp.h"
 
 CardSetEditWidget::CardSetEditWidget(CardSet::sptr cardSet) :
-	m_layoutName({&m_labelName, &m_inputName}),
-	m_layoutType({&m_labelType, &m_inputType}),
-	m_layoutButtons({&m_buttonSave, &m_buttonDone, &m_buttonCancel}),
-	m_setEditLayout({&m_layoutName, &m_layoutType, &m_table, &m_layoutButtons}),
 	m_cardSet(cardSet)
 {
 	SetBackgroundColor(GUIConfig::color_background);
+
+	m_layoutName.Add({&m_labelName, &m_inputName});
+	m_layoutType.Add({&m_labelType, &m_inputType});
+	m_layoutButtons.Add({&m_buttonSave, &m_buttonDone, &m_buttonCancel});
+	m_scrollArea.SetWidget(&m_table);
+	m_setEditLayout.Add({&m_layoutName, &m_layoutType, &m_scrollArea, &m_layoutButtons});
 
 	m_buttonSave.SetText("Save");
 	m_buttonDone.SetText("Done");
@@ -16,6 +18,11 @@ CardSetEditWidget::CardSetEditWidget(CardSet::sptr cardSet) :
 	m_labelName.SetText("Name:");
 	m_labelType.SetText("Type:");
 
+	m_table.SetSpacing(1.0f);
+	m_layoutName.SetMargins(0.0f);
+	m_layoutType.SetMargins(0.0f);
+	m_layoutButtons.SetMargins(0.0f);
+	m_setEditLayout.SetStretch(&m_scrollArea, 1.0f);
 	m_mainLayout.Add(&m_setEditLayout, 2.0f);
 	m_mainLayout.Add(&m_searchWidget, 1.0f);
 	SetLayout(&m_mainLayout);
@@ -48,14 +55,21 @@ CardSetEditWidget::CardSetEditWidget(CardSet::sptr cardSet) :
 		row->m_buttonRemove = new Button("X");
 		return (Widget*) row->m_buttonRemove;
 	}, 0.5f);
-	m_searchWidget.SetFilter([this](Card::sptr card) {
-		return !cmg::container::Contains(m_allCards, card);
-	});
+	m_searchWidget.SetFilter(new MethodDelegate(
+		this, &CardSetEditWidget::SearchFilter));
 
 	SelectCardSet(cardSet);
 
 	// Connect signals
 	m_buttonSave.Clicked().Connect(this, &CardSetEditWidget::ApplyChanges);
+	AddKeyShortcut("Ctrl+S", [this]() {
+		if (m_buttonSave.IsEnabled())
+		{
+			ApplyChanges();
+			return true;
+		}
+		return false;
+	});
 }
 
 void CardSetEditWidget::SelectCardSet(CardSet::sptr cardSet)
@@ -113,7 +127,7 @@ void CardSetEditWidget::ApplyChanges()
 		CardData cardData;
 		cardData.text = row->m_text;
 		cardData.type = row->m_wordType;
-		cardData.tags = card->GetTags();
+		cardData.tags = row->m_cardTags;
 
 		if (row->IsNewCard())
 		{
@@ -223,40 +237,22 @@ void CardSetEditWidget::AddRow(CardRow::sptr row, int32 index)
 
 	row->m_cardTags = row->m_card->GetTags();
 
-	row->m_buttonEdit->Clicked().Connect([this, row]() {
-		// TODO: edit card
-	});
-	row->m_buttonRemove->Clicked().Connect([this, row]() {
-		RemoveRow(row);
-	});
-	row->m_inputType->ReturnPressed().Connect([this, row]() {
-		GetOrCreateAdjacentRow(row, false)->m_inputType->Focus();
-	});
-	row->m_inputRussian->ReturnPressed().Connect([this, row]() {
-		GetOrCreateAdjacentRow(row, false)->m_inputRussian->Focus();
-	});
-	row->m_inputEnglish->ReturnPressed().Connect([this, row]() {
-		GetOrCreateAdjacentRow(row, false)->m_inputEnglish->Focus();
-	});
-	row->modified.Connect([this, row]() {
-		OnCardEdited(row);
-	});
-	row->englishModified.Connect([this, row]() {
-		if (row->m_inputEnglish->IsFocused())
-		{
-			auto str = row->GetEnglish().GetString();
-			if (!str.empty())
-				m_searchWidget.SetSearchText(str);
-		}
-	});
-	row->russianModified.Connect([this, row]() {
-		if (row->m_inputRussian->IsFocused())
-		{
-			auto str = row->GetRussian().GetString();
-			if (!str.empty())
-				m_searchWidget.SetSearchText(str);
-		}
-	});
+	row->m_buttonEdit->Clicked().Connect(
+		this, row, &CardSetEditWidget::OnClickEditCard);
+	row->m_buttonRemove->Clicked().Connect(
+		this, row, &CardSetEditWidget::RemoveRow);
+	row->m_inputType->ReturnPressed().Connect(
+		this, row, &CardSetEditWidget::OnPressEnterType);
+	row->m_inputRussian->ReturnPressed().Connect(
+		this, row, &CardSetEditWidget::OnPressEnterRussian);
+	row->m_inputEnglish->ReturnPressed().Connect(
+		this, row, &CardSetEditWidget::OnPressEnterEnglish);
+	row->modified.Connect(
+		this, row, &CardSetEditWidget::OnCardEdited);
+	row->englishModified.Connect(
+		this, row, &CardSetEditWidget::OnCardEnglishModified);
+	row->russianModified.Connect(
+		this, row, &CardSetEditWidget::OnCardRussianModified);
 
 	row->m_inputRussian->AddKeyShortcut("Ctrl+Space", [this, row]() {
 		auto newRow = AutoCompleteRow(row);
@@ -315,9 +311,48 @@ void CardSetEditWidget::RemoveRow(CardRow::sptr row)
 	OnCardEdited(row);
 }
 
+void CardSetEditWidget::OnCardEnglishModified(CardRow::sptr row)
+{
+	if (row->m_inputEnglish->IsFocused())
+	{
+		auto str = row->GetEnglish().GetString();
+		if (!str.empty())
+			m_searchWidget.SetSearchText(str);
+	}
+}
+
+void CardSetEditWidget::OnCardRussianModified(CardRow::sptr row)
+{
+	if (row->m_inputRussian->IsFocused())
+	{
+		auto str = row->GetRussian().GetString();
+		if (!str.empty())
+			m_searchWidget.SetSearchText(str);
+	}
+}
+
 void CardSetEditWidget::OnCardEdited(CardRow::sptr row)
 {
 	Refresh();
+}
+
+void CardSetEditWidget::OnPressEnterType(CardRow::sptr row)
+{
+	GetOrCreateAdjacentRow(row, false)->m_inputType->Focus();
+}
+
+void CardSetEditWidget::OnPressEnterRussian(CardRow::sptr row)
+{
+	GetOrCreateAdjacentRow(row, false)->m_inputRussian->Focus();
+}
+
+void CardSetEditWidget::OnPressEnterEnglish(CardRow::sptr row)
+{
+	GetOrCreateAdjacentRow(row, false)->m_inputEnglish->Focus();
+}
+
+void CardSetEditWidget::OnClickEditCard(CardRow::sptr row)
+{
 }
 
 CardRow::sptr CardSetEditWidget::GetOrCreateAdjacentRow(
@@ -355,6 +390,11 @@ CardRow::sptr CardSetEditWidget::AutoCompleteRow(CardRow::sptr row)
 	newRow = GetOrCreateAdjacentRow(newRow, false);
 	m_searchWidget.RefreshResults();
 	return newRow;
+}
+
+bool CardSetEditWidget::SearchFilter(Card::sptr card)
+{
+	return !cmg::container::Contains(m_allCards, card);
 }
 
 bool CardRow::IsEmpty() const
@@ -419,7 +459,7 @@ void CardRow::UpdateState()
 	m_text.russian = AccentedText(m_inputRussian->GetText());
 	m_text.english = AccentedText(m_inputEnglish->GetText());
 	m_ruKey = CardRuKey(m_wordType, m_text.russian);
-	m_enKey = CardEnKey(m_wordType, m_text.english, m_card->GetTags());
+	m_enKey = CardEnKey(m_wordType, m_text.english, m_cardTags);
 	m_isEmpty = (m_isNewCard && typeText.empty() && m_text.russian.empty() &&
 		m_text.english.empty());
 	m_validRussian = m_isRuKeyUnique && !m_text.russian.empty();

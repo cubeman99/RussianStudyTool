@@ -22,7 +22,7 @@ void Label::CalcSizes()
 	m_maxSize.y = m_minSize.y;
 	Rect2f box = Graphics2D::MeasureString(m_font.get(), m_text.GetString());
 	m_minSize.x = box.GetRight();
-	m_maxSize.x = box.GetRight();
+	m_maxSize.x = DEFAULT_MAX_SIZE;
 }
 
 void Label::OnUpdate(float timeDelta)

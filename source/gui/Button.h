@@ -14,7 +14,6 @@ public:
 	virtual void CalcSizes() override;
 	virtual void OnUpdate(float timeDelta) override;
 	virtual void OnRender(AppGraphics& g, float timeDelta) override;
-
 	virtual void OnPress() override { m_clicked.Emit(); }
 
 	EventSignal<>& Clicked() { return m_clicked; }

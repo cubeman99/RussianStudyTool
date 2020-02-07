@@ -2,12 +2,17 @@
 
 #include "CardKey.h"
 
+class Card;
+
+
 struct CardData
 {
 	WordType type = WordType::k_other;
 	TranslationPair text;
 	EnumFlags<CardTags> tags;
+	Set<cmg::shared_ptr<Card>> relatedCards;
 };
+
 
 class Card
 {
@@ -31,6 +36,7 @@ public:
 	EnumFlags<CardTags>& GetTags();
 
 	void SetData(const CardData& data);
+	CardData GetData();
 
 private:
 	WordType m_type = WordType::k_other;

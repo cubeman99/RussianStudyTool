@@ -11,10 +11,14 @@ public:
 
 	GUIManager& GetGUIManager() { return m_gui; }
 
-	void OnBegin() override;
-	void OnEnd() override;
-	void OnUpdate(float timeDelta) override;
-	void OnRender(AppGraphics& g, float timeDelta) override;
+	virtual void OnBegin() override;
+	virtual void OnEnd() override;
+	virtual void OnMouseDown(Window::MouseDownEvent* e) override;
+	virtual void OnMouseUp(Window::MouseUpEvent* e) override;
+	virtual void OnKeyDown(Window::KeyDownEvent* e) override;
+	virtual void OnKeyTyped(Window::KeyTypedEvent* e) override;
+	virtual void OnUpdate(float timeDelta) override;
+	virtual void OnRender(AppGraphics& g, float timeDelta) override;
 
 private:
 	GUIManager m_gui;

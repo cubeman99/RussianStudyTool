@@ -37,13 +37,19 @@ public:
 	MainMenuWidget(CardSetPackage::sptr package);
 
 	void SetPackage(CardSetPackage::sptr package);
+	void OpenCardSet(CardSet::sptr cardSet);
+	void OpenCardPackage(CardSetPackage::sptr package);
 	MainMenuItemWidget* AddMenuOption(const AccentedText& name,
 		IStudySet* studySet = nullptr);
+
+	void GoBack();
 
 	virtual void OnUpdate(float timeDelta) override;
 	virtual void OnRender(AppGraphics& g, float timeDelta) override;
 
 private:
+	void OpenStudyState(IStudySet* studySet);
+	void OpenCardSetEditor(CardSet::sptr cardSet);
 	void PopulateMenuOptions(MenuWidget* menu, IStudySet* studySet);
 
 	CardSetPackage::sptr m_package;

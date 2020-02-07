@@ -6,6 +6,8 @@
 class MenuItemWidget : public AppWidget
 {
 public:
+	friend class MenuWidget;
+
 	MenuItemWidget(const AccentedText& name);
 
 	EventSignal<>& Clicked() { return m_clicked; }
@@ -16,6 +18,8 @@ private:
 	Label m_labelName;
 	HBoxLayout m_layout;
 	EventSignal<> m_clicked;
+	Delegate<void>* m_function = nullptr;
+	bool m_closeMenu;
 };
 
 
@@ -28,18 +32,13 @@ public:
 	MenuItemWidget* AddMenuOption(const AccentedText& name);
 	MenuItemWidget* AddCancelOption(const AccentedText& name = "Cancel");
 
-	template <typename T_Function>
-	MenuItemWidget* AddMenuOption(const AccentedText& name, bool closeMenu, T_Function& function)
+	MenuItemWidget* AddMenuOption(const AccentedText& name,
+		bool closeMenu, Delegate<void>* function)
 	{
 		MenuItemWidget* option = AddMenuOption(name);
-		option->Clicked().Connect([this, closeMenu, function]() {
-			if (closeMenu)
-			{
-				Close();
-				GetApp()->PopState();
-			}
-			function();
-		});
+		option->m_function = function;
+		option->m_closeMenu = closeMenu;
+		option->Clicked().Connect(this, option, &MenuWidget::OnSelectOption);
 		return option;
 	}
 
@@ -47,6 +46,9 @@ public:
 	virtual void OnRender(AppGraphics& g, float timeDelta) override;
 
 private:
+	void OnSelectOption(MenuItemWidget* option);
+	void Cancel();
+
 	Array<MenuItemWidget*> m_options;
 	Widget m_titleWidget;
 	Widget m_widgetWindow;

@@ -12,3 +12,9 @@ AppTimestamp GetAppTimestamp()
 			std::chrono::system_clock::now().time_since_epoch()).count();
 	return fractionalSecondsSinceEpoch;
 }
+
+bool IsKeyCardTag(CardTags tag)
+{
+	return (uint32) tag < 32;
+}
+

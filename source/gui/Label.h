@@ -16,9 +16,9 @@ public:
 	void SetColor(const Color& color) { m_color = color; }
 	void SetAlign(TextAlign align) { m_align = align; }
 
-	virtual void CalcSizes();
-	virtual void OnUpdate(float timeDelta);
-	virtual void OnRender(AppGraphics& g, float timeDelta);
+	virtual void CalcSizes() override;
+	virtual void OnUpdate(float timeDelta) override;
+	virtual void OnRender(AppGraphics& g, float timeDelta) override;
 
 private:
 	AccentedText m_text;

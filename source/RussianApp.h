@@ -34,14 +34,14 @@ MainMenuState
 Titles in GUI
 Pause Menu
 Scheduler logic
+More GUI Widgets and text editing
+Card Set Edit Widget
 
 FIXME:
 accent in english vs russian causing problems with card keys
 study metrics are not correct, they are counting duplicate cards
 
 ROADMAP:
-More GUI Widgets and text editing
-Card Set Edit Widget
 Card Edit Widget
 Related Cards Edit Widget
 Add to Card Set Edit Widget
@@ -59,7 +59,7 @@ class RussianStudyToolApp : public Application
 {
 public:
 	RussianStudyToolApp();
-	~RussianStudyToolApp();
+	virtual ~RussianStudyToolApp();
 
 	void OnInitialize() override;
 	void OnQuit() override;
@@ -71,20 +71,24 @@ public:
 	void PopState();
 	void PushState(ApplicationState* state);
 	void PushState(Widget* widget);
-	ApplicationStateStack& GetStateStack() { return m_stateStack; };
 
+	ApplicationStateStack& GetStateStack() { return m_stateStack; };
 	CardDatabase& GetCardDatabase() { return m_cardDatabase; }
 	StudyDatabase& GetStudyDatabase() { return m_studyDatabase; }
-
-	static RussianStudyToolApp* GetInstance() { return s_instance; }
 	Joystick* GetJoystick() { return m_joystick; }
-
 	const PedalInput& GetLeftPedalInput() const { return m_pedals[0]; }
 	const PedalInput& GetMiddlePedalInput() const { return m_pedals[1]; }
 	const PedalInput& GetRightPedalInput() const { return m_pedals[2]; }
 	const PedalInput& GetPedalInput(uint32 index) const { return m_pedals[index]; }
 
+	static RussianStudyToolApp* GetInstance() { return s_instance; }
+
 private:
+	void OnMouseDown(Window::MouseDownEvent* e);
+	void OnMouseUp(Window::MouseUpEvent* e);
+	void OnKeyDown(Window::KeyDownEvent* e);
+	void OnKeyTyped(Window::KeyTypedEvent* e);
+
 	static RussianStudyToolApp* s_instance;
 
 	CardDatabase m_cardDatabase;

@@ -68,10 +68,7 @@ MenuItemWidget* MenuWidget::AddMenuOption(const AccentedText& name)
 MenuItemWidget* MenuWidget::AddCancelOption(const AccentedText & name)
 {
 	MenuItemWidget* option = AddMenuOption(name);
-	option->Clicked().Connect([this]() {
-		Close();
-		GetApp()->PopState();
-	});
+	option->Clicked().Connect(this, &MenuWidget::Cancel);
 	return option;
 }
 
@@ -81,4 +78,21 @@ void MenuWidget::OnUpdate(float timeDelta)
 
 void MenuWidget::OnRender(AppGraphics& g, float timeDelta)
 {
+}
+
+void MenuWidget::OnSelectOption(MenuItemWidget* option)
+{
+	if (option->m_closeMenu)
+	{
+		Close();
+		GetApp()->PopState();
+	}
+	if (option->m_function)
+		option->m_function->Call();
+}
+
+void MenuWidget::Cancel()
+{
+	Close();
+	GetApp()->PopState();
 }

@@ -8,9 +8,9 @@ public:
 	Layout();
 	virtual ~Layout();
 
-	virtual void CalcSizes();
-	virtual void Update(float timeDelta);
-	virtual void Render(AppGraphics& g, float timeDelta);
+	virtual void CalcSizes() override;
+	virtual void Update(float timeDelta) override;
+	virtual void Render(AppGraphics& g, float timeDelta) override;
 
 private:
 };

@@ -75,10 +75,17 @@ private:
 	bool IsRussianKeyUnique(Card::sptr card, const CardRuKey& key);
 	void AddRow(CardRow::sptr row, int32 index = -1);
 	void RemoveRow(CardRow::sptr row);
+	void OnCardEnglishModified(CardRow::sptr row);
+	void OnCardRussianModified(CardRow::sptr row);
 	void OnCardEdited(CardRow::sptr row);
+	void OnPressEnterRussian(CardRow::sptr row);
+	void OnPressEnterType(CardRow::sptr row);
+	void OnPressEnterEnglish(CardRow::sptr row);
+	void OnClickEditCard(CardRow::sptr row);
 	CardRow::sptr GetOrCreateAdjacentRow(CardRow::sptr row, bool previous);
 	CardRow::sptr GetOrCreateRow(uint32 index);
 	CardRow::sptr AutoCompleteRow(CardRow::sptr row);
+	bool SearchFilter(Card::sptr card);
 
 	CardSet::sptr m_cardSet;
 	VBoxLayout m_setEditLayout;
@@ -95,6 +102,7 @@ private:
 	Label m_labelName;
 	Label m_labelType;
 	CardSearchWidget m_searchWidget;
+	AbstractScrollArea m_scrollArea;
 
 	// Cached
 	Set<Card::sptr> m_allCards;

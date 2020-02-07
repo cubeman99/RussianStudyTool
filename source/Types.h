@@ -88,4 +88,5 @@ DECLARE_ENUM_WITH_COUNT(CardTags, ENUM_MACRO_CARD_TAG)
 
 
 AppTimestamp GetAppTimestamp();
+bool IsKeyCardTag(CardTags tag);
 

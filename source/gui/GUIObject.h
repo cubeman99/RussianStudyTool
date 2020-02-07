@@ -50,6 +50,9 @@ public:
 	virtual uint32 GetNumChildren() const;
 	virtual GUIObject* GetChild(uint32 index);
 
+	virtual void OnInitialize() {}
+	virtual void OnUninitialize() {}
+	virtual void OnClose() {}
 	virtual bool IsWidget() const { return false; }
 	virtual bool IsVisible() const { return true; }
 	virtual bool IsEnabled() const { return true; }
@@ -65,6 +68,7 @@ public:
 	GUIObjectIterator objects_end();
 
 protected:
+	static constexpr float DEFAULT_MIN_SIZE = 10;
 	static constexpr float DEFAULT_MAX_SIZE = 16777215;
 
 	GUIManager* m_guiManager = nullptr;

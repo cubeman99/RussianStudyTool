@@ -43,6 +43,12 @@ RussianStudyToolApp::RussianStudyToolApp() :
 
 	auto resourceManager = GetResourceManager();
 	resourceManager->AddPath(g_assetsPath);
+
+	// Connect signals
+	GetEventManager()->Subscribe(this, &RussianStudyToolApp::OnKeyTyped);
+	GetEventManager()->Subscribe(this, &RussianStudyToolApp::OnKeyDown);
+	GetEventManager()->Subscribe(this, &RussianStudyToolApp::OnMouseDown);
+	GetEventManager()->Subscribe(this, &RussianStudyToolApp::OnMouseUp);
 }
 
 RussianStudyToolApp::~RussianStudyToolApp()
@@ -69,9 +75,9 @@ void RussianStudyToolApp::OnInitialize()
 
 	m_mainMenuWidget = new MainMenuWidget(m_cardDatabase.GetRootPackage());
 	PushState(new GUIState(m_mainMenuWidget));
-	PushState(new CardSetEditWidget(cardSet));
+	//PushState(new CardSetEditWidget(cardSet));
 	//PushState(new CardSearchWidget());
-	//PushState(new TestWidget());
+	PushState(new StudyState(cardSet.get()));
 
 	//m_cardDatabase.SaveCardData();
 
@@ -178,6 +184,26 @@ void RussianStudyToolApp::OnRender()
 		}
 	}
 	*/
+}
+
+void RussianStudyToolApp::OnMouseDown(Window::MouseDownEvent* e)
+{
+	m_stateStack.OnMouseDown(e);
+}
+
+void RussianStudyToolApp::OnMouseUp(Window::MouseUpEvent * e)
+{
+	m_stateStack.OnMouseUp(e);
+}
+
+void RussianStudyToolApp::OnKeyDown(Window::KeyDownEvent* e)
+{
+	m_stateStack.OnKeyDown(e);
+}
+
+void RussianStudyToolApp::OnKeyTyped(Window::KeyTypedEvent* e)
+{
+	m_stateStack.OnKeyTyped(e);
 }
 
 void RussianStudyToolApp::PopState()

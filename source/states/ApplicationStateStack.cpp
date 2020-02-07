@@ -14,6 +14,11 @@ ApplicationStateStack::~ApplicationStateStack()
 {
 }
 
+ApplicationState* ApplicationStateStack::GetTopState()
+{
+	return m_states.back();
+}
+
 void ApplicationStateStack::Push(ApplicationState* state)
 {
 	if (IsActive())
@@ -75,6 +80,34 @@ void ApplicationStateStack::OnBegin()
 
 void ApplicationStateStack::OnEnd()
 {
+}
+
+void ApplicationStateStack::OnMouseDown(Window::MouseDownEvent * e)
+{
+	DeleteInactiveStates();
+	if (IsActive())
+		m_states.back()->OnMouseDown(e);
+}
+
+void ApplicationStateStack::OnMouseUp(Window::MouseUpEvent * e)
+{
+	DeleteInactiveStates();
+	if (IsActive())
+		m_states.back()->OnMouseUp(e);
+}
+
+void ApplicationStateStack::OnKeyDown(Window::KeyDownEvent * e)
+{
+	DeleteInactiveStates();
+	if (IsActive())
+		m_states.back()->OnKeyDown(e);
+}
+
+void ApplicationStateStack::OnKeyTyped(Window::KeyTypedEvent * e)
+{
+	DeleteInactiveStates();
+	if (IsActive())
+		m_states.back()->OnKeyTyped(e);
 }
 
 void ApplicationStateStack::OnUpdate(float timeDelta)

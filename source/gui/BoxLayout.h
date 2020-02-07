@@ -9,7 +9,9 @@ public:
 
 	void Clear();
 	void Add(GUIObject* child, float stretch = 0.0f);
+	void Add(const Array<GUIObject*>& children);
 	void AddStretch(float stretch = 1.0f);
+	void SetStretch(GUIObject* child, float stretch);
 
 	void SetSpacing(float spacing);
 	void SetMargins(float margins);
@@ -18,9 +20,9 @@ public:
 
 	virtual uint32 GetNumChildren() const override;
 	virtual GUIObject* GetChild(uint32 index) override;
-	virtual void CalcSizes();
-	virtual void Update(float timeDelta);
-	virtual void Render(AppGraphics& g, float timeDelta);
+	virtual void CalcSizes() override;
+	virtual void Update(float timeDelta) override;
+	virtual void Render(AppGraphics& g, float timeDelta) override;
 
 private:
 	struct BoxChild
@@ -48,14 +50,6 @@ class HBoxLayout : public BoxLayout
 {
 public:
 	HBoxLayout();
-
-	template <class... T>
-	HBoxLayout(const Array<GUIObject*>& children) :
-		HBoxLayout()
-	{
-		for (GUIObject* child : children)
-			Add(child);
-	}
 };
 
 
@@ -63,12 +57,4 @@ class VBoxLayout : public BoxLayout
 {
 public:
 	VBoxLayout();
-
-	template <class... T>
-	VBoxLayout(const Array<GUIObject*>& children) :
-		VBoxLayout()
-	{
-		for (GUIObject* child : children)
-			Add(child);
-	}
 };

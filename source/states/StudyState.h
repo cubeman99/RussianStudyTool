@@ -6,21 +6,27 @@
 #include "study/StudyDatabase.h"
 #include "widgets/StudyProficiencyBar.h"
 
-class StudyState : public GUIState
+class StudyState : public AppWidget
 {
 public:
 	StudyState(IStudySet* studySet, const StudyParams& studyParams = StudyParams());
 	virtual ~StudyState() {}
 
-	virtual void OnBegin() override;
-	virtual void OnEnd() override;
+	virtual void OnInitialize() override;
+	virtual void OnUninitialize() override;
 	virtual void OnUpdate(float timeDelta) override;
 	virtual void OnRender(AppGraphics& g, float timeDelta) override;
 
 	void MarkCard(bool knewIt);
 	void Reveal();
 	void NextCard();
+
+	void MarkGoodAndNext();
+	void RevealOrMarkBadAndNext();
 	void ShowPauseMenu();
+	void OpenCardEditView();
+	void OpenRelatedCardsView();
+	void OpenAddCardToSetView();
 
 private:
 	Card::sptr m_card;
@@ -36,11 +42,15 @@ private:
 
 	VBoxLayout m_mainLayout;
 	AnchorLayout m_anchorLayout;
-	Widget m_titleWidget;
 	HBoxLayout m_titleLayout;
+	Widget m_widgetTagsShown;
+	Widget m_widgetTagsRevealed;
+	HBoxLayout m_layoutTagsShown;
+	HBoxLayout m_layoutTagsRevealed;
+
+	Widget m_titleWidget;
 	Label m_labelTitle;
 	StudyProficiencyBar m_topProficiencyBar;
-	Widget m_rootWidget;
 	Widget m_proficiencyBarTop;
 	Widget m_proficiencyBarBottom;
 	Label m_labelCardTextShown;

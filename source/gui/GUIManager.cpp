@@ -7,6 +7,8 @@ GUIManager::GUIManager()
 
 GUIManager::~GUIManager()
 {
+	if (m_rootWidget)
+		UninitializeObjects(m_rootWidget);
 }
 
 void GUIManager::SetApplication(Application * app)
@@ -107,11 +109,20 @@ Widget* GUIManager::CycleFocus(bool reverse)
 
 void GUIManager::SetFocus(Widget* widget)
 {
-	if (m_focusedWidget)
-		m_focusedWidget->m_isFocused = false;
-	m_focusedWidget = widget;
-	if (m_focusedWidget)
-		m_focusedWidget->m_isFocused = true;
+	if (m_focusedWidget != widget)
+	{
+		if (m_focusedWidget)
+		{
+			m_focusedWidget->m_isFocused = false;
+			m_focusedWidget->LostFocus().Emit();
+		}
+		m_focusedWidget = widget;
+		if (m_focusedWidget)
+		{
+			m_focusedWidget->m_isFocused = true;
+			m_focusedWidget->GainedFocus().Emit();
+		}
+	}
 }
 
 void GUIManager::OnMouseDown(Window::MouseDownEvent* e)
@@ -159,64 +170,85 @@ bool GUIManager::TriggerMouseDown(GUIObject* object, Window::MouseDownEvent* e)
 
 void GUIManager::OnKeyDown(Window::KeyDownEvent* e)
 {
-	if (m_focusedWidget)
+	uint32 mods = 0;
+	auto keyboard = m_app->GetKeyboard();
+	if (keyboard->IsKeyDown(Keys::left_shift) || keyboard->IsKeyDown(Keys::right_shift))
+		mods |= KeyMods::k_shift;
+	if (keyboard->IsKeyDown(Keys::left_control) || keyboard->IsKeyDown(Keys::right_control))
+		mods |= KeyMods::k_control;
+	if (keyboard->IsKeyDown(Keys::left_alt) || keyboard->IsKeyDown(Keys::right_alt))
+		mods |= KeyMods::k_alt;
+	
+	GUIObject* startObject = m_focusedWidget ? m_focusedWidget : m_rootWidget;
+	for (GUIObject* object = startObject; object != nullptr;
+		object = object->GetParent())
 	{
-		uint32 mods = 0;
-		auto keyboard = m_app->GetKeyboard();
-		if (keyboard->IsKeyDown(Keys::left_shift) || keyboard->IsKeyDown(Keys::right_shift))
-			mods |= KeyMods::k_shift;
-		if (keyboard->IsKeyDown(Keys::left_control) || keyboard->IsKeyDown(Keys::right_control))
-			mods |= KeyMods::k_control;
-		if (keyboard->IsKeyDown(Keys::left_alt) || keyboard->IsKeyDown(Keys::right_alt))
-			mods |= KeyMods::k_alt;
-		for (const auto& shortcut : m_focusedWidget->m_keyShortcuts)
+		if (object->IsWidget())
 		{
-			if (shortcut.Matches(e->key, mods))
+			Widget* widget = (Widget*) object;
+			for (const auto& shortcut : widget->m_keyShortcuts)
 			{
-				if (shortcut.GetCallback()())
-					return;
+				if (shortcut.Matches(e->key, mods))
+				{
+					if (shortcut.GetCallback()())
+					{
+						return;
+					}
+				}
+			}
+			if (widget->OnKeyDown(e->key, mods))
+			{
+				return;
 			}
 		}
-		m_focusedWidget->OnKeyDown(e->key, mods);
 	}
 }
 
 void GUIManager::OnKeyTyped(Window::KeyTypedEvent* e)
 {
-	if (m_focusedWidget)
+	uint32 mods = 0;
+	auto keyboard = m_app->GetKeyboard();
+	if (keyboard->IsKeyDown(Keys::left_shift) || keyboard->IsKeyDown(Keys::right_shift))
+		mods |= KeyMods::k_shift;
+	if (keyboard->IsKeyDown(Keys::left_control) || keyboard->IsKeyDown(Keys::right_control))
+		mods |= KeyMods::k_control;
+	if (keyboard->IsKeyDown(Keys::left_alt) || keyboard->IsKeyDown(Keys::right_alt))
+		mods |= KeyMods::k_alt;
+
+	GUIObject* startObject = m_focusedWidget ? m_focusedWidget : m_rootWidget;
+	for (GUIObject* object = startObject; object != nullptr;
+		object = object->GetParent())
 	{
-		uint32 mods = 0;
-		auto keyboard = m_app->GetKeyboard();
-		if (keyboard->IsKeyDown(Keys::left_shift) || keyboard->IsKeyDown(Keys::right_shift))
-			mods |= KeyMods::k_shift;
-		if (keyboard->IsKeyDown(Keys::left_control) || keyboard->IsKeyDown(Keys::right_control))
-			mods |= KeyMods::k_control;
-		if (keyboard->IsKeyDown(Keys::left_alt) || keyboard->IsKeyDown(Keys::right_alt))
-			mods |= KeyMods::k_alt;
-		m_focusedWidget->OnKeyTyped(e->keyCharUTF32, e->key, mods);
+		if (object->IsWidget())
+		{
+			Widget* widget = (Widget*) object;
+			if (widget->OnKeyTyped(e->keyCharUTF32, e->key, mods))
+			{
+				return;
+			}
+		}
 	}
 }
 
 void GUIManager::Begin()
 {
-	m_app->GetEventManager()->Subscribe(this, &GUIManager::OnKeyTyped);
-	m_app->GetEventManager()->Subscribe(this, &GUIManager::OnKeyDown);
-	m_app->GetEventManager()->Subscribe(this, &GUIManager::OnMouseDown);
-	m_app->GetEventManager()->Subscribe(this, &GUIManager::OnMouseUp);
 }
 
 void GUIManager::End()
 {
-	//m_app->GetEventManager()->UnsubscribeAll(this);
 }
 
 void GUIManager::InitializeObjects(GUIObject* object)
 {
-	object->m_guiManager = this;
-	IterateObjects(object, [this](GUIObject* childObject) {
+	// Initialize the object and all its children
+	Array<GUIObject*> objects;
+	IterateObjects(object, [this, &objects](GUIObject* childObject) {
 		childObject->m_guiManager = this;
+		objects.push_back(childObject);
 		return false;
 	});
+	for (GUIObject* childObject : objects)
+		childObject->OnInitialize();
 }
 
 void GUIManager::UninitializeObjects(GUIObject* object)
@@ -224,10 +256,20 @@ void GUIManager::UninitializeObjects(GUIObject* object)
 	// TODO: GUIObject garbage collection?
 	// Would need to know how it was allocated.
 
-	// Move focus if focus object was removed
+	// Un-initialize the object and all its children
+	Array<GUIObject*> objects;
+	IterateObjects(object, [this, &objects](GUIObject* childObject) {
+		childObject->m_guiManager = nullptr;
+		objects.push_back(childObject);
+		return false;
+	});
+	for (GUIObject* childObject : objects)
+		childObject->OnUninitialize();
+
+	// Cycle focus if the focused object was removed
 	if (m_focusedWidget == object)
 	{
-		m_focusedWidget->m_isFocused = false;
+		SetFocus(nullptr);
 		GetFocusableWidgets(m_rootWidget, m_focusableWidgets);
 		CycleFocus(false);
 	}

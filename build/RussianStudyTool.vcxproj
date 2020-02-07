@@ -21,6 +21,7 @@
     <ClCompile Include="..\source\Config.cpp" />
     <ClCompile Include="..\source\core\JsonUtility.cpp" />
     <ClCompile Include="..\source\core\Unicode.cpp" />
+    <ClCompile Include="..\source\gui\AbstractScrollArea.cpp" />
     <ClCompile Include="..\source\gui\BoxLayout.cpp" />
     <ClCompile Include="..\source\gui\AnchorLayout.cpp" />
     <ClCompile Include="..\source\gui\Button.cpp" />
@@ -28,6 +29,8 @@
     <ClCompile Include="..\source\gui\GridLayout.cpp" />
     <ClCompile Include="..\source\gui\GUIManager.cpp" />
     <ClCompile Include="..\source\gui\GUIObject.cpp" />
+    <ClCompile Include="..\source\gui\KeyShortcut.cpp" />
+    <ClCompile Include="..\source\gui\ScrollBar.cpp" />
     <ClCompile Include="..\source\gui\TextEdit.cpp" />
     <ClCompile Include="..\source\gui\Label.cpp" />
     <ClCompile Include="..\source\gui\Layout.cpp" />
@@ -53,6 +56,7 @@
     <ClCompile Include="..\source\widgets\GenericTableWidget.cpp" />
     <ClCompile Include="..\source\widgets\MainMenuWidget.cpp" />
     <ClCompile Include="..\source\widgets\MenuWidget.cpp" />
+    <ClCompile Include="..\source\widgets\RelatedCardsWidget.cpp" />
     <ClCompile Include="..\source\widgets\StudyProficiencyBar.cpp" />
     <ClCompile Include="..\source\widgets\TestWidget.cpp" />
   </ItemGroup>
@@ -65,8 +69,10 @@
     <ClInclude Include="..\source\cards\CardSetPackage.h" />
     <ClInclude Include="..\source\cards\StudySet.h" />
     <ClInclude Include="..\source\Config.h" />
+    <ClInclude Include="..\source\core\Delegate.h" />
     <ClInclude Include="..\source\core\JsonUtility.h" />
     <ClInclude Include="..\source\core\Unicode.h" />
+    <ClInclude Include="..\source\gui\AbstractScrollArea.h" />
     <ClInclude Include="..\source\gui\BoxLayout.h" />
     <ClInclude Include="..\source\gui\AnchorLayout.h" />
     <ClInclude Include="..\source\gui\Button.h" />
@@ -75,6 +81,8 @@
     <ClInclude Include="..\source\gui\gui.h" />
     <ClInclude Include="..\source\gui\GUIManager.h" />
     <ClInclude Include="..\source\gui\GUIObject.h" />
+    <ClInclude Include="..\source\gui\KeyShortcut.h" />
+    <ClInclude Include="..\source\gui\ScrollBar.h" />
     <ClInclude Include="..\source\gui\TextEdit.h" />
     <ClInclude Include="..\source\gui\Label.h" />
     <ClInclude Include="..\source\gui\Layout.h" />
@@ -101,6 +109,7 @@
     <ClInclude Include="..\source\widgets\GenericTableWidget.h" />
     <ClInclude Include="..\source\widgets\MainMenuWidget.h" />
     <ClInclude Include="..\source\widgets\MenuWidget.h" />
+    <ClInclude Include="..\source\widgets\RelatedCardsWidget.h" />
     <ClInclude Include="..\source\widgets\StudyProficiencyBar.h" />
     <ClInclude Include="..\source\widgets\TestWidget.h" />
   </ItemGroup>

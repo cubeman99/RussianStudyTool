@@ -10,4 +10,5 @@
 #include "gui/Button.h"
 #include "gui/GUIManager.h"
 #include "gui/TextEdit.h"
+#include "gui/AbstractScrollArea.h"
 #include "Config.h"

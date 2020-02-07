@@ -142,9 +142,27 @@ void BoxLayout::Add(GUIObject* child, float stretch)
 	item.object->SetParent(this);
 }
 
+void BoxLayout::Add(const Array<GUIObject*>& children)
+{
+	for (GUIObject* child : children)
+		Add(child);
+}
+
 void BoxLayout::AddStretch(float stretch)
 {
 	Add(new Widget(), stretch);
+}
+
+void BoxLayout::SetStretch(GUIObject * child, float stretch)
+{
+	for (BoxChild& item : m_children)
+	{
+		if (item.object == child)
+		{
+			item.stretch = stretch;
+			return;
+		}
+	}
 }
 
 void BoxLayout::SetSpacing(float spacing)

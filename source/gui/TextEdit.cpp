@@ -115,7 +115,7 @@ void TextEdit::CalcSizes()
 	m_minSize.x = box.GetRight();
 }
 
-void TextEdit::OnKeyDown(Keys key, uint32 mods)
+bool TextEdit::OnKeyDown(Keys key, uint32 mods)
 {
 	bool hasSelection = HasSelection();
 	bool shift = mods & KeyMods::k_shift;
@@ -211,9 +211,15 @@ void TextEdit::OnKeyDown(Keys key, uint32 mods)
 	{
 		m_returnPressed.Emit();
 	}
+	else
+	{
+		return false;
+	}
+
+	return true;
 }
 
-void TextEdit::OnKeyTyped(unichar charCode, Keys key, uint32 mods)
+bool TextEdit::OnKeyTyped(unichar charCode, Keys key, uint32 mods)
 {
 	bool ctrl = mods & KeyMods::k_control;
 	bool alt = mods & KeyMods::k_alt;
@@ -225,7 +231,10 @@ void TextEdit::OnKeyTyped(unichar charCode, Keys key, uint32 mods)
 		m_text.insert(m_cursorPosition, str);
 		m_cursorPosition++;
 		m_cursorTimer = 0.0f;
+		return true;
 	}
+
+	return false;
 }
 
 void TextEdit::OnUpdate(float timeDelta)

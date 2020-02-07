@@ -28,8 +28,8 @@ public:
 	void Cut();
 
 	virtual void CalcSizes() override;
-	virtual void OnKeyDown(Keys key, uint32 mods) override;
-	virtual void OnKeyTyped(unichar charCode, Keys key, uint32 mods) override;
+	virtual bool OnKeyDown(Keys key, uint32 mods) override;
+	virtual bool OnKeyTyped(unichar charCode, Keys key, uint32 mods) override;
 	virtual void OnUpdate(float timeDelta) override;
 	virtual void OnRender(AppGraphics& g, float timeDelta) override;
 

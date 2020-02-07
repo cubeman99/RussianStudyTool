@@ -19,6 +19,26 @@ void GUIState::OnEnd()
 	m_gui.End();
 }
 
+void GUIState::OnMouseDown(Window::MouseDownEvent * e)
+{
+	m_gui.OnMouseDown(e);
+}
+
+void GUIState::OnMouseUp(Window::MouseUpEvent * e)
+{
+	m_gui.OnMouseUp(e);
+}
+
+void GUIState::OnKeyDown(Window::KeyDownEvent * e)
+{
+	m_gui.OnKeyDown(e);
+}
+
+void GUIState::OnKeyTyped(Window::KeyTypedEvent * e)
+{
+	m_gui.OnKeyTyped(e);
+}
+
 void GUIState::OnUpdate(float timeDelta)
 {
 	if (!m_gui.GetRootWidget() || !m_gui.GetRootWidget()->IsVisible())

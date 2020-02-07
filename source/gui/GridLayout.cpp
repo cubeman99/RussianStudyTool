@@ -139,10 +139,7 @@ void GridLayout::CalcSizes()
 		for (uint32 i = 0; i < axisInfo.count; i++)
 		{
 			m_minSize[axis] += axisInfo.slices[i].minSize;
-			if (axis == 1)
-				m_maxSize[axis] += axisInfo.slices[i].minSize;
-			else
-				m_maxSize[axis] += axisInfo.slices[i].maxSize;
+			m_maxSize[axis] += axisInfo.slices[i].maxSize;
 		}
 
 		float pad = axisInfo.marginBegin + axisInfo.marginEnd +
@@ -203,9 +200,9 @@ void GridLayout::Update(float timeDelta)
 						stretchSpace -= sliceInfo.size;
 						stretchFactorSum -= fixedStretch ? 1.0f : sliceInfo.stretch;
 					}
-					sliceInfo.offset = offset;
-					offset += sliceInfo.size + axisInfo.spacing;
 				}
+				sliceInfo.offset = offset;
+				offset += sliceInfo.size + axisInfo.spacing;
 			}
 		}
 

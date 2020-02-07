@@ -7,9 +7,11 @@ template <class T_Item>
 class GenericTableWidget : public AppWidget
 {
 public:
+	using WidgetCreateDelegate = Delegate<Widget*, T_Item>;
 	using WidgetCreateFunc = Widget* (*)(T_Item item);
 	GenericTableWidget();
 
+	void SetSpacing(float spacing);
 	T_Item& GetItem(uint32 index);
 	Array<T_Item>& GetItems();
 	int32 GetIndex(T_Item item) const;
@@ -17,6 +19,7 @@ public:
 
 	void AddTextColumn(const AccentedText& name, float stretch = 0.0f);
 	void AddColumn(const AccentedText& name, WidgetCreateFunc func, float stretch = 0.0f);
+	void AddColumn(const AccentedText& name, WidgetCreateDelegate* func, float stretch = 0.0f);
 	void Clear();
 	void AddItem(T_Item item);
 	void RemoveItem(T_Item item);
@@ -28,7 +31,7 @@ private:
 		AccentedText name;
 		float stretch = 0.0f;
 		Label* headerLabel = nullptr;
-		WidgetCreateFunc createFunction = nullptr;
+		WidgetCreateDelegate* createFunction = nullptr;
 	};
 	void AddColumn(Column column);
 
@@ -36,6 +39,12 @@ private:
 	Array<Column> m_columns;
 	Array<T_Item> m_items;
 };
+
+template<class T_Item>
+inline void GenericTableWidget<T_Item>::SetSpacing(float spacing)
+{
+	m_gridLayout.SetSpacing(spacing);
+}
 
 template<class T_Item>
 inline T_Item & GenericTableWidget<T_Item>::GetItem(uint32 index)
@@ -80,7 +89,15 @@ void GenericTableWidget<T_Item>::AddTextColumn(const AccentedText& name, float s
 }
 
 template <class T_Item>
-void GenericTableWidget<T_Item>::AddColumn(const AccentedText& name, WidgetCreateFunc func, float stretch)
+void GenericTableWidget<T_Item>::AddColumn(
+	const AccentedText& name, WidgetCreateFunc func, float stretch)
+{
+	AddColumn(name, new FunctionDelegate<Widget*, T_Item>(func), stretch);
+}
+
+template<class T_Item>
+inline void GenericTableWidget<T_Item>::AddColumn(
+	const AccentedText& name, WidgetCreateDelegate* func, float stretch)
 {
 	Column column;
 	column.name = name;
@@ -112,7 +129,7 @@ inline void GenericTableWidget<T_Item>::InsertItem(uint32 index, T_Item item)
 		Column& column = m_columns[columnIndex];
 		if (column.createFunction)
 		{
-			Widget* widget = column.createFunction(item);
+			Widget* widget = column.createFunction->Call(item);
 			m_gridLayout.Add(widget, index + 1, columnIndex);
 		}
 	}

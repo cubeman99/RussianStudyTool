@@ -12,7 +12,7 @@ MainMenuItemWidget::MainMenuItemWidget(const AccentedText& name, IStudySet* stud
 	m_labelName.SetAlign(TextAlign::MIDDLE_LEFT);
 	m_labelName.SetColor(GUIConfig::color_text);
 
-	m_layout.Add(&m_labelName, 0.0f);
+	m_layout.Add(&m_labelName, 1.0f);
 	m_layout.Add(&m_proficiencyBar, 1.0f);
 	SetLayout(&m_layout);
 }
@@ -38,7 +38,7 @@ MainMenuWidget::MainMenuWidget(CardSetPackage::sptr package) :
 
 	m_labelTitle.SetAlign(TextAlign::MIDDLE_LEFT);
 	m_titleWidget.SetBackgroundColor(GUIConfig::color_background_light);
-	m_titleLayout.Add(&m_labelTitle, 0.0f);
+	m_titleLayout.Add(&m_labelTitle, 1.0f);
 	m_titleLayout.Add(&m_topProficiencyBar, 1.0f);
 	m_titleWidget.SetLayout(&m_titleLayout);
 
@@ -67,26 +67,22 @@ void MainMenuWidget::SetPackage(CardSetPackage::sptr package)
 	if (m_package->GetParent())
 	{
 		button = AddMenuOption("Back");
-		button->Clicked().Connect([this]() {
-			SetPackage(m_package->GetParent());
-		});
+		button->Clicked().Connect(this, &MainMenuWidget::GoBack);
 	}
 	else
 	{
 		button = AddMenuOption("Quit");
-		button->Clicked().Connect([this]() {
-			Close();
-		});
+		button->Clicked().Connect((Widget*) this, &Widget::Close);
 	}
 
 
 	// Sub Card Packages
 	for (auto subPackage : m_package->GetPackages())
 	{
-		button = AddMenuOption("[...] " + subPackage->GetName(), subPackage.get());
-		button->Clicked().Connect([this, subPackage]() {
-			SetPackage(subPackage);
-		});
+		button = AddMenuOption(
+			"[...] " + subPackage->GetName(), subPackage.get());
+		button->Clicked().Connect(
+			this, subPackage, &MainMenuWidget::SetPackage);
 		m_packageItems[subPackage] = button;
 	}
 
@@ -94,30 +90,42 @@ void MainMenuWidget::SetPackage(CardSetPackage::sptr package)
 	for (auto cardSet : m_package->GetCardSets())
 	{
 		button = AddMenuOption(cardSet->GetName(), cardSet.get());
-		button->Clicked().Connect([this, cardSet]() {
-			MenuWidget* menu = new MenuWidget(cardSet->GetName());
-			PopulateMenuOptions(menu, cardSet.get());
-			menu->AddMenuOption("List", true, [this, cardSet]() {
-				// TODO:
-			});
-			menu->AddMenuOption("Edit", true, [this, cardSet]() {
-				GetApp()->PushState(new CardSetEditWidget(cardSet));
-			});
-			menu->AddCancelOption();
-			GetApp()->PushState(menu);
-		});
+		button->Clicked().Connect(
+			this, cardSet, &MainMenuWidget::OpenCardSet);
 		m_cardSetItems[cardSet] = button;
 	}
 
 	// Option to select this package
 	button = AddMenuOption("[" + m_package->GetName() + "]", m_package.get());
-	button->Clicked().Connect([this]() {
-		MenuWidget* menu = new MenuWidget(m_package->GetName());
-		PopulateMenuOptions(menu, m_package.get());
-		menu->AddCancelOption();
-		GetApp()->PushState(menu);
-	});
+	button->Clicked().Connect(
+		this, m_package, &MainMenuWidget::OpenCardPackage);
 	m_packageItems[m_package] = button;
+}
+
+void MainMenuWidget::OpenCardSet(CardSet::sptr cardSet)
+{
+	MenuWidget* menu = new MenuWidget(cardSet->GetName());
+	PopulateMenuOptions(menu, cardSet.get());
+	// TODO: card list
+	menu->AddMenuOption("List", true, nullptr);
+	menu->AddMenuOption("Edit", true, 
+		new CaptureMethodDelegate(this, cardSet,
+			&MainMenuWidget::OpenCardSetEditor));
+	menu->AddCancelOption();
+	GetApp()->PushState(menu);
+}
+
+void MainMenuWidget::OpenCardPackage(CardSetPackage::sptr package)
+{
+	MenuWidget* menu = new MenuWidget(package->GetName());
+	PopulateMenuOptions(menu, package.get());
+	menu->AddCancelOption();
+	GetApp()->PushState(menu);
+}
+
+void MainMenuWidget::GoBack()
+{
+	SetPackage(m_package->GetParent());
 }
 
 MainMenuItemWidget* MainMenuWidget::AddMenuOption(
@@ -147,27 +155,35 @@ void MainMenuWidget::OnRender(AppGraphics& g, float timeDelta)
 {
 }
 
+void MainMenuWidget::OpenStudyState(IStudySet * studySet)
+{
+	GetApp()->PushState(new StudyState(studySet));
+}
+
+void MainMenuWidget::OpenCardSetEditor(CardSet::sptr cardSet)
+{
+	GetApp()->PushState(new CardSetEditWidget(cardSet));
+}
+
 void MainMenuWidget::PopulateMenuOptions(MenuWidget* menu, IStudySet* studySet)
 {
-	menu->AddMenuOption("Quiz Random Sides", true, [this, studySet]() {
-		GetApp()->PushState(new StudyState(studySet));
-	});
-	menu->AddMenuOption("Quiz Random Forms", true, [this, studySet]() {
-		// TODO:
-	});
-	menu->AddMenuOption("Quiz English", true, [this, studySet]() {
-		// TODO:
-	});
-	menu->AddMenuOption("Quiz Russian", true, [this, studySet]() {
-		// TODO:
-	});
-	menu->AddMenuOption("Quiz New Cards", true, [this, studySet]() {
-		// TODO:
-	});
-	menu->AddMenuOption("Quiz Problem Cards", true, [this, studySet]() {
-		// TODO:
-	});
-	menu->AddMenuOption("Query", true, [this, studySet]() {
-		// TODO:
-	});
+	menu->AddMenuOption("Quiz Random Sides", true, 
+		new CaptureMethodDelegate(this, studySet,
+			&MainMenuWidget::OpenStudyState));
+	menu->AddMenuOption("Quiz Random Forms", true, 
+		new CaptureMethodDelegate(this, studySet,
+			&MainMenuWidget::OpenStudyState));
+	menu->AddMenuOption("Quiz English", true, 
+		new CaptureMethodDelegate(this, studySet,
+			&MainMenuWidget::OpenStudyState));
+	menu->AddMenuOption("Quiz Russian", true, 
+		new CaptureMethodDelegate(this, studySet,
+			&MainMenuWidget::OpenStudyState));
+	menu->AddMenuOption("Quiz New Cards", true, 
+		new CaptureMethodDelegate(this, studySet,
+			&MainMenuWidget::OpenStudyState));
+	menu->AddMenuOption("Quiz Problem Cards", true, 
+		new CaptureMethodDelegate(this, studySet,
+			&MainMenuWidget::OpenStudyState));
+	menu->AddMenuOption("Query", true, nullptr);
 }
