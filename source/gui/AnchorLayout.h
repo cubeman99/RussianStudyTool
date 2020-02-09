@@ -2,17 +2,43 @@
 
 #include "gui/Layout.h"
 
+struct AnchorChild
+{
+public:
+	using sptr = cmg::shared_ptr<AnchorChild>;
+	friend class AnchorLayout;
+
+	AnchorChild& Pin(float x, float y);
+	AnchorChild& Pin(float x, float y, TextAlign align);
+	AnchorChild& Pin(const Vector2f& percentage);
+	AnchorChild& Pin(float left, float top, float right, float bottom);
+	AnchorChild& Offset(const Vector2f& offset);
+	AnchorChild& Offset(float x, float y);
+	AnchorChild& Offset(float left, float top, float right, float bottom);
+	AnchorChild& Rect(float left, float top, float width, float height);
+	AnchorChild& Rect(const Rect2f& rect);
+	AnchorChild& Align(TextAlign align);
+
+private:
+	Vector2f percentMin = Vector2f::ZERO;
+	Vector2f percentMax = Vector2f::ONE;
+	Vector2f offsetMin = Vector2f::ZERO;
+	Vector2f offsetMax = Vector2f::ZERO;
+	TextAlign align = TextAlign::TOP_LEFT;
+	GUIObject* object = nullptr;
+};
+
 class AnchorLayout : public Layout
 {
 public:
 	AnchorLayout();
 
 	void Clear();
-	void Add(GUIObject* child);
-	void Add(GUIObject* child, const Vector2f& position);
-	void Add(GUIObject* child, const Vector2f& percentMin, const Vector2f& percentMax,
+	AnchorChild& Add(GUIObject* child);
+	AnchorChild& Add(GUIObject* child, const Vector2f& position);
+	AnchorChild& Add(GUIObject* child, const Vector2f& percentMin, const Vector2f& percentMax,
 		const Vector2f& offset = Vector2f::ZERO, TextAlign align = TextAlign::TOP_LEFT);
-	void Add(GUIObject* child, const Vector2f& percentMin, const Vector2f& percentMax,
+	AnchorChild& Add(GUIObject* child, const Vector2f& percentMin, const Vector2f& percentMax,
 		const Vector2f& offsetMin, const Vector2f& offsetMax, TextAlign align = TextAlign::TOP_LEFT);
 
 	virtual uint32 GetNumChildren() const override;
@@ -22,17 +48,8 @@ public:
 	virtual void Render(AppGraphics& g, float timeDelta) override;
 
 private:
-	struct AnchorChild
-	{
-		Vector2f percentMin = Vector2f::ZERO;
-		Vector2f percentMax = Vector2f::ONE;
-		Vector2f offsetMin = Vector2f::ZERO;
-		Vector2f offsetMax = Vector2f::ZERO;
-		TextAlign align = TextAlign::TOP_LEFT;
-		GUIObject* object = nullptr;
-	};
 
-	void Add(const AnchorChild& item);
+	AnchorChild::sptr Add(AnchorChild::sptr item);
 
-	Array<AnchorChild> m_children;
+	Array<AnchorChild::sptr> m_children;
 };

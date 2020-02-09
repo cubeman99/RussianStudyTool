@@ -40,13 +40,13 @@
     <Filter Include="Source Files\widgets">
       <UniqueIdentifier>{5bbdc0d7-09d8-4628-9e8b-cc315295db2a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\external\wiktionary">
+      <UniqueIdentifier>{92ac6120-3125-4143-a3ca-292788517250}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\source\main.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\states\StudyState.cpp">
-      <Filter>Source Files\states</Filter>
     </ClCompile>
     <ClCompile Include="..\source\Graphics.cpp">
       <Filter>Source Files\core</Filter>
@@ -186,11 +186,23 @@
     <ClCompile Include="..\source\widgets\RelatedCardsWidget.cpp">
       <Filter>Source Files\widgets</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\states\StudyState.cpp">
+      <Filter>Source Files\widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\widgets\AddCardToSetWidget.cpp">
+      <Filter>Source Files\widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\widgets\CardSetSearchWidget.cpp">
+      <Filter>Source Files\widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\external\wiktionary\Wiktionary.cpp">
+      <Filter>Source Files\external\wiktionary</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\external\wiktionary\Term.cpp">
+      <Filter>Source Files\external\wiktionary</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\source\states\StudyState.h">
-      <Filter>Source Files\states</Filter>
-    </ClInclude>
     <ClInclude Include="..\source\Graphics.h">
       <Filter>Source Files\core</Filter>
     </ClInclude>
@@ -340,6 +352,24 @@
     </ClInclude>
     <ClInclude Include="..\source\core\Delegate.h">
       <Filter>Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\states\StudyState.h">
+      <Filter>Source Files\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\AddCardToSetWidget.h">
+      <Filter>Source Files\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\CardSetSearchWidget.h">
+      <Filter>Source Files\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\SearchWidget.h">
+      <Filter>Source Files\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\external\wiktionary\Wiktionary.h">
+      <Filter>Source Files\external\wiktionary</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\external\wiktionary\Term.h">
+      <Filter>Source Files\external\wiktionary</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

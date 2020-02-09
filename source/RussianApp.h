@@ -10,6 +10,7 @@
 #include "states/TestState.h"
 #include "widgets/MainMenuWidget.h"
 #include "study/StudyDatabase.h"
+#include "external/wiktionary/Wiktionary.h"
 #include "PedalInput.h"
 
 /*
@@ -72,9 +73,11 @@ public:
 	void PushState(ApplicationState* state);
 	void PushState(Widget* widget);
 
-	ApplicationStateStack& GetStateStack() { return m_stateStack; };
 	CardDatabase& GetCardDatabase() { return m_cardDatabase; }
 	StudyDatabase& GetStudyDatabase() { return m_studyDatabase; }
+	wiki::Wiktionary& GetWiktionary() { return m_wiktionary; }
+
+	ApplicationStateStack& GetStateStack() { return m_stateStack; };
 	Joystick* GetJoystick() { return m_joystick; }
 	const PedalInput& GetLeftPedalInput() const { return m_pedals[0]; }
 	const PedalInput& GetMiddlePedalInput() const { return m_pedals[1]; }
@@ -91,13 +94,21 @@ private:
 
 	static RussianStudyToolApp* s_instance;
 
+	// Databases
 	CardDatabase m_cardDatabase;
 	StudyDatabase m_studyDatabase;
+	wiki::Wiktionary m_wiktionary;
+
 	RenderParams m_renderParams;
 	Font::sptr m_font;
+	Font::sptr m_fontSmall;
+	Font::sptr m_fontLarge;
+
 	ApplicationStateStack m_stateStack;
 	MainMenuWidget* m_mainMenuWidget;
 
+	// Input
+	bool m_isJoystickReady = false;
 	Joystick* m_joystick = nullptr;
 	bool m_joystickButtonState[3] = { false, false, false };
 	bool m_joystickButtonStatePrev[3] = { false, false, false };

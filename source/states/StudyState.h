@@ -5,6 +5,8 @@
 #include "study/Scheduler.h"
 #include "study/StudyDatabase.h"
 #include "widgets/StudyProficiencyBar.h"
+#include "external/wiktionary/Term.h"
+
 
 class StudyState : public AppWidget
 {
@@ -27,10 +29,14 @@ public:
 	void OpenCardEditView();
 	void OpenRelatedCardsView();
 	void OpenAddCardToSetView();
+	void OpenInWebBrowser();
 
 private:
 	Card::sptr m_card;
 	CardStudyData m_cardStudyData;
+	wiki::Term::sptr m_term;
+	wiki::Word::sptr m_wikiWord;
+
 	StudyParams m_studyParams;
 	IStudySet* m_studySet;
 	Scheduler* m_scheduler;
@@ -40,8 +46,16 @@ private:
 
 	// Widgets
 
+	VBoxLayout m_layoutDefinitions;
+	Widget m_widgetDeclensionTable;
+	GridLayout m_tableDeclension;
+
 	VBoxLayout m_mainLayout;
 	AnchorLayout m_anchorLayout;
+	Widget m_widgetUnrevealed;
+	Widget m_widgetRevealed;
+	AnchorLayout m_layoutUnrevealed;
+	AnchorLayout m_layoutRevealed;
 	HBoxLayout m_titleLayout;
 	Widget m_widgetTagsShown;
 	Widget m_widgetTagsRevealed;

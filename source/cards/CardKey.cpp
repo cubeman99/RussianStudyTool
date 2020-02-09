@@ -59,6 +59,7 @@ CardRuKey::CardRuKey(WordType type, const unistr& russian) :
 CardRuKey::CardRuKey(WordType inType, const AccentedText& inRussian) :
 	CardRuKey(inType, inRussian.GetString())
 {
+	std::replace(russian.begin(), russian.end(), u'ё', u'е');
 	ru::ToLowerIP(russian);
 }
 

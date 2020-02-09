@@ -85,28 +85,28 @@ void ApplicationStateStack::OnEnd()
 void ApplicationStateStack::OnMouseDown(Window::MouseDownEvent * e)
 {
 	DeleteInactiveStates();
-	if (IsActive())
+	if (IsActive() && m_states.back() == m_currentState)
 		m_states.back()->OnMouseDown(e);
 }
 
 void ApplicationStateStack::OnMouseUp(Window::MouseUpEvent * e)
 {
 	DeleteInactiveStates();
-	if (IsActive())
+	if (IsActive() && m_states.back() == m_currentState)
 		m_states.back()->OnMouseUp(e);
 }
 
 void ApplicationStateStack::OnKeyDown(Window::KeyDownEvent * e)
 {
 	DeleteInactiveStates();
-	if (IsActive())
+	if (IsActive() && m_states.back() == m_currentState)
 		m_states.back()->OnKeyDown(e);
 }
 
 void ApplicationStateStack::OnKeyTyped(Window::KeyTypedEvent * e)
 {
 	DeleteInactiveStates();
-	if (IsActive())
+	if (IsActive() && m_states.back() == m_currentState)
 		m_states.back()->OnKeyTyped(e);
 }
 
@@ -117,6 +117,7 @@ void ApplicationStateStack::OnUpdate(float timeDelta)
 		return;
 
 	// Only update the top state
+	m_currentState = m_states.back();
 	m_states.back()->Update(timeDelta);
 
 	DeleteInactiveStates();

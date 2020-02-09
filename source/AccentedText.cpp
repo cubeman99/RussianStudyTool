@@ -133,6 +133,16 @@ bool AccentedText::operator!=(const AccentedText& other) const
 	return !(*this == other);
 }
 
+bool AccentedText::operator<(const AccentedText& other) const
+{
+	return m_string < other.m_string;
+}
+
+bool AccentedText::operator>(const AccentedText& other) const
+{
+	return m_string > other.m_string;
+}
+
 bool AccentedText::empty() const
 {
 	return m_string.empty();

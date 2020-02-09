@@ -29,4 +29,5 @@ protected:
 	void DeleteInactiveStates();
 
 	Array<ApplicationState*> m_states;
+	ApplicationState* m_currentState = nullptr;
 };

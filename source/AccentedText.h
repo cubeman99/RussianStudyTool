@@ -32,6 +32,8 @@ public:
 	unichar operator [](uint32 index) const;
 	bool operator==(const AccentedText& other) const;
 	bool operator!=(const AccentedText& other) const;
+	bool operator<(const AccentedText& other) const;
+	bool operator>(const AccentedText& other) const;
 
 	bool empty() const;
 	const unistr& GetString() const { return m_string; }

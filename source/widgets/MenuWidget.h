@@ -42,6 +42,7 @@ public:
 		return option;
 	}
 
+	virtual void OnInitialize();
 	virtual void OnUpdate(float timeDelta) override;
 	virtual void OnRender(AppGraphics& g, float timeDelta) override;
 

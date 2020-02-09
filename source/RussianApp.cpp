@@ -61,6 +61,9 @@ void RussianStudyToolApp::OnInitialize()
 
 	//resourceManager->LoadBuiltInFont(m_font, BuiltInFonts::FONT_CONSOLE);
 	resourceManager->LoadFont(m_font, Res::FONT, 14, 0x20, 0x500);
+	resourceManager->LoadFont(m_fontSmall, Res::FONT_SMALL, 12, 0x20, 0x500);
+	resourceManager->LoadFont(m_fontLarge, Res::FONT_LARGE, 24, 0x20, 0x500);
+	
 
 #ifndef USE_TEST_DATA
 	m_studyDatabase.SetReadOnly(true);
@@ -70,6 +73,7 @@ void RussianStudyToolApp::OnInitialize()
 	m_studyDatabase.LoadStudyData(g_dataPath / "study_data.yaml");
 	m_cardDatabase.LoadCardData(g_dataPath / "card_data.yaml");
 	m_cardDatabase.LoadCardSets(g_dataPath / "cards");
+	m_wiktionary.Load(g_dataPath / "wiktionary.json");
 
 	CardSet::sptr cardSet = m_cardDatabase.GetCardSet(CardSetKey(u"common words"));
 
@@ -111,11 +115,6 @@ void RussianStudyToolApp::OnUpdate(float timeDelta)
 	bool shift = keyboard->IsKeyDown(Keys::left_shift) ||
 		keyboard->IsKeyDown(Keys::right_shift);
 
-	// Escape: pop state or quit
-	if (keyboard->IsKeyPressed(Keys::escape))
-	{
-		m_stateStack.Pop();
-	}
 	if (!m_stateStack.IsActive())
 	{
 		Quit();
@@ -130,16 +129,25 @@ void RussianStudyToolApp::OnUpdate(float timeDelta)
 
 	if (m_joystick)
 	{
-		m_pedals[0].Update(m_joystick->GetAxisPosition(3));
-		m_pedals[1].Update(m_joystick->GetAxisPosition(1));
-		m_pedals[2].Update(m_joystick->GetAxisPosition(2));
-
-		for (uint32 i = 0; i < 3; i++)
+		if (!m_isJoystickReady)
 		{
-			m_joystickButtonStatePrev[i] = m_joystickButtonState[i];
-			m_joystickButtonState[i] = m_joystick->GetAxisPosition(i + 1) < 0.6f;
-			m_joystickButtonPressed[i] =
-				(m_joystickButtonState[i] && !m_joystickButtonStatePrev[i]);
+			// All axes seem to be zero until first input is detected
+			for (uint32 axis = 0; axis < 3; axis++)
+				m_isJoystickReady = (m_joystick->GetAxisPosition(axis) != 0);
+		}
+		else
+		{
+			m_pedals[0].Update(m_joystick->GetAxisPosition(3));
+			m_pedals[1].Update(m_joystick->GetAxisPosition(1));
+			m_pedals[2].Update(m_joystick->GetAxisPosition(2));
+
+			for (uint32 i = 0; i < 3; i++)
+			{
+				m_joystickButtonStatePrev[i] = m_joystickButtonState[i];
+				m_joystickButtonState[i] = m_joystick->GetAxisPosition(i + 1) < 0.6f;
+				m_joystickButtonPressed[i] =
+					(m_joystickButtonState[i] && !m_joystickButtonStatePrev[i]);
+			}
 		}
 	}
 }
@@ -182,8 +190,7 @@ void RussianStudyToolApp::OnRender()
 			g.DrawString(m_font.get(), ss.str(), Vector2f(windowSize.x - 200, 300 + i * 30.0f),
 				Color::YELLOW);
 		}
-	}
-	*/
+	}*/
 }
 
 void RussianStudyToolApp::OnMouseDown(Window::MouseDownEvent* e)

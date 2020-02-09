@@ -72,6 +72,11 @@ MenuItemWidget* MenuWidget::AddCancelOption(const AccentedText & name)
 	return option;
 }
 
+void MenuWidget::OnInitialize()
+{
+	m_options[0]->Focus();
+}
+
 void MenuWidget::OnUpdate(float timeDelta)
 {
 }

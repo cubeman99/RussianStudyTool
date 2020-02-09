@@ -51,9 +51,15 @@ MainMenuWidget::MainMenuWidget(CardSetPackage::sptr package) :
 	SetLayout(&m_mainLayout);
 
 	SetBackgroundColor(GUIConfig::color_background);
+
+	AddKeyShortcut("escape", [this]() {
+		GoBack();
+		return true;
+	});
 }
 
-void MainMenuWidget::SetPackage(CardSetPackage::sptr package)
+void MainMenuWidget::SetPackage(CardSetPackage::sptr package,
+	CardSetPackage::sptr selectPackage)
 {
 	MainMenuItemWidget* button;
 	m_package = package;
@@ -63,18 +69,20 @@ void MainMenuWidget::SetPackage(CardSetPackage::sptr package)
 
 	m_labelTitle.SetText(package->GetName());
 
+	Widget* toSelect = nullptr;
+
 	// Option to go back or quit
 	if (m_package->GetParent())
 	{
 		button = AddMenuOption("Back");
 		button->Clicked().Connect(this, &MainMenuWidget::GoBack);
+		toSelect = button;
 	}
 	else
 	{
 		button = AddMenuOption("Quit");
-		button->Clicked().Connect((Widget*) this, &Widget::Close);
+		button->Clicked().Connect(this, &MainMenuWidget::GoBack);
 	}
-
 
 	// Sub Card Packages
 	for (auto subPackage : m_package->GetPackages())
@@ -82,8 +90,12 @@ void MainMenuWidget::SetPackage(CardSetPackage::sptr package)
 		button = AddMenuOption(
 			"[...] " + subPackage->GetName(), subPackage.get());
 		button->Clicked().Connect(
-			this, subPackage, &MainMenuWidget::SetPackage);
+			this, subPackage, &MainMenuWidget::NavigateIntoCardPackage);
 		m_packageItems[subPackage] = button;
+		if (toSelect == nullptr)
+			toSelect = button;
+		if (selectPackage == subPackage)
+			toSelect = button;
 	}
 
 	// Card Sets
@@ -100,6 +112,9 @@ void MainMenuWidget::SetPackage(CardSetPackage::sptr package)
 	button->Clicked().Connect(
 		this, m_package, &MainMenuWidget::OpenCardPackage);
 	m_packageItems[m_package] = button;
+
+	if (toSelect)
+		toSelect->Focus();
 }
 
 void MainMenuWidget::OpenCardSet(CardSet::sptr cardSet)
@@ -123,9 +138,19 @@ void MainMenuWidget::OpenCardPackage(CardSetPackage::sptr package)
 	GetApp()->PushState(menu);
 }
 
+void MainMenuWidget::NavigateIntoCardPackage(CardSetPackage::sptr package)
+{
+	SetPackage(package);
+}
+
 void MainMenuWidget::GoBack()
 {
-	SetPackage(m_package->GetParent());
+	if (m_package->GetParent())
+	{
+		SetPackage(m_package->GetParent(), m_package);
+	}
+	else
+		Close();
 }
 
 MainMenuItemWidget* MainMenuWidget::AddMenuOption(
@@ -140,7 +165,7 @@ void MainMenuWidget::OnUpdate(float timeDelta)
 {
 	auto keyboard = GetApp()->GetKeyboard();
 	if (keyboard->IsKeyPressed(Keys::backspace) && m_package->GetParent())
-		SetPackage(m_package->GetParent());
+		GoBack();
 
 	// Update study metrics
 	auto& studyDatabase = GetApp()->GetStudyDatabase();

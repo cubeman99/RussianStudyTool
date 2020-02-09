@@ -29,7 +29,7 @@ RelatedCardsWidget::RelatedCardsWidget(Card::sptr card) :
 		return (Widget*) new Label(card->GetEnglish());
 	}, 2.0f);
 	m_table.AddColumn("Remove", new MethodDelegate(
-		this, &RelatedCardsWidget::CreateRemoveButton), 0.5f);
+		this, &RelatedCardsWidget::CreateRemoveButton), 0.0f);
 
 	// Set up card search widget
 	m_searchWidget.SetFilter(new MethodDelegate(
@@ -72,6 +72,7 @@ void RelatedCardsWidget::OnClickAdd(Card::sptr card)
 	auto& cardDatabase = GetApp()->GetCardDatabase();
 	m_table.AddItem(card);
 	m_searchWidget.RefreshResults();
+	m_searchWidget.GetSearchInputBox().Focus();
 	m_searchWidget.GetSearchInputBox().SelectAll();
 }
 
@@ -80,6 +81,7 @@ void RelatedCardsWidget::OnClickRemove(Card::sptr card)
 	auto& cardDatabase = GetApp()->GetCardDatabase();
 	m_table.RemoveItem(card);
 	m_searchWidget.RefreshResults();
+	m_searchWidget.GetSearchInputBox().Focus();
 	m_searchWidget.GetSearchInputBox().SelectAll();
 }
 
@@ -97,6 +99,8 @@ bool RelatedCardsWidget::SearchFilter(Card::sptr card)
 
 void RelatedCardsWidget::ApplyChanges()
 {
+	auto& cardDatabase = GetApp()->GetCardDatabase();
+
 	CardData changes = m_card->GetData();
 	changes.relatedCards.clear();
 	for (auto card : m_table.GetItems())
@@ -105,10 +109,9 @@ void RelatedCardsWidget::ApplyChanges()
 	if (changes.relatedCards != oldRelatedCards)
 	{
 		CMG_LOG_INFO() << "Applying new related cards!";
-		GetApp()->GetCardDatabase().ModifyCard(m_card, changes);
+		cardDatabase.ModifyCard(m_card, changes);
+		cardDatabase.SaveChanges();
 	}
-
-	//Refresh();
 }
 
 Widget* RelatedCardsWidget::CreateRemoveButton(Card::sptr card)

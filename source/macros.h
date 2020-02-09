@@ -9,6 +9,7 @@
 #define EXPAND_TO_SHORT_STR_TO_ENUM(_enum, _name, _value, _short) if (str == #_short) { outValue = _enum::k_##_name; return true; }
 #define EXPAND_TO_ENUM_TO_STR(_enum, _name, _value, _short) if (value == _enum::k_##_name) return #_name;
 #define EXPAND_TO_ENUM_TO_SHORT_STR(_enum, _name, _value, _short) if (value == _enum::k_##_name) return #_short;
+#define EXPAND_TO_GEN_ENUM_ARRAY(_enum, _name, _value, _short)  values.push_back(_enum::k_##_name);
 
 #define DECLARE_ENUM(_enum, _enum_macro) \
 	enum class _enum \
@@ -29,7 +30,9 @@
 	template <> \
 	bool TryStringToEnum<_enum>(const String& str, _enum& outValue, bool shortName); \
 	template <> \
-	String EnumToString<_enum>(_enum value, bool shortName);
+	String EnumToString<_enum>(_enum value, bool shortName); \
+	template <> \
+	Array<_enum> EnumValues<_enum>();
 
 #define DEFINE_ENUM(_enum, _enum_macro) \
 	template <> \
@@ -57,6 +60,13 @@
 			_enum_macro(_enum, EXPAND_TO_ENUM_TO_STR) \
 		} \
 		return ""; \
+	} \
+	template <> \
+	Array<_enum> EnumValues<_enum>() \
+	{ \
+		Array<_enum> values; \
+		_enum_macro(_enum, EXPAND_TO_GEN_ENUM_ARRAY) \
+		return values; \
 	}
 
 template <typename T_Enum>
@@ -83,6 +93,12 @@ template <typename T_Enum>
 bool TryStringToEnum(const String& str, T_Enum& outValue, bool shortName = false)
 {
 	return false;
+}
+
+template <typename T_Enum>
+Array<T_Enum> EnumValues()
+{
+	return Array<T_Enum>();
 }
 
 

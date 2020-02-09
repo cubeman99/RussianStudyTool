@@ -21,6 +21,8 @@
     <ClCompile Include="..\source\Config.cpp" />
     <ClCompile Include="..\source\core\JsonUtility.cpp" />
     <ClCompile Include="..\source\core\Unicode.cpp" />
+    <ClCompile Include="..\source\external\wiktionary\Wiktionary.cpp" />
+    <ClCompile Include="..\source\external\wiktionary\Term.cpp" />
     <ClCompile Include="..\source\gui\AbstractScrollArea.cpp" />
     <ClCompile Include="..\source\gui\BoxLayout.cpp" />
     <ClCompile Include="..\source\gui\AnchorLayout.cpp" />
@@ -50,9 +52,11 @@
     <ClCompile Include="..\source\study\StudyDatabase.cpp" />
     <ClCompile Include="..\source\study\StudySetMetrics.cpp" />
     <ClCompile Include="..\source\Types.cpp" />
+    <ClCompile Include="..\source\widgets\AddCardToSetWidget.cpp" />
     <ClCompile Include="..\source\widgets\AppWidget.cpp" />
     <ClCompile Include="..\source\widgets\CardSearchWidget.cpp" />
     <ClCompile Include="..\source\widgets\CardSetEditWidget.cpp" />
+    <ClCompile Include="..\source\widgets\CardSetSearchWidget.cpp" />
     <ClCompile Include="..\source\widgets\GenericTableWidget.cpp" />
     <ClCompile Include="..\source\widgets\MainMenuWidget.cpp" />
     <ClCompile Include="..\source\widgets\MenuWidget.cpp" />
@@ -72,6 +76,8 @@
     <ClInclude Include="..\source\core\Delegate.h" />
     <ClInclude Include="..\source\core\JsonUtility.h" />
     <ClInclude Include="..\source\core\Unicode.h" />
+    <ClInclude Include="..\source\external\wiktionary\Wiktionary.h" />
+    <ClInclude Include="..\source\external\wiktionary\Term.h" />
     <ClInclude Include="..\source\gui\AbstractScrollArea.h" />
     <ClInclude Include="..\source\gui\BoxLayout.h" />
     <ClInclude Include="..\source\gui\AnchorLayout.h" />
@@ -103,13 +109,16 @@
     <ClInclude Include="..\source\study\StudyDatabase.h" />
     <ClInclude Include="..\source\study\StudySetMetrics.h" />
     <ClInclude Include="..\source\Types.h" />
+    <ClInclude Include="..\source\widgets\AddCardToSetWidget.h" />
     <ClInclude Include="..\source\widgets\AppWidget.h" />
     <ClInclude Include="..\source\widgets\CardSearchWidget.h" />
     <ClInclude Include="..\source\widgets\CardSetEditWidget.h" />
+    <ClInclude Include="..\source\widgets\CardSetSearchWidget.h" />
     <ClInclude Include="..\source\widgets\GenericTableWidget.h" />
     <ClInclude Include="..\source\widgets\MainMenuWidget.h" />
     <ClInclude Include="..\source\widgets\MenuWidget.h" />
     <ClInclude Include="..\source\widgets\RelatedCardsWidget.h" />
+    <ClInclude Include="..\source\widgets\SearchWidget.h" />
     <ClInclude Include="..\source\widgets\StudyProficiencyBar.h" />
     <ClInclude Include="..\source\widgets\TestWidget.h" />
   </ItemGroup>

@@ -178,7 +178,7 @@ void GUIManager::OnKeyDown(Window::KeyDownEvent* e)
 		mods |= KeyMods::k_control;
 	if (keyboard->IsKeyDown(Keys::left_alt) || keyboard->IsKeyDown(Keys::right_alt))
 		mods |= KeyMods::k_alt;
-	
+
 	GUIObject* startObject = m_focusedWidget ? m_focusedWidget : m_rootWidget;
 	for (GUIObject* object = startObject; object != nullptr;
 		object = object->GetParent())
@@ -191,17 +191,16 @@ void GUIManager::OnKeyDown(Window::KeyDownEvent* e)
 				if (shortcut.Matches(e->key, mods))
 				{
 					if (shortcut.GetCallback()())
-					{
 						return;
-					}
 				}
 			}
 			if (widget->OnKeyDown(e->key, mods))
-			{
 				return;
-			}
 		}
 	}
+
+	if (e->key == Keys::escape && m_rootWidget)
+		m_rootWidget->Close();
 }
 
 void GUIManager::OnKeyTyped(Window::KeyTypedEvent* e)
@@ -223,9 +222,7 @@ void GUIManager::OnKeyTyped(Window::KeyTypedEvent* e)
 		{
 			Widget* widget = (Widget*) object;
 			if (widget->OnKeyTyped(e->keyCharUTF32, e->key, mods))
-			{
 				return;
-			}
 		}
 	}
 }
@@ -277,92 +274,88 @@ void GUIManager::UninitializeObjects(GUIObject* object)
 
 void GUIManager::Update(float timeDelta)
 {
-	if (m_rootWidget)
+	if (!m_rootWidget || !m_app)
+		return;
+
+	m_focusableWidgets.clear();
+	GetFocusableWidgets(m_rootWidget, m_focusableWidgets);
+	if (m_focusedWidget && std::find(m_focusableWidgets.begin(),
+		m_focusableWidgets.end(), m_focusedWidget) == m_focusableWidgets.end())
+		m_focusedWidget = nullptr;
+	if (m_cursorWidget && std::find(m_focusableWidgets.begin(),
+		m_focusableWidgets.end(), m_cursorWidget) == m_focusableWidgets.end())
+		m_cursorWidget = nullptr;
+
+	auto window = m_app->GetWindow();
+	Vector2f windowSize(
+		(float) window->GetWidth(),
+		(float) window->GetHeight());
+	m_bounds.position = Vector2f::ZERO;
+	m_bounds.size = windowSize;
+
+	auto app = RussianStudyToolApp::GetInstance();
+	Keyboard* keyboard = app->GetKeyboard();
+	Joystick* joystick = app->GetJoystick();
+	const PedalInput& leftPedal = app->GetLeftPedalInput();
+	const PedalInput& rightPedal = app->GetRightPedalInput();
+	const PedalInput& middlePedal = app->GetMiddlePedalInput();
+	bool ctrl = keyboard->IsKeyDown(Keys::left_control) ||
+		keyboard->IsKeyDown(Keys::right_control);
+	bool shift = keyboard->IsKeyDown(Keys::left_shift) ||
+		keyboard->IsKeyDown(Keys::right_shift);
+	bool tab = keyboard->IsKeyPressed(Keys::tab);
+
+	if (ctrl && tab)
 	{
-		m_focusableWidgets.clear();
-		GetFocusableWidgets(m_rootWidget, m_focusableWidgets);
-		if (m_focusedWidget && std::find(m_focusableWidgets.begin(),
-			m_focusableWidgets.end(), m_focusedWidget) == m_focusableWidgets.end())
-			m_focusedWidget = nullptr;
-		if (m_cursorWidget && std::find(m_focusableWidgets.begin(),
-			m_focusableWidgets.end(), m_cursorWidget) == m_focusableWidgets.end())
-			m_cursorWidget = nullptr;
-
-		if (m_app)
-		{
-			auto window = m_app->GetWindow();
-			Vector2f windowSize(
-				(float) window->GetWidth(),
-				(float) window->GetHeight());
-			m_bounds.position = Vector2f::ZERO;
-			m_bounds.size = windowSize;
-
-			auto app = RussianStudyToolApp::GetInstance();
-			Keyboard* keyboard = app->GetKeyboard();
-			Joystick* joystick = app->GetJoystick();
-			const PedalInput& leftPedal = app->GetLeftPedalInput();
-			const PedalInput& rightPedal = app->GetRightPedalInput();
-			const PedalInput& middlePedal = app->GetMiddlePedalInput();
-			bool ctrl = keyboard->IsKeyDown(Keys::left_control) ||
-				keyboard->IsKeyDown(Keys::right_control);
-			bool shift = keyboard->IsKeyDown(Keys::left_shift) ||
-				keyboard->IsKeyDown(Keys::right_shift);
-			bool tab = keyboard->IsKeyPressed(Keys::tab);
-
-			if (ctrl && tab)
-			{
-				CycleFocus(false);
-			}
-			else if (ctrl && shift && tab)
-			{
-				CycleFocus(true);
-			}
-			if (keyboard->IsKeyPressed(Keys::enter) ||
-				middlePedal.IsPressed())
-			{
-				if (m_focusedWidget)
-				{
-					m_focusedWidget->OnPress();
-				}
-			}
-
-			float move = 0.0f;
-			float speed = 10.0f;
-			move += rightPedal.GetAmount();
-			move -= leftPedal.GetAmount();
-			if (keyboard->IsKeyDown(Keys::down))
-				move += 1.0f;
-			if (keyboard->IsKeyDown(Keys::up))
-				move -= 1.0f;
-			move = Math::Sign(move) * Math::Abs(move);
-			if (Math::Abs(move) > 0.001f)
-			{
-				if (!m_cursorWidget)
-					m_cursorPosition = 0.0f;
-				m_cursorPosition += move * timeDelta * speed;
-				if (!m_focusedWidget)
-					CycleFocus(false);
-				m_cursorWidget = m_focusedWidget;
-
-				if (m_cursorPosition > 1.0f)
-				{
-					m_cursorPosition -= 1.0f;
-					m_cursorWidget = CycleFocus(false);
-				}
-				else if (m_cursorPosition < 0.0f)
-				{
-					m_cursorPosition += 1.0f;
-					m_cursorWidget = CycleFocus(true);
-				}
-			}
-
-		}
-
-		m_rootWidget->m_bounds = m_bounds;
-		CalcSizes(m_rootWidget);
-		m_rootWidget->m_bounds = m_bounds;
-		m_rootWidget->Update(timeDelta);
+		CycleFocus(false);
 	}
+	else if (ctrl && shift && tab)
+	{
+		CycleFocus(true);
+	}
+	if (keyboard->IsKeyPressed(Keys::enter) ||
+		middlePedal.IsPressed())
+	{
+		if (m_focusedWidget)
+		{
+			m_focusedWidget->OnPress();
+		}
+	}
+
+	float move = 0.0f;
+	float speed = 10.0f;
+	move += rightPedal.GetAmount();
+	move -= leftPedal.GetAmount();
+	if (keyboard->IsKeyDown(Keys::down))
+		move += 1.0f;
+	if (keyboard->IsKeyDown(Keys::up))
+		move -= 1.0f;
+	move = Math::Sign(move) * Math::Abs(move);
+	if (Math::Abs(move) > 0.001f)
+	{
+		if (!m_cursorWidget)
+			m_cursorPosition = 0.5f;
+		m_cursorPosition += move * timeDelta * speed;
+		if (!m_focusedWidget)
+			CycleFocus(false);
+		m_cursorWidget = m_focusedWidget;
+
+		if (m_cursorPosition > 1.0f)
+		{
+			m_cursorPosition -= 1.0f;
+			m_cursorWidget = CycleFocus(false);
+		}
+		else if (m_cursorPosition < 0.0f)
+		{
+			m_cursorPosition += 1.0f;
+			m_cursorWidget = CycleFocus(true);
+		}
+	}
+
+	m_rootWidget->m_bounds = m_bounds;
+	CalcSizes(m_rootWidget);
+	m_rootWidget->m_bounds = m_bounds;
+	m_rootWidget->Update(timeDelta);
 }
 
 void GUIManager::Render(AppGraphics& g, float timeDelta)
@@ -382,7 +375,9 @@ void GUIManager::Render(AppGraphics& g, float timeDelta)
 		b[axis] = a[axis];
 		a[1 - axis] = bounds.position[1 - axis];
 		b[1 - axis] = bounds.GetBottomRight()[1 - axis];
-		g.DrawLine(a, b, GUIConfig::color_outline_focused, 2.0f);
+		Color color = GUIConfig::color_outline_focused;
+		color.a = 64;
+		g.DrawLine(a, b, color, 2.0f);
 	}
 }
 

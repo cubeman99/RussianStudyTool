@@ -43,10 +43,13 @@ protected:
 	Rect2f m_bounds;
 	Widget* m_rootWidget = nullptr;
 	Widget* m_focusedWidget = nullptr;
-	Array<Widget*> m_focusableWidgets;
 	Widget* m_cursorWidget = nullptr;
 	float m_cursorPosition = 0.0f;
 	Array<Widget*> m_mouseDownWidgets;
+
+	// Cached values
+	Array<Widget*> m_allWidgets;
+	Array<Widget*> m_focusableWidgets;
 };
 
 template<class Func>

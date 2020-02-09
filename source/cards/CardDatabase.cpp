@@ -593,23 +593,18 @@ Error CardDatabase::ModifyCard(Card::sptr card, const CardData& changes)
 		}
 		if (card->m_relatedCards != changes.relatedCards)
 		{
+			changed = true;
 			Set<Card::sptr> oldRelatedCards = card->GetRelatedCards();
-			Set<Card::sptr> newRelatedCards = changes.relatedCards;
+			const Set<Card::sptr>& newRelatedCards = changes.relatedCards;
 			for (Card::sptr relatedCard : oldRelatedCards)
 			{
 				if (!cmg::container::Contains(newRelatedCards, relatedCard))
-				{
 					UnlinkRelatedCards(card, relatedCard);
-					changed = true;
-				}
 			}
 			for (Card::sptr relatedCard : newRelatedCards)
 			{
 				if (!cmg::container::Contains(oldRelatedCards, relatedCard))
-				{
 					LinkRelatedCards(card, relatedCard);
-					changed = true;
-				}
 			}
 		}
 	}

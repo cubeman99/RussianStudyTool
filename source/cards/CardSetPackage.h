@@ -26,6 +26,15 @@ public:
 	void AddPackage(CardSetPackage::sptr package);
 	void SetParent(CardSetPackage::sptr parent);
 
+	template <class T_Func>
+	void IterAllCardSets(T_Func callback)
+	{
+		for (CardSet::sptr cardSet : m_cardSets)
+			callback(cardSet);
+		for (CardSetPackage::sptr package : m_packages)
+			package->IterAllCardSets(callback);
+	}
+
 private:
 	AccentedText m_name;
 	unistr m_key;

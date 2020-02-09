@@ -3,6 +3,7 @@
 #include "RussianApp.h"
 #include "widgets/MenuWidget.h"
 #include "widgets/RelatedCardsWidget.h"
+#include "widgets/AddCardToSetWidget.h"
 
 StudyState::StudyState(IStudySet* studySet, const StudyParams& studyParams) :
 	m_studySet(studySet),
@@ -10,7 +11,7 @@ StudyState::StudyState(IStudySet* studySet, const StudyParams& studyParams) :
 {
 	float barHeight = 32.0f;
 	float topTopStart = barHeight + 16.0f;
-
+	
 	m_labelTitle.SetAlign(TextAlign::MIDDLE_LEFT);
 	m_labelTitle.SetText(studySet->GetName());
 	m_titleWidget.SetBackgroundColor(GUIConfig::color_background_light);
@@ -25,19 +26,45 @@ StudyState::StudyState(IStudySet* studySet, const StudyParams& studyParams) :
 	m_widgetTagsShown.SetLayout(&m_layoutTagsShown);
 	m_widgetTagsRevealed.SetLayout(&m_layoutTagsRevealed);
 
-	m_anchorLayout.Add(&m_labelHistoryScore, Vector2f(0.5f, 0.0f), Vector2f(0.5f, 0.0f), Vector2f(0.0f, topTopStart), TextAlign::TOP_CENTER);
-	m_anchorLayout.Add(&m_labelEncounterTime, Vector2f(1.0f, 0.0f), Vector2f(1.0f, 0.0f), Vector2f(-16.0f, topTopStart), TextAlign::TOP_RIGHT);
-	m_anchorLayout.Add(&m_labelWordType, Vector2f(0.5f, 0.2f), Vector2f(0.5f, 0.2f), Vector2f::ZERO, TextAlign::CENTERED);
-	m_anchorLayout.Add(&m_labelCardTextShown, Vector2f(0.5f), Vector2f(0.5f), Vector2f(0, -40), TextAlign::BOTTOM_CENTER);
-	m_anchorLayout.Add(&m_labelCardTextRevealed, Vector2f(0.5f), Vector2f(0.5f), Vector2f(0, 40), TextAlign::TOP_CENTER);
-	m_anchorLayout.Add(&m_widgetTagsShown, Vector2f(0.5f), Vector2f(0.5f), Vector2f(0, -80), TextAlign::BOTTOM_CENTER);
-	m_anchorLayout.Add(&m_widgetTagsRevealed, Vector2f(0.5f), Vector2f(0.5f), Vector2f(0, -80), TextAlign::BOTTOM_CENTER);
-	m_anchorLayout.Add(&m_proficiencyBarTop,
-		Vector2f(0.0f, 0.0f), Vector2f(1.0f, 0.0f),
-		Vector2f(0.0f, 0.0f), Vector2f(0.0f, barHeight));
-	m_anchorLayout.Add(&m_proficiencyBarBottom,
-		Vector2f(0.0f, 1.0f), Vector2f(1.0f, 1.0f),
-		Vector2f(0.0f, -barHeight), Vector2f(0.0f, 0.0f));
+	m_widgetUnrevealed.SetLayout(&m_layoutUnrevealed);
+	m_widgetRevealed.SetLayout(&m_layoutRevealed);
+	m_anchorLayout.Add(&m_widgetUnrevealed);
+	m_anchorLayout.Add(&m_widgetRevealed);
+
+	m_anchorLayout.Add(&m_labelHistoryScore)
+		.Pin(0.5f, 0.0f, TextAlign::TOP_CENTER).Offset(0.0f, topTopStart);
+	m_anchorLayout.Add(&m_labelEncounterTime)
+		.Pin(1.0f, 0.0f, TextAlign::TOP_RIGHT).Offset(-16.0f, topTopStart);
+	m_anchorLayout.Add(&m_labelWordType)
+		.Pin(0.5f, 0.2f, TextAlign::CENTERED);
+	m_anchorLayout.Add(&m_labelCardTextShown)
+		.Pin(0.5f, 0.5f, TextAlign::BOTTOM_CENTER).Offset(0, -20);
+	m_layoutRevealed.Add(&m_labelCardTextRevealed)
+		.Pin(0.5f, 0.5f, TextAlign::TOP_CENTER).Offset(0, 20);
+	m_layoutUnrevealed.Add(&m_widgetTagsShown)
+		.Pin(0.5f, 0.5f, TextAlign::BOTTOM_CENTER).Offset(0, -80);
+	m_layoutRevealed.Add(&m_widgetTagsRevealed)
+		.Pin(0.5f, 0.5f, TextAlign::BOTTOM_CENTER).Offset(0, -80);
+	m_anchorLayout.Add(&m_proficiencyBarTop)
+		.Pin(0.0f, 0.0f, 1.0f, 0.0f)
+		.Offset(0.0f, 0.0f, 0.0f, barHeight);
+	m_anchorLayout.Add(&m_proficiencyBarBottom)
+		.Pin(0.0f, 1.0f, 1.0f, 1.0f)
+		.Offset(0.0f, -barHeight, 0.0f, 0.0f);
+	m_layoutRevealed.Add(&m_layoutDefinitions)
+		.Pin(0.0f, 1.0f, TextAlign::BOTTOM_LEFT)
+		.Offset(8.0f, -barHeight - 16);
+	m_layoutRevealed.Add(&m_widgetDeclensionTable)
+		.Pin(1.0f, 1.0f, TextAlign::BOTTOM_RIGHT)
+		.Offset(-8.0f, -barHeight - 16);
+
+	m_layoutDefinitions.SetSpacing(0.0f);
+	m_layoutDefinitions.SetMargins(0.0f);
+	m_tableDeclension.SetSpacing(1.0f);
+	m_tableDeclension.SetMargins(1.0f);
+	m_widgetDeclensionTable.SetLayout(&m_tableDeclension);
+	m_widgetDeclensionTable.SetBackgroundColor(
+		GUIConfig::color_background_light);
 
 	m_mainLayout.SetSpacing(0.0f);
 	m_mainLayout.SetMargins(0.0f);
@@ -65,10 +92,18 @@ StudyState::StudyState(IStudySet* studySet, const StudyParams& studyParams) :
 	AddKeyShortcut("enter", [this]() { MarkGoodAndNext(); return true; });
 	AddKeyShortcut("backspace", [this]() { RevealOrMarkBadAndNext(); return true; });
 	//AddKeyShortcut("escape", [this]() { ShowPauseMenu(); return true; });
+	AddKeyShortcut("i", [this]() { OpenInWebBrowser(); return true; });
 }
 
 void StudyState::OnInitialize()
 {
+	Font::sptr fontLarge = GetApp()->GetResourceManager()->Get<Font>(Res::FONT_LARGE);
+	Font::sptr fontSmall = GetApp()->GetResourceManager()->Get<Font>(Res::FONT_SMALL);
+
+	m_labelCardTextRevealed.SetFont(fontLarge);
+	m_labelCardTextShown.SetFont(fontLarge);
+
+
 	m_scheduler = new Scheduler(
 		GetApp()->GetStudyDatabase(), m_studySet, m_studyParams);
 	NextCard();
@@ -115,9 +150,8 @@ void StudyState::MarkCard(bool knewIt)
 void StudyState::Reveal()
 {
 	m_isRevealed = true;
-	m_labelCardTextRevealed.SetVisible(true);
-	m_widgetTagsRevealed.SetVisible(true);
-	m_widgetTagsShown.SetVisible(false);
+	m_widgetRevealed.SetVisible(true);
+	m_widgetUnrevealed.SetVisible(false);
 }
 
 void StudyState::NextCard()
@@ -134,6 +168,70 @@ void StudyState::NextCard()
 		return;
 	}
 	
+	Font::sptr fontSmall = GetApp()->GetResourceManager()->Get<Font>(Res::FONT_SMALL);
+
+	// Wiktionary word
+	m_term = app->GetWiktionary().GetTerm(m_card->GetRuKey().russian);
+	m_wikiWord = nullptr;
+	m_layoutDefinitions.Clear();
+	m_widgetDeclensionTable.SetVisible(false);
+	m_tableDeclension.Clear();
+	if (m_term)
+	{
+		m_wikiWord = m_term->GetWord(m_card->GetWordType());
+		if (m_wikiWord)
+		{
+			m_widgetDeclensionTable.SetVisible(true);
+			m_layoutDefinitions.Add(new Label(
+				m_wikiWord->GetText() + AccentedText(u":"), fontSmall));
+			uint32 number = 1;
+			for (auto definition : m_wikiWord->GetDefinitions())
+			{
+				//using unistringstream = std::basic_stringstream<char16_t, std::char_traits<char16_t>, std::allocator<char16_t>>;
+				std::stringstream ss;
+				ss << number << ". ";
+				AccentedText text = ss.str() + definition.GetDefinition();
+				m_layoutDefinitions.Add(new Label(text, fontSmall));
+				number++;
+			}
+
+			if (m_wikiWord->GetWordType() == WordType::k_noun)
+			{
+				wiki::Noun::sptr noun = std::dynamic_pointer_cast<wiki::Noun>(m_wikiWord);
+				Label* label;
+				// Create table header
+				for (Plurality plurality : EnumValues<Plurality>())
+				{
+					label = new Label(EnumToShortString(plurality) + ".", fontSmall),
+					label->SetBackgroundColor(GUIConfig::color_background_alternate);
+					m_tableDeclension.Add(label, 0, 1 + (uint32) plurality);
+				}
+				for (Case nounCase : EnumValues<Case>())
+				{
+					label = new Label(EnumToShortString(nounCase) + ".", fontSmall),
+					label->SetBackgroundColor(GUIConfig::color_background_alternate);
+					m_tableDeclension.Add(label, 1 + (uint32) nounCase, 0);
+				}
+
+				// Fill table body
+				for (Plurality plurality : EnumValues<Plurality>())
+				{
+					String pluralityName = EnumToShortString(plurality);
+					for (Case nounCase : EnumValues<Case>())
+					{
+						String caseName = EnumToShortString(nounCase);
+						AccentedText text = noun->GetDeclension()
+							.GetDeclension(nounCase, plurality);
+						label = new Label(text, fontSmall);
+						label->SetBackgroundColor(GUIConfig::color_background);
+						m_tableDeclension.Add(label,
+							1 + (uint32) nounCase, 1 + (uint32) plurality);
+					}
+				}
+			}
+		}
+	}
+
 	m_cardStudyData = app->GetStudyDatabase().GetCardStudyData(m_card);
 	m_isRevealed = false;
 	if (Random::NextBool())
@@ -173,9 +271,8 @@ void StudyState::NextCard()
 	
 	m_labelCardTextShown.SetText(m_card->GetText(m_shownSide));
 	m_labelCardTextRevealed.SetText(m_card->GetText(m_revealedSide));
-	m_labelCardTextRevealed.SetVisible(false);
-	m_widgetTagsRevealed.SetVisible(false);
-	m_widgetTagsShown.SetVisible(true);
+	m_widgetRevealed.SetVisible(false);
+	m_widgetUnrevealed.SetVisible(true);
 	m_labelWordType.SetText(EnumToString(m_card->GetWordType()));
 
 	std::stringstream ss;
@@ -217,6 +314,7 @@ void StudyState::NextCard()
 
 	Color profColor = Config::GetProficiencyLevelColor(
 		m_cardStudyData.GetProficiencyLevel());
+	profColor.a = 128;
 	m_proficiencyBarTop.SetBackgroundColor(profColor);
 	m_proficiencyBarBottom.SetBackgroundColor(profColor);
 }
@@ -267,4 +365,20 @@ void StudyState::OpenRelatedCardsView()
 
 void StudyState::OpenAddCardToSetView()
 {
+	GetApp()->PushState(new AddCardToSetWidget(m_card));
+}
+
+void StudyState::OpenInWebBrowser()
+{
+	if (m_term)
+	{
+		std::stringstream ss;
+		unistr url = u"https://en.wiktionary.org/wiki/" +
+			m_term->GetText().GetString();
+		ShellExecuteW(0, 0, (wchar_t*) url.c_str(), 0, 0, SW_SHOW);
+		//cmg::os::OpenWebBrowser()
+		//cmg::os::OpenDirectoryExplorer()
+		//cmg::os::SetClipboardText()
+		//cmg::os::GetClipboardText()
+	}
 }
