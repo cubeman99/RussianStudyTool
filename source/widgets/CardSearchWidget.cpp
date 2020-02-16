@@ -43,6 +43,10 @@ uint32 CardSearchWidget::FindResults(unistr searchText,
 	std::sort(matches.begin(), matches.end());
 
 	for (auto it : matches)
+	{
+		if (results.size() > 20)
+			break;
 		results.push_back(it.second);
+	}
 	return matches.size();
 }

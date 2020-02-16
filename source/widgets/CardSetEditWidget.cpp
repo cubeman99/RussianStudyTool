@@ -84,6 +84,8 @@ void CardSetEditWidget::SelectCardSet(CardSet::sptr cardSet)
 	for (auto card : m_cardSet->GetCards())
 		AddCard(card);
 	AddEmptyRow();
+	if (!m_table.GetItems().empty())
+		m_table.GetItems().front()->m_inputRussian->Focus();
 
 	m_buttonSave.SetEnabled(false);
 }
@@ -172,8 +174,10 @@ void CardSetEditWidget::Refresh()
 	}
 	for (CardRow::sptr row : m_table.GetItems())
 	{
-		row->m_isEnKeyUnique = IsEnglishKeyUnique(row->m_card, row->m_enKey);
-		row->m_isRuKeyUnique = IsRussianKeyUnique(row->m_card, row->m_ruKey);
+		row->m_isEnKeyUnique = (row->m_enKey.english.empty() ||
+			IsEnglishKeyUnique(row->m_card, row->m_enKey));
+		row->m_isRuKeyUnique = (row->m_ruKey.russian.empty() ||
+			IsRussianKeyUnique(row->m_card, row->m_ruKey));
 		row->UpdateState();
 		if (!row->IsValid() && !row->IsEmpty())
 			valid = false;
@@ -182,6 +186,12 @@ void CardSetEditWidget::Refresh()
 		row->Refresh();
 	}
 	m_buttonSave.SetEnabled(valid && modified);
+}
+
+void CardSetEditWidget::OnInitialize()
+{
+	if (!m_table.GetItems().empty())
+		m_table.GetItems().front()->m_inputRussian->Focus();
 }
 
 bool CardSetEditWidget::IsEnglishKeyUnique(Card::sptr card, const CardEnKey& key)
@@ -343,6 +353,15 @@ void CardSetEditWidget::OnPressEnterType(CardRow::sptr row)
 
 void CardSetEditWidget::OnPressEnterRussian(CardRow::sptr row)
 {
+	// Predict the word type from the russian ending
+	row->UpdateState();
+	WordType predictedWordType;
+	if (ru::TryPredictWordType(row->m_ruKey.russian, predictedWordType))
+	{
+		unistr typeName = ConvertFromUTF8(EnumToShortString(predictedWordType));
+		row->m_inputType->SetText(typeName);
+	}
+
 	GetOrCreateAdjacentRow(row, false)->m_inputRussian->Focus();
 }
 
@@ -465,12 +484,12 @@ void CardRow::UpdateState()
 	m_validRussian = m_isRuKeyUnique && !m_text.russian.empty();
 	m_validEnglish = m_isEnKeyUnique && !m_text.english.empty();
 	m_isModified = (m_isNewCard || m_ruKey != m_card->GetRuKey() ||
-		m_enKey != m_card->GetEnKey());
+		m_enKey != m_card->GetEnKey() || m_text != m_card->GetText());
 }
 
 void CardRow::Refresh()
 {
-	// Validate type
+	// WordType color
 	if (m_isEmpty)
 		m_inputType->SetBackgroundColor(GUIConfig::color_text_box_background);
 	else if (!m_validType)
@@ -486,7 +505,7 @@ void CardRow::Refresh()
 	else
 		m_inputType->SetBackgroundColor(GUIConfig::color_text_box_background);
 
-	// Validate russian
+	// Russian color
 	if (m_isEmpty)
 		m_inputRussian->SetBackgroundColor(GUIConfig::color_text_box_background);
 	else if (m_text.russian.empty())
@@ -502,7 +521,7 @@ void CardRow::Refresh()
 	else
 		m_inputRussian->SetBackgroundColor(GUIConfig::color_text_box_background);
 
-	// Validate english
+	// English color
 	if (m_isEmpty)
 		m_inputEnglish->SetBackgroundColor(GUIConfig::color_text_box_background);
 	else if (m_text.english.empty())
@@ -517,6 +536,16 @@ void CardRow::Refresh()
 		m_inputEnglish->SetBackgroundColor(Config::k_colorEditedMatched);
 	else
 		m_inputEnglish->SetBackgroundColor(GUIConfig::color_text_box_background);
+
+	// Card tags color
+	if (m_isEmpty)
+		m_inputCardTags->SetBackgroundColor(GUIConfig::color_text_box_background);
+	else if (m_isNewCard)
+		m_inputCardTags->SetBackgroundColor(Config::k_colorEditedNew);
+	else if (m_cardTags != m_card->GetTags())
+		m_inputCardTags->SetBackgroundColor(Config::k_colorEditedModified);
+	else
+		m_inputCardTags->SetBackgroundColor(GUIConfig::color_text_box_background);
 
 	String tagStr = "";
 	for (auto it : m_cardTags)

@@ -38,6 +38,9 @@ public:
 	Widget* GetWidget();
 	void SetWidget(Widget* widget);
 
+	void OnMoveCursor();
+
+	virtual void OnInitialize() override;
 	virtual void OnUpdate(float timeDelta) override;
 
 private:

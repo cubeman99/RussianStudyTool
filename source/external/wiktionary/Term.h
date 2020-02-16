@@ -1,7 +1,8 @@
 ﻿#pragma once
 
-#include "AccentedText.h"
-#include "Types.h"
+#include "russian/Noun.h"
+#include "russian/Verb.h"
+#include "russian/Adjective.h"
 
 namespace wiki
 {
@@ -9,10 +10,15 @@ namespace wiki
 class Definition
 {
 public:
+	friend class Parser;
+
 	Definition();
 
 	const AccentedText& GetDefinition() const { return  m_definition; }
-	const Array<TranslationPair>& GetExamples() const { return  m_examples; }
+	const Array<TranslationPair>& GetExamples() const { return m_examples; }
+	Array<TranslationPair>& GetExamples() { return  m_examples; }
+
+	void SetDefinition(const AccentedText& definition) { m_definition = definition; }
 
 	void Serialize(rapidjson::Value& value,
 		rapidjson::Document::AllocatorType& allocator);
@@ -24,30 +30,10 @@ private:
 };
 
 
-class NounDeclension
-{
-public:
-	NounDeclension();
-
-	const AccentedText& GetDeclension(Case nounCase, Plurality plurality) const;
-	void SetDeclension(Case nounCase, Plurality plurality, const AccentedText& text);
-
-	void Serialize(rapidjson::Value& value,
-		rapidjson::Document::AllocatorType& allocator);
-	Error Deserialize(rapidjson::Value& data);
-
-private:
-	Map<std::pair<Case, Plurality>, AccentedText> m_declension;
-};
-
-using NounDeclension = NounDeclension;
-using VerbConjugation = NounDeclension;
-using AdjectiveDeclension = NounDeclension;
-
-
 class Word
 {
 public:
+	friend class Parser;
 	using sptr = cmg::shared_ptr<Word>;
 
 	Word(WordType wordType);
@@ -55,11 +41,19 @@ public:
 	WordType GetWordType() const { return m_wordType; }
 	const AccentedText& GetText() const { return m_text; }
 	const AccentedText& GetEtymology() const { return  m_etymology; }
-	const Array<Definition>& GetDefinitions() const { return  m_definitions; }
+	const Array<Definition>& GetDefinitions() const { return m_definitions; }
+	Array<Definition>& GetDefinitions() { return m_definitions; }
 	const Set<AccentedText>& GetRelatedTerms() const { return m_relatedTerms; }
+	Set<AccentedText>& GetRelatedTerms() { return m_relatedTerms; }
 	const Set<AccentedText>& GetDerivedTerms() const { return m_derivedTerms; }
+	Set<AccentedText>& GetDerivedTerms() { return m_derivedTerms; }
 	const Set<AccentedText>& GetSynonyms() const { return m_synonyms; }
+	Set<AccentedText>& GetSynonyms() { return m_synonyms; }
 	const Set<AccentedText>& GetAntonyms() const { return m_antonyms; }
+	Set<AccentedText>& GetAntonyms() { return m_antonyms; }
+
+	void SetText(const AccentedText& text) { m_text = text; }
+	void SetEtymology(const AccentedText& etymology) { m_etymology = etymology; }
 
 	virtual void Serialize(rapidjson::Value& value,
 		rapidjson::Document::AllocatorType& allocator);
@@ -80,60 +74,73 @@ private:
 class Noun : public Word
 {
 public:
+	friend class Parser;
 	using sptr = cmg::shared_ptr<Noun>;
 
 	Noun();
+	
+	const ru::NounDeclension& GetDeclension() const { return m_declension; }
 
-	const NounDeclension& GetDeclension() const { return m_declension; }
+	void SetDeclension(const ru::NounDeclension& declension) { m_declension = declension; }
 
 	void Serialize(rapidjson::Value& value,
 		rapidjson::Document::AllocatorType& allocator) override;
 	Error Deserialize(rapidjson::Value& data) override;
 
 private:
-	NounDeclension m_declension;
+	ru::NounDeclension m_declension;
 };
 
 
 class Adjective : public Word
 {
 public:
+	friend class Parser;
 	using sptr = cmg::shared_ptr<Adjective>;
 
 	Adjective();
 
-	const AdjectiveDeclension& GetDeclension() const { return m_declension; }
+	const ru::AdjectiveDeclension& GetDeclension() const { return m_declension; }
+
+	void SetDeclension(const ru::AdjectiveDeclension& declension) { m_declension = declension; }
 
 	void Serialize(rapidjson::Value& value,
 		rapidjson::Document::AllocatorType& allocator) override;
 	Error Deserialize(rapidjson::Value& data) override;
 
 private:
-	AdjectiveDeclension m_declension;
+	ru::AdjectiveDeclension m_declension;
 };
 
 
 class Verb : public Word
 {
 public:
+	friend class Parser;
 	using sptr = cmg::shared_ptr<Verb>;
 
 	Verb();
 
-	const VerbConjugation& GetConjugation() const { return m_conjugation; }
+	const ru::VerbConjugation& GetConjugation() const { return m_conjugation; }
+	const Set<AccentedText>& GetCounterparts() const { return m_counterparts; }
+	Set<AccentedText>& GetCounterparts() { return m_counterparts; }
+
+	void SetConjugation(const ru::VerbConjugation& conjugation) { m_conjugation = conjugation; }
 
 	void Serialize(rapidjson::Value& value,
 		rapidjson::Document::AllocatorType& allocator) override;
 	Error Deserialize(rapidjson::Value& data) override;
 
 private:
-	VerbConjugation m_conjugation;
+	Set<AccentedText> m_counterparts;
+	ru::VerbConjugation m_conjugation;
 };
 
 
 class Term
 {
 public:
+	friend class Parser;
 	using sptr = cmg::shared_ptr<Term>;
 
 	Term();

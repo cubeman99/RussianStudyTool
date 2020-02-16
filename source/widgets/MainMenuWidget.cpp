@@ -36,18 +36,21 @@ MainMenuWidget::MainMenuWidget(CardSetPackage::sptr package) :
 {
 	SetPackage(package);
 
+
 	m_labelTitle.SetAlign(TextAlign::MIDDLE_LEFT);
 	m_titleWidget.SetBackgroundColor(GUIConfig::color_background_light);
 	m_titleLayout.Add(&m_labelTitle, 1.0f);
 	m_titleLayout.Add(&m_topProficiencyBar, 1.0f);
 	m_titleWidget.SetLayout(&m_titleLayout);
 
+	m_scrollArea.SetWidget(&m_widgetOptions);
+	m_widgetOptions.SetLayout(&m_optionLayout);
 	m_optionLayout.SetItemBackgroundColors(true);
 
 	m_mainLayout.SetSpacing(0.0f);
 	m_mainLayout.SetMargins(0.0f);
 	m_mainLayout.Add(&m_titleWidget, 0.1f);
-	m_mainLayout.Add(&m_optionLayout, 1.0f);
+	m_mainLayout.Add(&m_scrollArea, 1.0f);
 	SetLayout(&m_mainLayout);
 
 	SetBackgroundColor(GUIConfig::color_background);

@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include "AccentedText.h"
-#include "Types.h"
+#include "Russian.h"
+
 
 struct CardEnKey
 {

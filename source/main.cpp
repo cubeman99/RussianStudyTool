@@ -6,6 +6,7 @@
 #include <cmgApplication/cmg_application.h>
 #include "gui/gui.h"
 #include "RussianApp.h"
+#include "external/RequestInterface.h"
 
 class TestClass
 {
@@ -24,7 +25,14 @@ int main(int argc, char* argv[])
 	Random::SeedTime();
 	cmg::core::console::EnableUnicode();
 	Config::Initialize();
+	/*
+	RequestInterface requests;
+	wiki::Wiktionary wiktionary(requests);
+	unistr result;
+	auto term = wiktionary.DownloadTerm(u"стол");
 
+	system("pause");
+	return 0;*/
 	/*
 	
 	TestClass test;
@@ -69,7 +77,7 @@ int main(int argc, char* argv[])
 	std::cout << b.GetValue() << std::endl;
 	std::cout << c.GetValue() << std::endl;
 	std::cout << c[Case::k_accusative] << std::endl;
-	std::cout << c[Case::k_genetive] << std::endl;
+	std::cout << c[Case::k_genitive] << std::endl;
 	std::cout << c[Case::k_nominative] << std::endl;
 	std::cout << c[Case::k_dative] << std::endl;
 	c.Set(Case::dative, true);

@@ -9,7 +9,7 @@
 #include <filesystem>
 
 using unichar = uint16_t;
-using unistr = std::u16string;
+using unistr = StringU16;
 using uniregex = std::basic_regex<char16_t>;
 
 std::string ConvertToUTF8(std::u16string str);

@@ -1,9 +1,9 @@
 ﻿#include "AccentedText.h"
-#include "russian.h"
+#include "Russian.h"
 
 
-const unichar AccentedText::ACCENT_INPUT_CHARS[] =
-	{ u'\'', u'´', u'`', u'’', u'\u0301' };
+static const unichar ACCENT_INPUT_CHARS[] =
+	{ u'\'', u'´', u'`', u'’', u'\u0301'};
 const unichar AccentedText::ACCENT_OUTPUT_CHAR = u'\'';
 const unichar AccentedText::ACCENT_RENDER_CHAR = u'´';
 
@@ -13,7 +13,7 @@ AccentedText::AccentedText()
 }
 
 AccentedText::AccentedText(const char* str) :
-	AccentedText(FromUTF8(str))
+	AccentedText(ConvertFromUTF8(str))
 {
 }
 
@@ -45,9 +45,9 @@ AccentedText::AccentedText(const unistr& str)
 
 		//if (ru::IsRussian(prevChar))
 		{
-			for (uint32 i = 0; i < 3; i++)
+			for (unichar accentChar : ACCENT_INPUT_CHARS)
 			{
-				if (c == AccentedText::ACCENT_INPUT_CHARS[i])
+				if (c == accentChar)
 				{
 					isAccent = true;
 					m_accents.push_back(index - 1);

@@ -8,6 +8,8 @@
 #include <filesystem>
 #include "gui/Events.h"
 #include "external/wiktionary/Term.h"
+#include "external/wiktionary/Parser.h"
+#include "external/RequestInterface.h"
 
 namespace wiki
 {
@@ -15,11 +17,15 @@ namespace wiki
 class Wiktionary
 {
 public:
-	Wiktionary();
+	Wiktionary(RequestInterface& requests);
 	~Wiktionary();
 
+	const Path& GetDataPath() const;
 	Term::sptr GetTerm(const unistr& text);
+	Term::sptr DownloadTerm(const unistr& text);
 
+	void SetDataPath(const Path& path);
+	Error Load();
 	Error Load(const Path& path);
 	Error Save();
 	Error Save(const Path& path);
@@ -32,6 +38,7 @@ private:
 	Path m_savePath;
 	Path m_soundsDir;
 	Map<unistr, Term::sptr> m_terms;
+	Parser m_parser;
 
 	Set<unistr> m_errorTerms;
 	Set<unistr> m_404Terms;

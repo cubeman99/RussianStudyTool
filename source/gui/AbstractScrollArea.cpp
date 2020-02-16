@@ -1,4 +1,5 @@
 ﻿#include "AbstractScrollArea.h"
+#include "GUIManager.h"
 
 AbstractScrollArea::AbstractScrollArea() :
 	m_scrollBars{0, 1}
@@ -37,6 +38,38 @@ void AbstractScrollArea::SetWidget(Widget* widget)
 	m_areaLayout.SetWidget(widget);
 }
 
+void AbstractScrollArea::OnMoveCursor()
+{
+	// Auto scroll
+	Widget* focusedWidget = m_guiManager->GetFocusedWidget();
+	uint32 axis = 1;
+	if (focusedWidget)
+	{
+		bool found = false;
+		GUIObject* obj = focusedWidget;
+		while (obj && obj != this)
+			obj = obj->GetParent();
+		if (obj != this)
+			return;
+		Vector2f cursorPoint = m_guiManager->GetCursorPosition();
+		Vector2f scrollOffset(
+			m_scrollBars[0].GetValue(),
+		m_scrollBars[1].GetValue());
+		Vector2f targetOffset = scrollOffset -
+			(GetBounds().GetCenter() - cursorPoint);
+		scrollOffset[axis] = Math::Lerp(
+			scrollOffset[axis], targetOffset[axis], 0.2f);
+		m_scrollBars[0].SetValue(scrollOffset.x);
+		m_scrollBars[1].SetValue(scrollOffset.y);
+	}
+}
+
+void AbstractScrollArea::OnInitialize()
+{
+	m_guiManager->MovedCursor().Connect(this,
+		&AbstractScrollArea::OnMoveCursor);
+}
+
 void AbstractScrollArea::OnUpdate(float timeDelta)
 {
 	Rect2f fullRect = GetBounds();
@@ -55,6 +88,13 @@ void AbstractScrollArea::OnUpdate(float timeDelta)
 		m_scrollBars[0].GetValue(),
 		m_scrollBars[1].GetValue());
 	m_areaLayout.SetOffset(offset);
+
+	/*
+		offset.y = math::Lerp(
+			self.scroll_position,
+			desired_scroll_position,
+			0.2)
+		if abs(self.scroll_position - desired_scroll_position) < 2:*/
 }
 
 SubRegionLayout::SubRegionLayout() :

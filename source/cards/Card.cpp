@@ -15,6 +15,11 @@ Card::~Card()
 {
 }
 
+const TranslationPair & Card::GetText() const
+{
+	return m_text;
+}
+
 const AccentedText & Card::GetText(Language language) const
 {
 	return m_text.GetText(language);

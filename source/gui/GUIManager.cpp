@@ -28,6 +28,11 @@ Widget* GUIManager::GetRootWidget()
 	return m_rootWidget;
 }
 
+Widget * GUIManager::GetFocusedWidget()
+{
+	return m_focusedWidget;
+}
+
 void GUIManager::GetFocusableWidgets(GUIObject* object,
 	Array<Widget*>& outWidgets)
 {
@@ -69,6 +74,18 @@ Widget* GUIManager::GetWidgetAtPoint(GUIObject* object, const Vector2f& point)
 	if (object->IsWidget() && object->IsEnabled() && object->IsVisible())
 		return (Widget*) object;
 	return nullptr;
+}
+
+Vector2f GUIManager::GetCursorPosition() const
+{
+	if (!m_cursorWidget)
+		return m_bounds.GetCenter();
+	float fract = m_cursorPosition - Math::Floor(m_cursorPosition);
+	Rect2f bounds = m_cursorWidget->GetBounds();
+	Vector2f point = bounds.GetCenter();
+	int axis = 1;
+	point[axis] = bounds.position[axis] + (fract * bounds.size[axis]);
+	return point;
 }
 
 Widget* GUIManager::CycleFocus(bool reverse)
@@ -350,6 +367,7 @@ void GUIManager::Update(float timeDelta)
 			m_cursorPosition += 1.0f;
 			m_cursorWidget = CycleFocus(true);
 		}
+		m_movedCursor.Emit();
 	}
 
 	m_rootWidget->m_bounds = m_bounds;

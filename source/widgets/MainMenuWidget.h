@@ -61,6 +61,8 @@ private:
 	Map<CardSetPackage::sptr, MainMenuItemWidget*> m_packageItems;
 
 	VBoxLayout m_mainLayout;
+	AbstractScrollArea m_scrollArea;
+	Widget m_widgetOptions;
 	VBoxLayout m_optionLayout;
 	Widget m_titleWidget;
 	HBoxLayout m_titleLayout;

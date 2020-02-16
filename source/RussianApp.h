@@ -98,6 +98,7 @@ private:
 	CardDatabase m_cardDatabase;
 	StudyDatabase m_studyDatabase;
 	wiki::Wiktionary m_wiktionary;
+	RequestInterface m_requests;
 
 	RenderParams m_renderParams;
 	Font::sptr m_font;

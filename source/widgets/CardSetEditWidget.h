@@ -70,6 +70,8 @@ public:
 	void ApplyChanges();
 	void Refresh();
 
+	virtual void OnInitialize() override;
+
 private:
 	bool IsEnglishKeyUnique(Card::sptr card, const CardEnKey& key);
 	bool IsRussianKeyUnique(Card::sptr card, const CardRuKey& key);

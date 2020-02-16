@@ -27,6 +27,7 @@ public:
 	WordType GetWordType() const { return m_type; }
 	const AccentedText& GetEnglish() const { return m_text.english; }
 	const AccentedText& GetRussian() const { return m_text.russian; }
+	const TranslationPair& GetText() const;
 	const AccentedText& GetText(Language language) const;
 	AppTimestamp GetCreationTimestamp() const;
 	CardKey GetKey() const;

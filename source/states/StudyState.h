@@ -6,6 +6,8 @@
 #include "study/StudyDatabase.h"
 #include "widgets/StudyProficiencyBar.h"
 #include "external/wiktionary/Term.h"
+#include "widgets/DeclensionTable.h"
+#include "widgets/RelatedWordList.h"
 
 
 class StudyState : public AppWidget
@@ -30,6 +32,7 @@ public:
 	void OpenRelatedCardsView();
 	void OpenAddCardToSetView();
 	void OpenInWebBrowser();
+	void Copy();
 
 private:
 	Card::sptr m_card;
@@ -44,11 +47,29 @@ private:
 	Language m_shownSide;
 	Language m_revealedSide;
 
-	// Widgets
-
+	// Word widgets
 	VBoxLayout m_layoutDefinitions;
-	Widget m_widgetDeclensionTable;
-	GridLayout m_tableDeclension;
+	RelatedWordList m_listRelatedCards;
+
+	// Noun widgets
+	Widget m_widgetNounInfo;
+	HBoxLayout m_layoutNounInfo;
+	DeclensionTable m_tableNounDeclension;
+
+	// Ajdective widgets
+	Widget m_widgetAdjectiveInfo;
+	HBoxLayout m_layoutAdjectiveInfo;
+	DeclensionTable m_tableAdjectiveDeclension;
+
+	// Verb widgets
+	Widget m_widgetVerbInfo;
+	HBoxLayout m_layoutVerbInfo;
+	DeclensionTable m_tableVerbNonPast;
+	DeclensionTable m_tableVerbPast;
+	DeclensionTable m_tableVerbParticiples;
+	VBoxLayout m_layoutVerbParticiples;
+	Label m_labelInfinitive;
+	RelatedWordList m_listCounterparts;
 
 	VBoxLayout m_mainLayout;
 	AnchorLayout m_anchorLayout;

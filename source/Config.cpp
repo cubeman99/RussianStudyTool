@@ -16,7 +16,7 @@ Map<ProficiencyLevel, float> Config::k_proficiencyLevelScoreMultipliers;
 void Config::Initialize()
 {
 	k_mapCardTagColors[CardTags::k_masculine] = Color(255, 0, 0);
-	k_mapCardTagColors[CardTags::k_femanine] = Color(255, 128, 200);
+	k_mapCardTagColors[CardTags::k_feminine] = Color(255, 128, 200);
 	k_mapCardTagColors[CardTags::k_neuter] = Color(128, 128, 128);
 	k_mapCardTagColors[CardTags::k_perfective] = Color(128, 0, 128);
 	k_mapCardTagColors[CardTags::k_imperfective] = Color(0, 160, 180);
@@ -25,7 +25,7 @@ void Config::Initialize()
 	k_mapCardTagColors[CardTags::k_nominative] = Color(50, 50, 50);
 	k_mapCardTagColors[CardTags::k_accusative] = Color(160, 0, 0);
 	k_mapCardTagColors[CardTags::k_dative] = Color(100, 0, 0);
-	k_mapCardTagColors[CardTags::k_genetive] = Color(80, 15, 0);
+	k_mapCardTagColors[CardTags::k_genitive] = Color(80, 15, 0);
 	k_mapCardTagColors[CardTags::k_prepositional] = Color(0, 100, 0);
 	k_mapCardTagColors[CardTags::k_instrumental] = Color(100, 100, 0);
 

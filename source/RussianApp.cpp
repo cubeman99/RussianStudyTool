@@ -20,7 +20,8 @@ RussianStudyToolApp* RussianStudyToolApp::s_instance = nullptr;
 
 
 RussianStudyToolApp::RussianStudyToolApp() :
-	m_studyDatabase(m_cardDatabase)
+	m_studyDatabase(m_cardDatabase),
+	m_wiktionary(m_requests)
 {
 	s_instance = this;
 
@@ -64,23 +65,20 @@ void RussianStudyToolApp::OnInitialize()
 	resourceManager->LoadFont(m_fontSmall, Res::FONT_SMALL, 12, 0x20, 0x500);
 	resourceManager->LoadFont(m_fontLarge, Res::FONT_LARGE, 24, 0x20, 0x500);
 	
-
-#ifndef USE_TEST_DATA
-	m_studyDatabase.SetReadOnly(true);
-#endif
-
 	// Load all datasets
 	m_studyDatabase.LoadStudyData(g_dataPath / "study_data.yaml");
 	m_cardDatabase.LoadCardData(g_dataPath / "card_data.yaml");
 	m_cardDatabase.LoadCardSets(g_dataPath / "cards");
-	m_wiktionary.Load(g_dataPath / "wiktionary.json");
+	m_wiktionary.SetDataPath(g_dataPath / "wiktionary.json");
+	if (m_wiktionary.GetDataPath().FileExists())
+		m_wiktionary.Load();
 
 	CardSet::sptr cardSet = m_cardDatabase.GetCardSet(CardSetKey(u"common words"));
 
 	m_mainMenuWidget = new MainMenuWidget(m_cardDatabase.GetRootPackage());
 	PushState(new GUIState(m_mainMenuWidget));
-	//PushState(new CardSetEditWidget(cardSet));
 	//PushState(new CardSearchWidget());
+	//PushState(new CardSetEditWidget(cardSet));
 	PushState(new StudyState(cardSet.get()));
 
 	//m_cardDatabase.SaveCardData();

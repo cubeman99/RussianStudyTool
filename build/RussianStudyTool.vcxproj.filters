@@ -201,6 +201,30 @@
     <ClCompile Include="..\source\external\wiktionary\Term.cpp">
       <Filter>Source Files\external\wiktionary</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\external\RequestInterface.cpp">
+      <Filter>Source Files\external</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\external\wiktionary\Parser.cpp">
+      <Filter>Source Files\external\wiktionary</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\external\XML.cpp">
+      <Filter>Source Files\external</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\russian\Adjective.cpp">
+      <Filter>Source Files\russian</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\russian\Noun.cpp">
+      <Filter>Source Files\russian</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\russian\Verb.cpp">
+      <Filter>Source Files\russian</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\widgets\DeclensionTable.cpp">
+      <Filter>Source Files\widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\widgets\RelatedWordList.cpp">
+      <Filter>Source Files\widgets</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\Graphics.h">
@@ -370,6 +394,30 @@
     </ClInclude>
     <ClInclude Include="..\source\external\wiktionary\Term.h">
       <Filter>Source Files\external\wiktionary</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\external\RequestInterface.h">
+      <Filter>Source Files\external</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\external\wiktionary\Parser.h">
+      <Filter>Source Files\external\wiktionary</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\external\XML.h">
+      <Filter>Source Files\external</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\russian\Adjective.h">
+      <Filter>Source Files\russian</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\russian\Noun.h">
+      <Filter>Source Files\russian</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\russian\Verb.h">
+      <Filter>Source Files\russian</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\DeclensionTable.h">
+      <Filter>Source Files\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\RelatedWordList.h">
+      <Filter>Source Files\widgets</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

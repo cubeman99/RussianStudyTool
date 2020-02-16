@@ -66,6 +66,21 @@ void ScrollBar::OnUpdate(float timeDelta)
 
 void ScrollBar::OnRender(AppGraphics& g, float timeDelta)
 {
-	Color color = GUIConfig::color_button_background;
+	Color color = GUIConfig::color_background_light;
 	SetBackgroundColor(color);
+
+	Rect2f barRect = GetBounds();
+
+	float spanSize = barRect.size[m_axis];
+	float percent = (m_value - m_minimum) / (m_maximum - m_minimum);
+	float barSize = (spanSize * m_pageStep) /
+		(m_maximum - m_minimum + m_pageStep);
+	float barOffset = (spanSize - barSize) * percent;
+
+	barRect.position[m_axis] += barOffset;
+	barRect.size[m_axis] = barSize;
+	barRect.Inflate(-3, -3);
+
+	color = GUIConfig::color_button_background;
+	g.FillRect(barRect, color);
 }

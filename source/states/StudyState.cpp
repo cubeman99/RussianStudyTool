@@ -19,6 +19,9 @@ StudyState::StudyState(IStudySet* studySet, const StudyParams& studyParams) :
 	m_titleLayout.Add(&m_labelTitle);
 	m_titleLayout.Add(&m_topProficiencyBar);
 
+	m_listCounterparts.SetLabel("Counterparts:");
+	m_listRelatedCards.SetLabel("Related Cards:");
+	
 	m_layoutTagsRevealed.SetMargins(0.0f);
 	m_layoutTagsRevealed.SetSpacing(4.0f);
 	m_layoutTagsShown.SetMargins(0.0f);
@@ -54,17 +57,39 @@ StudyState::StudyState(IStudySet* studySet, const StudyParams& studyParams) :
 	m_layoutRevealed.Add(&m_layoutDefinitions)
 		.Pin(0.0f, 1.0f, TextAlign::BOTTOM_LEFT)
 		.Offset(8.0f, -barHeight - 16);
-	m_layoutRevealed.Add(&m_widgetDeclensionTable)
+	m_layoutRevealed.Add(&m_widgetNounInfo)
+		.Pin(1.0f, 1.0f, TextAlign::BOTTOM_RIGHT)
+		.Offset(-8.0f, -barHeight - 16);
+	m_layoutRevealed.Add(&m_widgetAdjectiveInfo)
+		.Pin(1.0f, 1.0f, TextAlign::BOTTOM_RIGHT)
+		.Offset(-8.0f, -barHeight - 16);
+	m_layoutRevealed.Add(&m_widgetVerbInfo)
 		.Pin(1.0f, 1.0f, TextAlign::BOTTOM_RIGHT)
 		.Offset(-8.0f, -barHeight - 16);
 
+	m_layoutNounInfo.SetMargins(0.0f);
+	m_layoutNounInfo.Add(&m_tableNounDeclension);
+	m_widgetNounInfo.SetLayout(&m_layoutNounInfo);
+
+	m_layoutAdjectiveInfo.SetMargins(0.0f);
+	m_layoutAdjectiveInfo.Add(&m_tableAdjectiveDeclension);
+	m_widgetAdjectiveInfo.SetLayout(&m_layoutAdjectiveInfo);
+
+	m_layoutVerbParticiples.SetMargins(0.0f);
+	m_layoutVerbParticiples.SetSpacing(4.0f);
+	m_layoutVerbParticiples.Add(&m_labelInfinitive);
+	m_layoutVerbParticiples.Add(&m_listCounterparts);
+	m_layoutVerbParticiples.AddStretch();
+	m_layoutVerbParticiples.Add(&m_tableVerbParticiples);
+	m_layoutVerbInfo.Add(&m_tableVerbNonPast);
+	m_layoutVerbInfo.Add(&m_tableVerbPast);
+	m_layoutVerbInfo.Add(&m_layoutVerbParticiples);
+	m_layoutVerbInfo.SetMargins(0.0f);
+	m_layoutVerbInfo.SetSpacing(8.0f);
+	m_widgetVerbInfo.SetLayout(&m_layoutVerbInfo);
+
 	m_layoutDefinitions.SetSpacing(0.0f);
 	m_layoutDefinitions.SetMargins(0.0f);
-	m_tableDeclension.SetSpacing(1.0f);
-	m_tableDeclension.SetMargins(1.0f);
-	m_widgetDeclensionTable.SetLayout(&m_tableDeclension);
-	m_widgetDeclensionTable.SetBackgroundColor(
-		GUIConfig::color_background_light);
 
 	m_mainLayout.SetSpacing(0.0f);
 	m_mainLayout.SetMargins(0.0f);
@@ -88,11 +113,12 @@ StudyState::StudyState(IStudySet* studySet, const StudyParams& studyParams) :
 	// Connect signals
 	AddKeyShortcut("e", [this]() { OpenCardEditView(); return true; });
 	AddKeyShortcut("r", [this]() { OpenRelatedCardsView(); return true; });
-	AddKeyShortcut("a", [this]() { OpenAddCardToSetView(); return true; });
+	AddKeyShortcut("s", [this]() { OpenAddCardToSetView(); return true; });
 	AddKeyShortcut("enter", [this]() { MarkGoodAndNext(); return true; });
 	AddKeyShortcut("backspace", [this]() { RevealOrMarkBadAndNext(); return true; });
 	//AddKeyShortcut("escape", [this]() { ShowPauseMenu(); return true; });
 	AddKeyShortcut("i", [this]() { OpenInWebBrowser(); return true; });
+	AddKeyShortcut("Ctrl+C", [this]() { Copy(); return true; });
 }
 
 void StudyState::OnInitialize()
@@ -102,7 +128,7 @@ void StudyState::OnInitialize()
 
 	m_labelCardTextRevealed.SetFont(fontLarge);
 	m_labelCardTextShown.SetFont(fontLarge);
-
+	m_labelInfinitive.SetFont(fontSmall);
 
 	m_scheduler = new Scheduler(
 		GetApp()->GetStudyDatabase(), m_studySet, m_studyParams);
@@ -172,63 +198,78 @@ void StudyState::NextCard()
 
 	// Wiktionary word
 	m_term = app->GetWiktionary().GetTerm(m_card->GetRuKey().russian);
+	if (!m_term)
+		m_term = app->GetWiktionary().DownloadTerm(m_card->GetRuKey().russian);
 	m_wikiWord = nullptr;
-	m_layoutDefinitions.Clear();
-	m_widgetDeclensionTable.SetVisible(false);
-	m_tableDeclension.Clear();
 	if (m_term)
-	{
 		m_wikiWord = m_term->GetWord(m_card->GetWordType());
-		if (m_wikiWord)
+
+	m_layoutDefinitions.Clear();
+	m_widgetNounInfo.SetVisible(false);
+	m_widgetAdjectiveInfo.SetVisible(false);
+	m_widgetVerbInfo.SetVisible(false);
+	m_listRelatedCards.Clear();
+
+	// Related cards
+	if (!m_card->GetRelatedCards().empty())
+	{
+		for (Card::sptr relatedCard : m_card->GetRelatedCards())
+			m_listRelatedCards.AddWord(relatedCard->GetRussian());
+		m_layoutDefinitions.Add(&m_listRelatedCards);
+	}
+
+	if (m_wikiWord)
+	{
+		if (m_wikiWord->GetWordType() == WordType::k_noun)
 		{
-			m_widgetDeclensionTable.SetVisible(true);
-			m_layoutDefinitions.Add(new Label(
-				m_wikiWord->GetText() + AccentedText(u":"), fontSmall));
-			uint32 number = 1;
-			for (auto definition : m_wikiWord->GetDefinitions())
-			{
-				//using unistringstream = std::basic_stringstream<char16_t, std::char_traits<char16_t>, std::allocator<char16_t>>;
-				std::stringstream ss;
-				ss << number << ". ";
-				AccentedText text = ss.str() + definition.GetDefinition();
-				m_layoutDefinitions.Add(new Label(text, fontSmall));
-				number++;
-			}
+			wiki::Noun::sptr noun =
+				std::dynamic_pointer_cast<wiki::Noun>(m_wikiWord);
+			m_widgetNounInfo.SetVisible(true);
+			m_tableNounDeclension.InitNoun(noun->GetDeclension());
+		}
+		else if (m_wikiWord->GetWordType() == WordType::k_adjective)
+		{
+			wiki::Adjective::sptr adjective =
+				std::dynamic_pointer_cast<wiki::Adjective>(m_wikiWord);
+			m_widgetAdjectiveInfo.SetVisible(true);
+			m_tableAdjectiveDeclension.InitAdjective(adjective->GetDeclension());
+		}
+		else if (m_wikiWord->GetWordType() == WordType::k_verb)
+		{
+			wiki::Verb::sptr verb =
+				std::dynamic_pointer_cast<wiki::Verb>(m_wikiWord);
+			m_widgetVerbInfo.SetVisible(true);
 
-			if (m_wikiWord->GetWordType() == WordType::k_noun)
-			{
-				wiki::Noun::sptr noun = std::dynamic_pointer_cast<wiki::Noun>(m_wikiWord);
-				Label* label;
-				// Create table header
-				for (Plurality plurality : EnumValues<Plurality>())
-				{
-					label = new Label(EnumToShortString(plurality) + ".", fontSmall),
-					label->SetBackgroundColor(GUIConfig::color_background_alternate);
-					m_tableDeclension.Add(label, 0, 1 + (uint32) plurality);
-				}
-				for (Case nounCase : EnumValues<Case>())
-				{
-					label = new Label(EnumToShortString(nounCase) + ".", fontSmall),
-					label->SetBackgroundColor(GUIConfig::color_background_alternate);
-					m_tableDeclension.Add(label, 1 + (uint32) nounCase, 0);
-				}
+			// Conjugation tables
+			m_tableVerbNonPast.InitVerbNonPast(verb->GetConjugation());
+			m_tableVerbPast.InitVerbPastAndImperative(verb->GetConjugation());
+			m_tableVerbParticiples.InitVerbParticiples(verb->GetConjugation());
 
-				// Fill table body
-				for (Plurality plurality : EnumValues<Plurality>())
-				{
-					String pluralityName = EnumToShortString(plurality);
-					for (Case nounCase : EnumValues<Case>())
-					{
-						String caseName = EnumToShortString(nounCase);
-						AccentedText text = noun->GetDeclension()
-							.GetDeclension(nounCase, plurality);
-						label = new Label(text, fontSmall);
-						label->SetBackgroundColor(GUIConfig::color_background);
-						m_tableDeclension.Add(label,
-							1 + (uint32) nounCase, 1 + (uint32) plurality);
-					}
-				}
-			}
+			// Infinitive
+			AccentedText infinitiveText = u"Infinitive: ";
+			infinitiveText += verb->GetConjugation().GetInfinitive();
+			infinitiveText += " (";
+			infinitiveText += EnumToShortString(verb->GetConjugation().GetAspect ());
+			infinitiveText += ")";
+			m_labelInfinitive.SetText(infinitiveText);
+
+			// Counterparts
+			m_listCounterparts.Clear();
+			for (const AccentedText& counterpart : verb->GetCounterparts())
+				m_listCounterparts.AddWord(counterpart);
+		}
+
+		// Add definitions
+		m_layoutDefinitions.Add(new Label(
+			m_wikiWord->GetText() + AccentedText(u":"), fontSmall));
+		uint32 number = 1;
+		for (auto definition : m_wikiWord->GetDefinitions())
+		{
+			std::stringstream ss;
+			ss << number << ". ";
+			AccentedText text = ss.str() + definition.GetDefinition();
+			m_layoutDefinitions.Add(new Label(text, fontSmall));
+			number++;
 		}
 	}
 
@@ -375,10 +416,11 @@ void StudyState::OpenInWebBrowser()
 		std::stringstream ss;
 		unistr url = u"https://en.wiktionary.org/wiki/" +
 			m_term->GetText().GetString();
-		ShellExecuteW(0, 0, (wchar_t*) url.c_str(), 0, 0, SW_SHOW);
-		//cmg::os::OpenWebBrowser()
-		//cmg::os::OpenDirectoryExplorer()
-		//cmg::os::SetClipboardText()
-		//cmg::os::GetClipboardText()
+		cmg::os::OpenInWebBrowser(url);
 	}
+}
+
+void StudyState::Copy()
+{
+	cmg::os::SetClipboardText(m_card->GetRussian().GetString());
 }

@@ -2,13 +2,11 @@
 
 #include <cmgCore/cmg_core.h>
 #include <cmgMath/cmg_math.h>
-#include "Russian.h"
-
+#include "core/Unicode.h"
 
 class AccentedText
 {
 public:
-	static const unichar ACCENT_INPUT_CHARS[5];
 	static const unichar ACCENT_OUTPUT_CHAR;
 	static const unichar ACCENT_RENDER_CHAR;
 
@@ -53,40 +51,4 @@ private:
 std::ostream& operator <<(std::ostream &out, const AccentedText& text);
 AccentedText operator +(const String& left, const AccentedText& right);
 AccentedText operator +(const unistr& left, const AccentedText& right);
-
-
-struct TranslationPair
-{
-public:
-	AccentedText russian;
-	AccentedText english;
-
-	TranslationPair()
-	{
-	}
-
-	TranslationPair(const AccentedText& russian, const AccentedText& english) :
-		russian(russian),
-		english(english)
-	{
-	}
-
-	const AccentedText& GetText(Language language) const
-	{
-		if (language == Language::k_english)
-			return english;
-		else
-			return russian;
-	}
-
-	bool operator==(const TranslationPair& other) const
-	{
-		return (english == other.english && russian == other.russian);
-	}
-
-	bool operator!=(const TranslationPair& other) const
-	{
-		return !(*this == other);
-	}
-};
 

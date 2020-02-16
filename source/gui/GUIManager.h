@@ -15,11 +15,13 @@ public:
 	void SetRootWidget(Widget* rootWidget);
 
 	Widget* GetRootWidget();
+	Widget* GetFocusedWidget();
 	void GetFocusableWidgets(GUIObject* object, Array<Widget*>& outWidgets);
 	template <class Func>
 	bool IterateObjects(GUIObject* root, Func callback);
 	Widget* GetWidgetAtPoint(const Vector2f& point);
 	Widget* GetWidgetAtPoint(GUIObject* object, const Vector2f& point);
+	Vector2f GetCursorPosition() const;
 	Widget* CycleFocus(bool reverse = false);
 	void SetFocus(Widget* widget);
 
@@ -36,6 +38,8 @@ public:
 	void Update(float timeDelta);
 	void Render(AppGraphics& g, float timeDelta);
 
+	EventSignal<>& MovedCursor() { return m_movedCursor; }
+
 protected:
 	void CalcSizes(GUIObject* object);
 
@@ -50,6 +54,7 @@ protected:
 	// Cached values
 	Array<Widget*> m_allWidgets;
 	Array<Widget*> m_focusableWidgets;
+	EventSignal<> m_movedCursor;
 };
 
 template<class Func>

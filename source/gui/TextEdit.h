@@ -13,6 +13,7 @@ public:
 
 	bool HasSelection() const;
 	const unistr& GetText() const { return m_text; }
+	unistr GetSelectedText() const;
 
 	void SetText(const unistr& text);
 	void SetText(const AccentedText& text);

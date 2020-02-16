@@ -11,6 +11,26 @@ Definition::Definition()
 void Definition::Serialize(rapidjson::Value& value,
 	rapidjson::Document::AllocatorType& allocator)
 {
+	String text = ConvertToUTF8(m_definition.ToMarkedString());
+	value.AddMember("definition", rapidjson::Value(
+		text.c_str(), allocator).Move(), allocator);
+
+	if (!m_examples.empty())
+	{
+		rapidjson::Value exampleListData(rapidjson::kArrayType);
+		for (TranslationPair& example : m_examples)
+		{
+			rapidjson::Value exampleData(rapidjson::kObjectType);
+			text = ConvertToUTF8(example.russian.ToMarkedString());
+			exampleData.AddMember("ru", rapidjson::Value(
+				text.c_str(), allocator).Move(), allocator);
+			text = ConvertToUTF8(example.english.ToMarkedString());
+			exampleData.AddMember("en", rapidjson::Value(
+				text.c_str(), allocator).Move(), allocator);
+			exampleListData.PushBack(exampleData, allocator);
+		}
+		value.AddMember("examples", exampleListData, allocator);
+	}
 }
 
 Error Definition::Deserialize(rapidjson::Value& data)
@@ -44,6 +64,67 @@ Word::Word(WordType wordType) :
 void Word::Serialize(rapidjson::Value& value,
 	rapidjson::Document::AllocatorType& allocator)
 {
+	String text = ConvertToUTF8(m_text.ToMarkedString());
+	value.AddMember("text", rapidjson::Value(
+		text.c_str(), allocator).Move(), allocator);
+
+	String etymology = ConvertToUTF8(m_etymology.ToMarkedString());
+	value.AddMember("etymology", rapidjson::Value(
+		etymology.c_str(), allocator).Move(), allocator);
+
+	// Definitions
+	rapidjson::Value definitionListData(rapidjson::kArrayType);
+	for (Definition& definition : m_definitions)
+	{
+		rapidjson::Value definitionData(rapidjson::kObjectType);
+		definition.Serialize(definitionData, allocator);
+		definitionListData.PushBack(definitionData, allocator);
+	}
+	value.AddMember("definitions", definitionListData, allocator);
+
+	// Related terms
+	rapidjson::Value relatedTermsListData(rapidjson::kArrayType);
+	for (const AccentedText& term : m_relatedTerms)
+	{
+		rapidjson::Value termData(rapidjson::kObjectType);
+		String termName = ConvertToUTF8(term.ToMarkedString());
+		relatedTermsListData.PushBack(rapidjson::Value(
+			termName.c_str(), allocator).Move(), allocator);
+	}
+	value.AddMember("related_terms", relatedTermsListData, allocator);
+
+	// Derived terms
+	rapidjson::Value derivedTermsListData(rapidjson::kArrayType);
+	for (const AccentedText& term : m_derivedTerms)
+	{
+		rapidjson::Value termData(rapidjson::kObjectType);
+		String termName = ConvertToUTF8(term.ToMarkedString());
+		derivedTermsListData.PushBack(rapidjson::Value(
+			termName.c_str(), allocator).Move(), allocator);
+	}
+	value.AddMember("derived_terms", derivedTermsListData, allocator);
+
+	// Synonyms
+	rapidjson::Value synonymsListData(rapidjson::kArrayType);
+	for (const AccentedText& term : m_synonyms)
+	{
+		rapidjson::Value termData(rapidjson::kObjectType);
+		String termName = ConvertToUTF8(term.ToMarkedString());
+		synonymsListData.PushBack(rapidjson::Value(
+			termName.c_str(), allocator).Move(), allocator);
+	}
+	value.AddMember("synonyms", synonymsListData, allocator);
+
+	// Antonyms
+	rapidjson::Value antonymsListData(rapidjson::kArrayType);
+	for (const AccentedText& term : m_antonyms)
+	{
+		rapidjson::Value termData(rapidjson::kObjectType);
+		String termName = ConvertToUTF8(term.ToMarkedString());
+		antonymsListData.PushBack(rapidjson::Value(
+			termName.c_str(), allocator).Move(), allocator);
+	}
+	value.AddMember("antonyms", antonymsListData, allocator);
 }
 
 Error Word::Deserialize(rapidjson::Value& data)
@@ -124,6 +205,27 @@ const Word::sptr Term::GetWord(WordType wordType) const
 void Term::Serialize(rapidjson::Value& value,
 	rapidjson::Document::AllocatorType& allocator)
 {
+	value.AddMember("download_timestamp", m_downloadTimestamp, allocator);
+
+	String text = ConvertToUTF8(m_text.ToMarkedString());
+	value.AddMember("text", rapidjson::Value(
+		text.c_str(), allocator).Move(), allocator);
+
+	String etymology = ConvertToUTF8(m_etymology.ToMarkedString());
+	value.AddMember("etymology", rapidjson::Value(
+		etymology.c_str(), allocator).Move(), allocator);
+
+	rapidjson::Value wordListData(rapidjson::kObjectType);
+	for (auto it : m_words)
+	{
+		rapidjson::Value wordData(rapidjson::kObjectType);
+		String wordTypeName = EnumToString(it.first);
+		Word::sptr word = it.second;
+		word->Serialize(wordData, allocator);
+		wordListData.AddMember(rapidjson::Value(
+			wordTypeName.c_str(), allocator).Move(), wordData, allocator);
+	}
+	value.AddMember("words", wordListData, allocator);
 }
 
 Error Term::Deserialize(rapidjson::Value& data)
@@ -166,64 +268,7 @@ Error Term::Deserialize(rapidjson::Value& data)
 	return CMG_ERROR_SUCCESS;
 }
 
-NounDeclension::NounDeclension()
-{
-	for (Case nounCase : EnumValues<Case>())
-	{
-		for (Plurality plurality : EnumValues<Plurality>())
-			SetDeclension(nounCase, plurality, "");
-	}
-}
 
-const AccentedText& NounDeclension::GetDeclension(
-	Case nounCase, Plurality plurality) const
-{
-	return m_declension.at({nounCase, plurality});
-}
-
-void NounDeclension::SetDeclension(Case nounCase, Plurality plurality,
-	const AccentedText& text)
-{
-	m_declension[{nounCase, plurality}] = text;
-}
-
-void NounDeclension::Serialize(rapidjson::Value& value,
-	rapidjson::Document::AllocatorType& allocator)
-{
-	for (Plurality plurality : EnumValues<Plurality>())
-	{
-		String pluralityName = EnumToShortString(plurality);
-		rapidjson::Value pluralityData(rapidjson::kObjectType);
-		for (Case nounCase : EnumValues<Case>())
-		{
-			String caseName = EnumToShortString(nounCase);
-			String text = ConvertToUTF8(GetDeclension(
-				nounCase, plurality).ToMarkedString());
-			pluralityData.AddMember(
-				rapidjson::Value(caseName.c_str(), allocator).Move(),
-				rapidjson::Value(text.c_str(), allocator).Move(), allocator);
-		}
-		value.AddMember(
-			rapidjson::Value(pluralityName.c_str(), allocator).Move(),
-			pluralityData, allocator);
-	}
-}
-
-Error NounDeclension::Deserialize(rapidjson::Value& data)
-{
-	for (Plurality plurality : EnumValues<Plurality>())
-	{
-		String pluralityName = EnumToShortString(plurality);
-		rapidjson::Value& pluralityData = data[pluralityName.c_str()];
-		for (Case nounCase : EnumValues<Case>())
-		{
-			String caseName = EnumToShortString(nounCase);
-			AccentedText text = pluralityData[caseName.c_str()].GetString();
-			SetDeclension(nounCase, plurality, text);
-		}
-	}
-	return CMG_ERROR_SUCCESS;
-}
 
 Noun::Noun() :
 	Word(WordType::k_noun)
@@ -234,7 +279,9 @@ void Noun::Serialize(rapidjson::Value& value,
 	rapidjson::Document::AllocatorType& allocator)
 {
 	Word::Serialize(value, allocator);
-	m_declension.Serialize(value, allocator);
+	rapidjson::Value declensionData(rapidjson::kObjectType);
+	m_declension.Serialize(declensionData, allocator);
+	value.AddMember("declension", declensionData, allocator);
 }
 
 Error Noun::Deserialize(rapidjson::Value& data)
@@ -261,7 +308,9 @@ void Adjective::Serialize(rapidjson::Value& value,
 	rapidjson::Document::AllocatorType& allocator)
 {
 	Word::Serialize(value, allocator);
-	m_declension.Serialize(value, allocator);
+	rapidjson::Value declensionData(rapidjson::kObjectType);
+	m_declension.Serialize(declensionData, allocator);
+	value.AddMember("declension", declensionData, allocator);
 }
 
 Error Adjective::Deserialize(rapidjson::Value& data)
@@ -286,7 +335,20 @@ void Verb::Serialize(rapidjson::Value& value,
 	rapidjson::Document::AllocatorType& allocator)
 {
 	Word::Serialize(value, allocator);
-	m_conjugation.Serialize(value, allocator);
+	rapidjson::Value conjugationData(rapidjson::kObjectType);
+	m_conjugation.Serialize(conjugationData, allocator);
+	value.AddMember("conjugation", conjugationData, allocator);
+	if (!m_counterparts.empty())
+	{
+		rapidjson::Value counterpartsData(rapidjson::kArrayType);
+		for (auto counterpart : m_counterparts)
+		{
+			String text = ConvertToUTF8(counterpart.ToMarkedString());
+			counterpartsData.PushBack(rapidjson::Value(
+				text.c_str(), allocator).Move(), allocator);
+		}
+		value.AddMember("counterparts", counterpartsData, allocator);
+	}
 }
 
 Error Verb::Deserialize(rapidjson::Value& data)
@@ -299,6 +361,16 @@ Error Verb::Deserialize(rapidjson::Value& data)
 		error = m_conjugation.Deserialize(data["conjugation"]);
 		if (error.Failed())
 			return error.Uncheck();
+	}
+	if (data.HasMember("counterparts"))
+	{
+		m_counterparts.clear();
+		rapidjson::Value& counterpartsData = data["counterparts"];
+		for (auto it = counterpartsData.Begin();
+			it != counterpartsData.End(); it++)
+		{
+			m_counterparts.insert(AccentedText(it->GetString()));
+		}
 	}
 	return CMG_ERROR_SUCCESS;
 }

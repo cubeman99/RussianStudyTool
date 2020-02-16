@@ -94,7 +94,8 @@ void RelatedCardsWidget::AutoAdd()
 
 bool RelatedCardsWidget::SearchFilter(Card::sptr card)
 {
-	return !cmg::container::Contains(m_table.GetItems(), card);
+	return (card != m_card &&
+		!cmg::container::Contains(m_table.GetItems(), card));
 }
 
 void RelatedCardsWidget::ApplyChanges()

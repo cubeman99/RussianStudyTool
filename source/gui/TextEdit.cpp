@@ -39,6 +39,15 @@ bool TextEdit::HasSelection() const
 	return (m_selectPosition >= 0 && m_selectPosition != m_cursorPosition);
 }
 
+unistr TextEdit::GetSelectedText() const
+{
+	if (!HasSelection())
+		return u"";
+	uint32 start = Math::Min((uint32) m_selectPosition, m_cursorPosition);
+	uint32 end = Math::Max((uint32) m_selectPosition, m_cursorPosition);
+	return m_text.substr(start, end - start);
+}
+
 void TextEdit::SetText(const unistr& text)
 {
 	if (m_text == text)
@@ -94,15 +103,26 @@ void TextEdit::BeginSelection()
 
 void TextEdit::Copy()
 {
+	if (HasSelection())
+		cmg::os::SetClipboardText(GetSelectedText());
 }
 
 void TextEdit::Paste()
 {
+	unistr clipboardText = cmg::os::GetClipboardUnicodeText();
+	if (HasSelection())
+		DeleteSelection();
+	m_text.insert(m_cursorPosition, clipboardText);
+	m_cursorPosition += clipboardText.length();
 }
 
 void TextEdit::Cut()
 {
-	DeleteSelection();
+	if (HasSelection())
+	{
+		cmg::os::SetClipboardText(GetSelectedText());
+		DeleteSelection();
+	}
 }
 
 void TextEdit::CalcSizes()

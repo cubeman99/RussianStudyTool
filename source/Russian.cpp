@@ -10,6 +10,36 @@ namespace
 }
 
 
+TranslationPair::TranslationPair()
+{
+}
+
+TranslationPair::TranslationPair(
+	const AccentedText& russian, const AccentedText& english) :
+	russian(russian),
+	english(english)
+{
+}
+
+const AccentedText& TranslationPair::GetText(Language language) const
+{
+	if (language == Language::k_english)
+		return english;
+	else
+		return russian;
+}
+
+bool TranslationPair::operator==(const TranslationPair& other) const
+{
+	return (english == other.english && russian == other.russian);
+}
+
+bool TranslationPair::operator!=(const TranslationPair& other) const
+{
+	return !(*this == other);
+}
+
+
 namespace ru
 {
 
@@ -113,15 +143,33 @@ void ToUpperIP(unistr& str)
 	std::transform(str.begin(), str.end(), str.begin(), ToUpperChar);
 }
 
+bool TryPredictWordType(const unistr& text, WordType& outWordType)
+{
+	if (text.find(u' ') != unistr::npos)
+	{
+		outWordType = WordType::k_phrase;
+		return true;
+	}
+	using pair = std::pair<WordType, Array<unistr>>;
+	for (const pair& pair : {
+		pair({WordType::k_adjective, {u"ый", u"ой", u"ий"}}),
+		pair({WordType::k_verb, {u"ть", u"ться", u"ечь", u"сти", u"иьс"}}),
+		pair({WordType::k_noun, {u"ство", u"ие", u"ость",
+			u"а", u"н", u"к", u"ц", u"г", u"з", u"р", u"ль", u"ф",
+			u"з", u"т", u"д", u"ь", u"б", u"ж", u"п", u"х"}}),
+		pair({WordType::k_adverb, {u"о"}}),
+	})
+	{
+		for (const unistr& ending : pair.second) 
+		{
+			if (cmg::string::EndsWith(text, ending))
+			{
+				outWordType = pair.first;
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
-DEFINE_ENUM(WordType, ENUM_MACRO_WORD_TYPE)
-DEFINE_ENUM(Gender, ENUM_MACRO_GENDER)
-DEFINE_ENUM(Plurality, ENUM_MACRO_PLURALITY)
-DEFINE_ENUM(Participle, ENUM_MACRO_PARTICIPLE)
-DEFINE_ENUM(Person, ENUM_MACRO_PERSON)
-DEFINE_ENUM(Case, ENUM_MACRO_CASE)
-DEFINE_ENUM(Aspect, ENUM_MACRO_ASPECT)
-DEFINE_ENUM(Tense, ENUM_MACRO_TENSE)
-DEFINE_ENUM(Animacy, ENUM_MACRO_ANIMACY)
-
+} // namespace ru
