@@ -133,6 +133,15 @@ void BoxLayout::Clear()
 		item.object->SetParent(nullptr);
 }
 
+void BoxLayout::Insert(uint32 index, GUIObject* child, float stretch)
+{
+	BoxChild item;
+	item.object = child;
+	item.stretch = stretch;
+	m_children.insert(m_children.begin() + index, item);
+	item.object->SetParent(this);
+}
+
 void BoxLayout::Add(GUIObject* child, float stretch)
 {
 	BoxChild item;

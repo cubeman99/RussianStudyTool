@@ -24,6 +24,7 @@ public:
 	void MarkCard(bool knewIt);
 	void Reveal();
 	void NextCard();
+	void ShowCard(Card::sptr card, Language shownSide);
 
 	void MarkGoodAndNext();
 	void RevealOrMarkBadAndNext();
@@ -34,6 +35,9 @@ public:
 	void OpenInWebBrowser();
 	void Copy();
 
+	void OnCardDataChanged(Card::sptr card);
+	void OnCardAddedOrRemovedFromSet(Card::sptr card, CardSet::sptr cardSet);
+
 private:
 	Card::sptr m_card;
 	CardStudyData m_cardStudyData;
@@ -41,11 +45,11 @@ private:
 	wiki::Word::sptr m_wikiWord;
 
 	StudyParams m_studyParams;
-	IStudySet* m_studySet;
-	Scheduler* m_scheduler;
-	bool m_isRevealed;
-	Language m_shownSide;
-	Language m_revealedSide;
+	IStudySet* m_studySet = nullptr;
+	Scheduler* m_scheduler = nullptr;
+	bool m_isRevealed = false;
+	Language m_shownSide = Language::k_english;
+	Language m_revealedSide = Language::k_russian;
 
 	// Word widgets
 	VBoxLayout m_layoutDefinitions;
@@ -82,6 +86,7 @@ private:
 	Widget m_widgetTagsRevealed;
 	HBoxLayout m_layoutTagsShown;
 	HBoxLayout m_layoutTagsRevealed;
+	VBoxLayout m_layoutCardSets;
 
 	Widget m_titleWidget;
 	Label m_labelTitle;

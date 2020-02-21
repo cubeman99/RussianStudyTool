@@ -4,6 +4,7 @@
 #include "widgets/MenuWidget.h"
 #include "widgets/RelatedCardsWidget.h"
 #include "widgets/AddCardToSetWidget.h"
+#include "widgets/CardEditWidget.h"
 
 StudyState::StudyState(IStudySet* studySet, const StudyParams& studyParams) :
 	m_studySet(studySet),
@@ -66,6 +67,8 @@ StudyState::StudyState(IStudySet* studySet, const StudyParams& studyParams) :
 	m_layoutRevealed.Add(&m_widgetVerbInfo)
 		.Pin(1.0f, 1.0f, TextAlign::BOTTOM_RIGHT)
 		.Offset(-8.0f, -barHeight - 16);
+	m_layoutRevealed.Add(&m_layoutCardSets)
+		.Pin(1.0f, 0.0f, TextAlign::TOP_RIGHT).Offset(-16.0f, topTopStart + 40);
 
 	m_layoutNounInfo.SetMargins(0.0f);
 	m_layoutNounInfo.Add(&m_tableNounDeclension);
@@ -130,6 +133,12 @@ void StudyState::OnInitialize()
 	m_labelCardTextShown.SetFont(fontLarge);
 	m_labelInfinitive.SetFont(fontSmall);
 
+	// Connect signals
+	auto& cardDatabase = GetApp()->GetCardDatabase();
+	cardDatabase.CardDataChanged().Connect(this, &StudyState::OnCardDataChanged);
+	cardDatabase.CardAddedToSet().Connect(this, &StudyState::OnCardAddedOrRemovedFromSet);
+	cardDatabase.CardRemovedFromSet().Connect(this, &StudyState::OnCardAddedOrRemovedFromSet);
+
 	m_scheduler = new Scheduler(
 		GetApp()->GetStudyDatabase(), m_studySet, m_studyParams);
 	NextCard();
@@ -183,16 +192,37 @@ void StudyState::Reveal()
 void StudyState::NextCard()
 {
 	auto app = (RussianStudyToolApp*) GetApp();
+	auto& cardDatabase = app->GetCardDatabase();
 
 	// Get the next card
-	m_card = nullptr;
+	Card::sptr card;
 	if (m_studySet)
-		m_card = m_scheduler->NextCard();
-	if (m_card == nullptr)
+		card = m_scheduler->NextCard();
+	if (!card)
 	{
 		Close();
 		return;
 	}
+	Language shownSide = Language::k_russian;
+	if (Random::NextBool())
+		shownSide = Language::k_russian;
+	else
+		shownSide = Language::k_english;
+
+	ShowCard(card, shownSide);
+}
+
+void StudyState::ShowCard(Card::sptr card, Language shownSide)
+{
+	auto app = (RussianStudyToolApp*) GetApp();
+	auto& cardDatabase = app->GetCardDatabase();
+	m_card = card;
+	m_cardStudyData = app->GetStudyDatabase().GetCardStudyData(m_card);
+	m_shownSide = shownSide;
+	m_revealedSide = (shownSide == Language::k_english ?
+		Language::k_russian : Language::k_english);
+	m_isRevealed = false;
+	CMG_LOG_INFO() << "Showing card: " << m_card->GetText(m_shownSide);
 	
 	Font::sptr fontSmall = GetApp()->GetResourceManager()->Get<Font>(Res::FONT_SMALL);
 
@@ -273,20 +303,6 @@ void StudyState::NextCard()
 		}
 	}
 
-	m_cardStudyData = app->GetStudyDatabase().GetCardStudyData(m_card);
-	m_isRevealed = false;
-	if (Random::NextBool())
-	{
-		m_shownSide = Language::k_russian;
-		m_revealedSide = Language::k_english;
-	}
-	else
-	{
-		m_shownSide = Language::k_english;
-		m_revealedSide = Language::k_russian;
-	}
-	CMG_LOG_INFO() << "Showing card: " << m_card->GetText(m_shownSide);
-
 	// Card tag boxes
 	m_layoutTagsShown.Clear();
 	m_layoutTagsRevealed.Clear();
@@ -310,6 +326,11 @@ void StudyState::NextCard()
 		}
 	}
 	
+	// Card set list
+	m_layoutCardSets.Clear();
+	for (CardSet::sptr cardSet : cardDatabase.GetCardSetsWithCard(m_card))
+		m_layoutCardSets.Add(new Label(cardSet->GetName(), fontSmall));
+
 	m_labelCardTextShown.SetText(m_card->GetText(m_shownSide));
 	m_labelCardTextRevealed.SetText(m_card->GetText(m_revealedSide));
 	m_widgetRevealed.SetVisible(false);
@@ -397,6 +418,7 @@ void StudyState::ShowPauseMenu()
 
 void StudyState::OpenCardEditView()
 {
+	GetApp()->PushState(new CardEditWidget(m_card));
 }
 
 void StudyState::OpenRelatedCardsView()
@@ -423,4 +445,16 @@ void StudyState::OpenInWebBrowser()
 void StudyState::Copy()
 {
 	cmg::os::SetClipboardText(m_card->GetRussian().GetString());
+}
+
+void StudyState::OnCardDataChanged(Card::sptr card)
+{
+	if (card == m_card)
+		ShowCard(card, m_shownSide);
+}
+
+void StudyState::OnCardAddedOrRemovedFromSet(Card::sptr card, CardSet::sptr cardSet)
+{
+	if (card == m_card)
+		ShowCard(card, m_shownSide);
 }

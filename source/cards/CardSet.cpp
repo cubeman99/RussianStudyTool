@@ -66,7 +66,7 @@ bool CardSet::RemoveCard(Card::sptr card)
 	return false;
 }
 
-const std::filesystem::path& CardSet::GetPath() const
+const PathU16& CardSet::GetPath() const
 {
 	return m_path;
 }

@@ -246,7 +246,9 @@ Error CardDatabase::LoadCardSets(const Path& path)
 {
 	CMG_LOG_INFO() << "Loading card sets from directory: " << path;
 
-	m_rootPackage = LoadCardSetPackage(String(path), u"root");
+	String str = path.ToString();
+	m_rootPackage = LoadCardSetPackage(
+		PathU16(StringU16(str.begin(), str.end())), u"root");
 	return CMG_ERROR_SUCCESS;
 }
 
@@ -368,6 +370,7 @@ Error CardDatabase::DeserializeCardSet(rapidjson::Value& data, CardSet::sptr& ca
 		CardRuKey key;
 		TryStringToEnum((*it)[0].GetString(), key.type);
 		key.russian = ConvertFromUTF8((*it)[1].GetString());
+		std::replace(key.russian.begin(), key.russian.end(), u'ё', u'е');
 		ru::ToLowerIP(key.russian);
 
 		Card::sptr card = GetCard(key);
@@ -386,19 +389,22 @@ Error CardDatabase::DeserializeCardSet(rapidjson::Value& data, CardSet::sptr& ca
 }
 
 CardSetPackage::sptr CardDatabase::LoadCardSetPackage(
-	const std::filesystem::path& path, const AccentedText& name)
+	const PathU16& path, const AccentedText& name)
 {
 	CardSetPackage::sptr package = cmg::make_shared<CardSetPackage>(name);
-	auto str = path.wstring();
+	package->m_path = path;
 	Error loadError;
 	//CMG_LOG_INFO() << "Loading package: " << path.wstring();
 
-	for(auto& p: std::filesystem::directory_iterator(path))
+	for (auto& p : std::filesystem::directory_iterator(
+		std::filesystem::path((const wchar_t*) path.c_str())))
 	{
+		PathU16 subPath(p.path().u16string());
+
 		if (p.is_directory())
 		{
 			CardSetPackage::sptr subPackage = LoadCardSetPackage(
-				p.path(), p.path().filename().wstring());
+				subPath, subPath.GetName());
 			if (subPackage)
 			{
 				subPackage->SetParent(package);
@@ -411,10 +417,10 @@ CardSetPackage::sptr CardDatabase::LoadCardSetPackage(
 			if (ext.string() == ".json" || ext.string() == ".yaml")
 			{
 				CardSet::sptr cardSet;
-				LoadCardSet(p.path(), cardSet);
+				LoadCardSet(subPath, cardSet);
 				if (cardSet)
 				{
-					cardSet->m_path = p;
+					cardSet->m_path = subPath;
 					cardSet->SetParent(package);
 					package->AddCardSet(cardSet);
 				}
@@ -425,12 +431,10 @@ CardSetPackage::sptr CardDatabase::LoadCardSetPackage(
 	return package;
 }
 
-Error CardDatabase::LoadCardSet(const std::filesystem::path& path,
-	CardSet::sptr& outCardSet)
+Error CardDatabase::LoadCardSet(const PathU16& path, CardSet::sptr& outCardSet)
 {
 	Error error;
-	auto str = path.wstring();
-	CMG_LOG_INFO() << "Loading card set: " << str;
+	CMG_LOG_INFO() << "Loading card set: " << path;
 
 	// Open the json file
 	rapidjson::Document document;
@@ -444,7 +448,7 @@ Error CardDatabase::LoadCardSet(const std::filesystem::path& path,
 		return error.Uncheck();
 
 	// Verify it has a unique name
-	auto key = outCardSet->GetKey();
+	CardSetKey key = outCardSet->GetKey();
 	auto it = m_keyToCardSets.find(key);
 	if (it != m_keyToCardSets.end())
 	{
@@ -465,13 +469,11 @@ Error CardDatabase::SaveCardSet(CardSet::sptr cardSet)
 	return SaveCardSet(cardSet, cardSet->GetPath());
 }
 
-Error CardDatabase::SaveCardSet(CardSet::sptr cardSet,
-	const std::filesystem::path& path)
+Error CardDatabase::SaveCardSet(CardSet::sptr cardSet, const PathU16& path)
 {
 	std::lock_guard<std::recursive_mutex> guard(m_mutexCardSets);
 
-	auto str = path.wstring();
-	CMG_LOG_INFO() << "Saving card set: " << str;
+	CMG_LOG_INFO() << "Saving card set: " << path;
 
 	rapidjson::Document document(rapidjson::kObjectType);
 	rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
@@ -671,6 +673,40 @@ void CardDatabase::UnlinkRelatedCards(Card::sptr a, Card::sptr b)
 	MarkCardDirty(b, false);
 	m_cardDataChanged.Emit(a);
 	m_cardDataChanged.Emit(b);
+}
+
+CardSet::sptr CardDatabase::CreateCardSet(CardSetPackage::sptr package,
+	const AccentedText& name, const unistr& fileName, CardSetType cardSetType)
+{
+	CardSet::sptr cardSet = cmg::make_shared<CardSet>(name);
+	cardSet->m_cardSetType = cardSetType;
+	CardSetKey key = cardSet->GetKey();
+	CMG_LOG_INFO() << "Creating card set: " << key.name;
+
+	cardSet->m_path = package->GetPath() / (fileName + u".json");
+
+	// Verify it has a unique name
+	auto it = m_keyToCardSets.find(key);
+	if (it != m_keyToCardSets.end())
+	{
+		CMG_LOG_ERROR() << "Duplicate card set: " << key.name;
+		return nullptr;
+	}
+
+	// Add the card set to the map
+	{
+		std::lock_guard<std::recursive_mutex> guard(m_mutexCardSets);
+		m_keyToCardSets[key] = cardSet;
+	}
+
+	cardSet->SetParent(package);
+	package->AddCardSet(cardSet);
+
+	// Save the card set to create it
+	SaveCardSet(cardSet);
+
+	m_cardSetCreated.Emit(cardSet);
+	return cardSet;
 }
 
 void CardDatabase::SerializeCardKey(rapidjson::Value& arrayValue,

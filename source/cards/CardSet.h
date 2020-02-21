@@ -28,7 +28,7 @@ public:
 	CardSet(const AccentedText& name);
 	virtual ~CardSet();
 
-	const std::filesystem::path& GetPath() const;
+	const PathU16& GetPath() const;
 	const CardSetKey& GetKey() const;
 	cmg::shared_ptr<CardSetPackage> GetParent() const;
 	CardSetType GetCardSetType() const;
@@ -48,5 +48,5 @@ private:
 	CardSetType m_cardSetType;
 	cmg::shared_ptr<CardSetPackage> m_parent;
 	Array<Card::sptr> m_cards;
-	std::filesystem::path m_path;
+	PathU16 m_path;
 };

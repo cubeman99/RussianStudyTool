@@ -60,10 +60,13 @@
     <ClCompile Include="..\source\Types.cpp" />
     <ClCompile Include="..\source\widgets\AddCardToSetWidget.cpp" />
     <ClCompile Include="..\source\widgets\AppWidget.cpp" />
+    <ClCompile Include="..\source\widgets\CardEditWidget.cpp" />
     <ClCompile Include="..\source\widgets\CardSearchWidget.cpp" />
+    <ClCompile Include="..\source\widgets\CardSetBrowserWidget.cpp" />
     <ClCompile Include="..\source\widgets\CardSetEditWidget.cpp" />
     <ClCompile Include="..\source\widgets\CardSetSearchWidget.cpp" />
     <ClCompile Include="..\source\widgets\DeclensionTable.cpp" />
+    <ClCompile Include="..\source\widgets\editors\CreateCardSetWidget.cpp" />
     <ClCompile Include="..\source\widgets\GenericTableWidget.cpp" />
     <ClCompile Include="..\source\widgets\MainMenuWidget.cpp" />
     <ClCompile Include="..\source\widgets\MenuWidget.cpp" />
@@ -125,10 +128,13 @@
     <ClInclude Include="..\source\Types.h" />
     <ClInclude Include="..\source\widgets\AddCardToSetWidget.h" />
     <ClInclude Include="..\source\widgets\AppWidget.h" />
+    <ClInclude Include="..\source\widgets\CardEditWidget.h" />
     <ClInclude Include="..\source\widgets\CardSearchWidget.h" />
+    <ClInclude Include="..\source\widgets\CardSetBrowserWidget.h" />
     <ClInclude Include="..\source\widgets\CardSetEditWidget.h" />
     <ClInclude Include="..\source\widgets\CardSetSearchWidget.h" />
     <ClInclude Include="..\source\widgets\DeclensionTable.h" />
+    <ClInclude Include="..\source\widgets\editors\CreateCardSetWidget.h" />
     <ClInclude Include="..\source\widgets\GenericTableWidget.h" />
     <ClInclude Include="..\source\widgets\MainMenuWidget.h" />
     <ClInclude Include="..\source\widgets\MenuWidget.h" />
@@ -141,19 +147,19 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{142D2E50-20DD-4504-BEDF-5A1296D97DB2}</ProjectGuid>
     <RootNamespace>RussianStudyTool</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>

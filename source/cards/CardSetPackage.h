@@ -17,7 +17,7 @@ public:
 	virtual const Array<Card::sptr>& GetCards() const override;
 
 	const unistr& GetKey() const { return m_key; }
-	const Path& GetPath() const { return m_path; }
+	const PathU16& GetPath() const { return m_path; }
 	CardSetPackage::sptr GetParent() { return m_parent; }
 	Array<CardSetPackage::sptr>& GetPackages() { return m_packages; }
 	Array<CardSet::sptr>& GetCardSets() { return m_cardSets; }
@@ -38,7 +38,7 @@ public:
 private:
 	AccentedText m_name;
 	unistr m_key;
-	Path m_path;
+	PathU16 m_path;
 	CardSetPackage::sptr m_parent;
 	Array<CardSetPackage::sptr> m_packages;
 	Array<CardSet::sptr> m_cardSets;

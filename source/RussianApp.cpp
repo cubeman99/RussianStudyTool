@@ -4,6 +4,7 @@
 #include "widgets/CardSearchWidget.h"
 #include "widgets/TestWidget.h"
 #include "widgets/CardSetEditWidget.h"
+#include "widgets/CardSetBrowserWidget.h"
 
 // Comment this out to use the REAL card dataset
 #define USE_TEST_DATA
@@ -60,14 +61,22 @@ void RussianStudyToolApp::OnInitialize()
 {
 	auto resourceManager = GetResourceManager();
 
+	Path path = g_assetsPath / Path(Res::FONT);
+
+	File file;
+	Error error = file.Open(path, FileAccess::READ, FileType::BINARY);
+	file.Close();
+
 	//resourceManager->LoadBuiltInFont(m_font, BuiltInFonts::FONT_CONSOLE);
 	resourceManager->LoadFont(m_font, Res::FONT, 14, 0x20, 0x500);
 	resourceManager->LoadFont(m_fontSmall, Res::FONT_SMALL, 12, 0x20, 0x500);
 	resourceManager->LoadFont(m_fontLarge, Res::FONT_LARGE, 24, 0x20, 0x500);
 	
 	// Load all datasets
-	m_studyDatabase.LoadStudyData(g_dataPath / "study_data.yaml");
-	m_cardDatabase.LoadCardData(g_dataPath / "card_data.yaml");
+	m_studyDatabase.SetStudyDataPath(g_dataPath / "study_data.json");
+	if (m_studyDatabase.GetStudyDataPath().FileExists())
+		m_studyDatabase.LoadStudyData();
+	m_cardDatabase.LoadCardData(g_dataPath / "card_data.json");
 	m_cardDatabase.LoadCardSets(g_dataPath / "cards");
 	m_wiktionary.SetDataPath(g_dataPath / "wiktionary.json");
 	if (m_wiktionary.GetDataPath().FileExists())

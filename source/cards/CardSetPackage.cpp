@@ -20,7 +20,7 @@ const Array<Card::sptr>& CardSetPackage::GetCards() const
 	{
 		for (Card::sptr card : package->GetCards())
 		{
-			if (std::find(m_cards.begin(), m_cards.end(), card) == m_cards.end())
+			if (!cmg::container::Contains(m_cards, card))
 				m_cards.push_back(card);
 		}
 	}
@@ -28,7 +28,7 @@ const Array<Card::sptr>& CardSetPackage::GetCards() const
 	{
 		for (Card::sptr card : cardSet->GetCards())
 		{
-			if (std::find(m_cards.begin(), m_cards.end(), card) == m_cards.end())
+			if (!cmg::container::Contains(m_cards, card))
 				m_cards.push_back(card);
 		}
 	}

@@ -7,6 +7,8 @@ StudyDatabase::StudyDatabase(CardDatabase& cardDatabase) :
 {
 	m_cardDatabase.CardKeyChanged().Connect(this, &StudyDatabase::OnCardKeyChanged);
 	m_cardDatabase.CardDeleted().Connect(this, &StudyDatabase::OnCardDeleted);
+	m_cardDatabase.CardAddedToSet().Connect(this, &StudyDatabase::OnCardAddedToSet);
+	m_cardDatabase.CardRemovedFromSet().Connect(this, &StudyDatabase::OnCardRemovedFrom);
 }
 
 StudyDatabase::~StudyDatabase()
@@ -14,12 +16,17 @@ StudyDatabase::~StudyDatabase()
 	Clear();
 }
 
-CardStudyData& StudyDatabase::GetCardStudyData(Card::sptr card)
+const Path& StudyDatabase::GetStudyDataPath() const
 {
-	return GetCardStudyData(card->GetKey());
+	return m_path;
 }
 
-CardStudyData& StudyDatabase::GetCardStudyData(const CardKey& key)
+CardStudyData& StudyDatabase::GetCardStudyData(Card::sptr card)
+{
+	return GetCardStudyData(card->GetRuKey());
+}
+
+CardStudyData& StudyDatabase::GetCardStudyData(const CardRuKey& key)
 {
 	std::lock_guard<std::recursive_mutex> guard(m_mutexStudyData);
 	auto it = m_cardStudyData.find(key);
@@ -28,7 +35,7 @@ CardStudyData& StudyDatabase::GetCardStudyData(const CardKey& key)
 	return CreateCardStudyData(key);
 }
 
-CardStudyData& StudyDatabase::CreateCardStudyData(const CardKey& key)
+CardStudyData& StudyDatabase::CreateCardStudyData(const CardRuKey& key)
 {
 	std::lock_guard<std::recursive_mutex> guard(m_mutexStudyData);
 	CardStudyData data;
@@ -74,6 +81,7 @@ StudySetMetrics StudyDatabase::GetStudySetMetrics(const IStudySet* studySet)
 
 void StudyDatabase::RecalcStudySetMetrics(CardSet::sptr cardSet)
 {
+	std::lock_guard<std::recursive_mutex> guard(m_mutexStudyMetrics);
 	m_cardSetMetrics.erase(cardSet);
 	if (cardSet->GetParent())
 		RecalcStudySetMetrics(cardSet->GetParent());
@@ -81,6 +89,7 @@ void StudyDatabase::RecalcStudySetMetrics(CardSet::sptr cardSet)
 
 void StudyDatabase::RecalcStudySetMetrics(CardSetPackage::sptr package)
 {
+	std::lock_guard<std::recursive_mutex> guard(m_mutexStudyMetrics);
 	m_packageMetrics.erase(package);
 	if (package->GetParent())
 		RecalcStudySetMetrics(package->GetParent());
@@ -88,45 +97,25 @@ void StudyDatabase::RecalcStudySetMetrics(CardSetPackage::sptr package)
 
 StudySetMetrics& StudyDatabase::CalcStudyMetrics(CardSet::sptr cardSet)
 {
-	std::lock_guard<std::recursive_mutex> guard(m_mutexStudyData);
-	StudySetMetrics metrics;
-	metrics.m_historyScore = 0.0f;
-	uint32 totalCount = 0;
-	for (Card::sptr card : cardSet->GetCards())
-	{
-		auto& cardStudyData = GetCardStudyData(card);
-		metrics.m_historyScore += cardStudyData.GetHistoryScore();
-		metrics.AddCount(cardStudyData.GetProficiencyLevel(), 1);
-		totalCount++;
-	}
-	if (totalCount > 0)
-		metrics.m_historyScore /= totalCount;
-	m_cardSetMetrics[cardSet] = metrics;
+	std::lock_guard<std::recursive_mutex> guard(m_mutexStudyMetrics);
+	m_cardSetMetrics[cardSet] = GetStudySetMetrics((IStudySet*) cardSet.get());
 	return m_cardSetMetrics[cardSet];
 }
 
 StudySetMetrics& StudyDatabase::CalcStudyMetrics(CardSetPackage::sptr package)
 {
-	std::lock_guard<std::recursive_mutex> guard(m_mutexStudyData);
-	StudySetMetrics metrics;
-	for (auto cardSet : package->GetCardSets())
-	{
-		const StudySetMetrics& cardSetMetrics = GetStudyMetrics(cardSet);
-		metrics += cardSetMetrics;
-	}
-	for (auto subPackage : package->GetPackages())
-	{
-		const StudySetMetrics& subPackageMetrics = GetStudyMetrics(subPackage);
-		metrics += subPackageMetrics;
-	}
-	m_packageMetrics[package] = metrics;
+	std::lock_guard<std::recursive_mutex> guard(m_mutexStudyMetrics);
+	m_packageMetrics[package] = GetStudySetMetrics((IStudySet*) package.get());
 	return m_packageMetrics[package];
 }
 
 void StudyDatabase::Clear()
 {
-	std::lock_guard<std::recursive_mutex> guard(m_mutexStudyData);
+	std::lock_guard<std::recursive_mutex> guardData(m_mutexStudyData);
+	std::lock_guard<std::recursive_mutex> guardMetrics(m_mutexStudyMetrics);
 	m_cardStudyData.clear();
+	m_cardSetMetrics.clear();
+	m_packageMetrics.clear();
 }
 
 void StudyDatabase::MarkCard(Card::sptr card, bool knewIt)
@@ -164,6 +153,16 @@ void StudyDatabase::MarkCard(Card::sptr card, bool knewIt)
 	}
 }
 
+void StudyDatabase::SetStudyDataPath(const Path& path)
+{
+	m_path = path;
+}
+
+Error StudyDatabase::LoadStudyData()
+{
+	return LoadStudyData(m_path);
+}
+
 Error StudyDatabase::LoadStudyData(const Path& path)
 {
 	std::lock_guard<std::recursive_mutex> guard(m_mutexStudyData);
@@ -184,7 +183,7 @@ Error StudyDatabase::LoadStudyData(const Path& path)
 	rapidjson::Value& cardDataList = document["cards"];
 	for (auto it = cardDataList.Begin(); it != cardDataList.End(); it++)
 	{
-		CardKey key;
+		CardRuKey key;
 		CardStudyData studyData;
 		DeserializeCardStudyData(*it, key, studyData);
 		m_cardStudyData[key] = studyData;
@@ -199,7 +198,7 @@ Error StudyDatabase::SaveStudyData()
 	return SaveStudyData(m_path);
 }
 
-Error StudyDatabase::SaveStudyData(const Path & path)
+Error StudyDatabase::SaveStudyData(const Path& path)
 {
 	if (m_readOnly)
 		return CMG_ERROR_SUCCESS;
@@ -216,7 +215,7 @@ Error StudyDatabase::SaveStudyData(const Path & path)
 	uint32_t savedCardCount = 0;
 	for (auto it : m_cardStudyData)
 	{
-		const CardKey& key = it.first;
+		const CardRuKey& key = it.first;
 		const CardStudyData& studyData = it.second;
 		if (it.second.IsEncountered())
 		{
@@ -226,7 +225,10 @@ Error StudyDatabase::SaveStudyData(const Path & path)
 			historyString[studyData.m_history.size()] = '\0';
 
 			rapidjson::Value jsonStudyData(rapidjson::kArrayType);
-			CardDatabase::SerializeCardKey(jsonStudyData, key, allocator);
+			String keyType = EnumToString(key.type);
+			String keyRussian = ConvertToUTF8(key.russian);
+			jsonStudyData.PushBack(rapidjson::Value(keyType.c_str(), allocator).Move(), allocator);
+			jsonStudyData.PushBack(rapidjson::Value(keyRussian.c_str(), allocator).Move(), allocator);
 			jsonStudyData.PushBack((int32_t) studyData.m_proficiencyLevel, allocator);
 			jsonStudyData.PushBack(studyData.m_lastEncounterTime, allocator);
 			jsonStudyData.PushBack(rapidjson::Value(
@@ -243,17 +245,35 @@ Error StudyDatabase::SaveStudyData(const Path & path)
 	return json::SaveDocumentToFile(path, document);
 }
 
+Error StudyDatabase::SaveChanges()
+{
+	bool saveStudyData = false;
+
+	// Retreive dirty state
+	{
+		std::lock_guard<std::mutex> guardDirty(m_mutexDirty);
+		saveStudyData = m_isDirty;
+	}
+
+	// Save study data
+	if (saveStudyData)
+	{
+		return SaveStudyData();
+	}
+
+	return CMG_ERROR_SUCCESS;
+}
+
 Error StudyDatabase::DeserializeCardStudyData(rapidjson::Value& data,
-	CardKey& outKey, CardStudyData& outCardStudyData)
+	CardRuKey& outKey, CardStudyData& outCardStudyData)
 {
 	TryStringToEnum(data[0].GetString(), outKey.type, false);
 	outKey.russian = ConvertFromUTF8(data[1].GetString());
-	outKey.english = ConvertFromUTF8(data[2].GetString());
-	outCardStudyData.m_proficiencyLevel = (ProficiencyLevel) data[3].GetInt();
-	outCardStudyData.m_lastEncounterTime = data[4].IsNull() ? -1.0 :
-		static_cast<AppTimestamp>(data[4].GetDouble());
+	outCardStudyData.m_proficiencyLevel = (ProficiencyLevel) data[2].GetInt();
+	outCardStudyData.m_lastEncounterTime = data[3].IsNull() ? -1.0 :
+		static_cast<AppTimestamp>(data[3].GetDouble());
 	outCardStudyData.m_history.clear();
-	auto historyString = data[5].GetString();
+	auto historyString = data[4].GetString();
 	for (uint32 i = 0; i < Config::k_maxCardHistorySize &&
 		historyString[i] != '\0'; i++)
 	{
@@ -265,14 +285,34 @@ Error StudyDatabase::DeserializeCardStudyData(rapidjson::Value& data,
 
 void StudyDatabase::OnCardKeyChanged(Card::sptr card, CardRuKey oldKey)
 {
-	// TODO:
+	std::lock_guard<std::recursive_mutex> guard(m_mutexStudyData);
+	auto it = m_cardStudyData.find(oldKey);
+	if (it != m_cardStudyData.end())
+	{
+		m_cardStudyData[card->GetRuKey()] = it->second;
+		m_cardStudyData.erase(oldKey);
+	}
 	MarkDirty();
 }
 
 void StudyDatabase::OnCardDeleted(Card::sptr card)
 {
-	// TODO:
+	std::lock_guard<std::recursive_mutex> guard(m_mutexStudyData);
+	CardRuKey key = card->GetRuKey();
+	auto it = m_cardStudyData.find(key);
+	if (it != m_cardStudyData.end())
+		m_cardStudyData.erase(key);
 	MarkDirty();
+}
+
+void StudyDatabase::OnCardAddedToSet(Card::sptr card, CardSet::sptr cardSet)
+{
+	RecalcStudySetMetrics(cardSet);
+}
+
+void StudyDatabase::OnCardRemovedFrom(Card::sptr card, CardSet::sptr cardSet)
+{
+	RecalcStudySetMetrics(cardSet);
 }
 
 void StudyDatabase::OnCardStudyDataChanged(Card::sptr card)
@@ -280,10 +320,11 @@ void StudyDatabase::OnCardStudyDataChanged(Card::sptr card)
 	MarkDirty();
 	for (CardSet::sptr cardSet : m_cardDatabase.GetCardSetsWithCard(card))
 		RecalcStudySetMetrics(cardSet);
+	m_cardStudyDataChanged.Emit(card);
 }
 
 void StudyDatabase::MarkDirty(bool dirty)
 {
-	std::lock_guard<std::mutex> guard(m_mutexDity);
+	std::lock_guard<std::mutex> guard(m_mutexDirty);
 	m_isDirty = dirty;
 }

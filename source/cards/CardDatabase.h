@@ -28,6 +28,9 @@ public:
 	void RemoveCardFromSet(Card::sptr card, CardSet::sptr cardSet);
 	void LinkRelatedCards(Card::sptr a, Card::sptr b);
 	void UnlinkRelatedCards(Card::sptr a, Card::sptr b);
+	CardSet::sptr CreateCardSet(CardSetPackage::sptr package,
+		const AccentedText& name, const unistr& fileName,
+		CardSetType cardSetType);
 
 	Error LoadCardData(const Path& path);
 	Error SaveCardData();
@@ -56,9 +59,9 @@ private:
 	static void SerializeCard(rapidjson::Value& outData, Card::sptr card,
 		rapidjson::Document::AllocatorType& allocator);
 	Error DeserializeCardSet(rapidjson::Value& data, CardSet::sptr& outCardSet);
-	CardSetPackage::sptr LoadCardSetPackage(const std::filesystem::path& path, const AccentedText& name);
-	Error LoadCardSet(const std::filesystem::path& path, CardSet::sptr& outCardSet);
-	Error SaveCardSet(CardSet::sptr cardSet, const std::filesystem::path& path);
+	CardSetPackage::sptr LoadCardSetPackage(const PathU16& path, const AccentedText& name);
+	Error LoadCardSet(const PathU16& path, CardSet::sptr& outCardSet);
+	Error SaveCardSet(CardSet::sptr cardSet, const PathU16& path);
 
 	struct CardLoadThreadData
 	{

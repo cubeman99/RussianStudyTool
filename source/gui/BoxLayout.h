@@ -8,6 +8,7 @@ public:
 	BoxLayout(uint32 axis);
 
 	void Clear();
+	void Insert(uint32 index, GUIObject* child, float stretch = 0.0f);
 	void Add(GUIObject* child, float stretch = 0.0f);
 	void Add(const Array<GUIObject*>& children);
 	void AddStretch(float stretch = 1.0f);

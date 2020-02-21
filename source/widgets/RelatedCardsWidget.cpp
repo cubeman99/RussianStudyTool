@@ -113,6 +113,8 @@ void RelatedCardsWidget::ApplyChanges()
 		cardDatabase.ModifyCard(m_card, changes);
 		cardDatabase.SaveChanges();
 	}
+
+	m_eventCardModified.Emit(m_card);
 }
 
 Widget* RelatedCardsWidget::CreateRemoveButton(Card::sptr card)

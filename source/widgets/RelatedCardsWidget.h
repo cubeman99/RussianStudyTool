@@ -7,6 +7,8 @@ class RelatedCardsWidget : public AppWidget
 public:
 	RelatedCardsWidget(Card::sptr card);
 
+	EventSignal<Card::sptr>& CardModified() { return m_eventCardModified; }
+
 	virtual void OnInitialize() override;
 	void SelectCard(Card::sptr card);
 	void Refresh();
@@ -20,6 +22,7 @@ private:
 	void ApplyChanges();
 
 	Card::sptr m_card;
+	EventSignal<Card::sptr> m_eventCardModified;
 
 	VBoxLayout m_layoutLeft;
 	HBoxLayout m_mainLayout;

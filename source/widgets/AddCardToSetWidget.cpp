@@ -1,8 +1,11 @@
 ﻿#include "AddCardToSetWidget.h"
 #include "RussianApp.h"
+#include "widgets/editors/CreateCardSetWidget.h"
+
 
 AddCardToSetWidget::AddCardToSetWidget(Card::sptr card) :
-	m_card(card)
+	m_card(card),
+	m_buttonCreateNewCardSet("Create New Card Set")
 {
 	SetBackgroundColor(GUIConfig::color_background);
 
@@ -13,8 +16,11 @@ AddCardToSetWidget::AddCardToSetWidget(Card::sptr card) :
 	m_layoutLeft.Add(&m_labelEnglish);
 	m_layoutLeft.Add(&m_labelType);
 	m_layoutLeft.Add(&m_scrollArea, 1.0f);
+	m_layoutRight.Add(&m_searchWidget, 1.0f);
+	m_layoutRight.Add(&m_cardSetBrowser, 1.0f);
+	m_layoutRight.Add(&m_buttonCreateNewCardSet);
 	m_mainLayout.Add(&m_layoutLeft, 1.0f);
-	m_mainLayout.Add(&m_searchWidget, 1.0f);
+	m_mainLayout.Add(&m_layoutRight, 1.0f);
 	SetLayout(&m_mainLayout);
 
 	// Set up related cards table
@@ -39,10 +45,16 @@ AddCardToSetWidget::AddCardToSetWidget(Card::sptr card) :
 	// Connect signals
 	m_buttonDone.Clicked().Connect((Widget*) this, &Widget::Close);
 	Closed().Connect(this, &AddCardToSetWidget::ApplyChanges);
+	m_cardSetBrowser.CardSetClicked().Connect(
+		this, &AddCardToSetWidget::OnClickCardSet);
+	m_buttonCreateNewCardSet.Clicked().Connect(
+		this, &AddCardToSetWidget::OnClickCreateCardSet);
 }
 
 void AddCardToSetWidget::OnInitialize()
 {
+	auto& cardDatabase = GetApp()->GetCardDatabase();
+	m_cardSetBrowser.SetPackage(cardDatabase.GetRootPackage());
 	m_searchWidget.GetSearchInputBox().Focus();
 	m_searchWidget.GetSearchInputBox().ReturnPressed().Connect(
 		this, &AddCardToSetWidget::AutoAdd);
@@ -65,9 +77,18 @@ void AddCardToSetWidget::Refresh()
 	m_searchWidget.RefreshResults();
 }
 
+void AddCardToSetWidget::OnClickCardSet(CardSet::sptr cardSet)
+{
+	if (cmg::container::Contains(m_table.GetItems(), cardSet))
+		m_table.RemoveItem(cardSet);
+	else
+		m_table.AddItem(cardSet);
+	m_searchWidget.RefreshResults();
+}
+
+
 void AddCardToSetWidget::OnClickAdd(CardSet::sptr cardSet)
 {
-	auto& cardDatabase = GetApp()->GetCardDatabase();
 	m_table.AddItem(cardSet);
 	m_searchWidget.RefreshResults();
 	m_searchWidget.GetSearchInputBox().Focus();
@@ -76,11 +97,22 @@ void AddCardToSetWidget::OnClickAdd(CardSet::sptr cardSet)
 
 void AddCardToSetWidget::OnClickRemove(CardSet::sptr cardSet)
 {
-	auto& cardDatabase = GetApp()->GetCardDatabase();
 	m_table.RemoveItem(cardSet);
 	m_searchWidget.RefreshResults();
 	m_searchWidget.GetSearchInputBox().Focus();
 	m_searchWidget.GetSearchInputBox().SelectAll();
+}
+
+void AddCardToSetWidget::OnClickCreateCardSet()
+{
+	AccentedText name(m_searchWidget.GetSearchInputBox().GetText());
+	CardSetPackage::sptr package = m_cardSetBrowser.GetPackage();
+
+	CreateCardSetWidget* cardSetCreateWidget =
+		new CreateCardSetWidget(name, package);
+	cardSetCreateWidget->CardSetCreated().Connect(
+		this, &AddCardToSetWidget::OnClickAdd);
+	GetApp()->PushState(cardSetCreateWidget);
 }
 
 void AddCardToSetWidget::AutoAdd()

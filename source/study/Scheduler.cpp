@@ -33,7 +33,7 @@ void Scheduler::MarkCard(Card::sptr card, bool knewIt)
 {
 	// Remove from its old set
 	m_proficiencySets[m_studyDatabase.GetCardStudyData(card)
-		.GetProficiencyLevel()].cards.insert(card);
+		.GetProficiencyLevel()].cards.erase(card);
 
 	m_studyDatabase.MarkCard(card, knewIt);
 
@@ -41,6 +41,7 @@ void Scheduler::MarkCard(Card::sptr card, bool knewIt)
 	auto& profSet = m_proficiencySets[
 		m_studyDatabase.GetCardStudyData(card).GetProficiencyLevel()];
 	profSet.cards.insert(card);
+	profSet.rep = m_rep;
 
 	auto& cardInfo = GetCardSchedulingInfo(card);
 	cardInfo.rep = m_rep;
@@ -64,7 +65,7 @@ Card::sptr Scheduler::GetNextCard()
 	Card::sptr card;
 
 	// Show a new card every new card interval
-	if (m_rep % m_params.GetNewCardInterval() == 0)
+	if (m_rep % m_params.GetNewCardInterval() == 1)
 	{
 		card = GetNewCard();
 		if (card)
@@ -75,36 +76,50 @@ Card::sptr Scheduler::GetNextCard()
 	{
 		uint32 rep;
 		Array<Card::sptr> cards;
+		Array<uint32> cardAges;
 	};
+
 
 	for (int32 minInterval = m_params.GetMinRepeatInterval();
 		minInterval >= 0; minInterval--)
 	{
 		Array<AvailableSet> availableSets;
+		Array<uint32> availSetAges;
 
+		//CMG_LOG_DEBUG() << "> minInterval = " << minInterval;
 		for (auto it : m_proficiencySets)
 		{
-			if (it.first != ProficiencyLevel::k_new)
+			//if (it.first != ProficiencyLevel::k_new)
 			{
 				AvailableSet availSet;
 				availSet.rep = it.second.rep;
+				uint32 availSetAge = (uint32) ((int32) m_rep - (int32) availSet.rep);
+				//CMG_LOG_DEBUG() << "  * " << availSet.rep << " [" << availSetAge << "] = " << EnumToString(it.first) << " (" << it.second.cards.size() << " cards)";
 
 				for (auto card : it.second.cards)
 				{
-					uint32 r = GetCardSchedulingInfo(card).rep;
-					if (r == 0 || (int32) m_rep - (int32) r >= (int32) minInterval)
+					uint32 cardRep = GetCardSchedulingInfo(card).rep;
+					uint32 cardAge = (uint32) ((int32) m_rep - (int32) cardRep);
+					if (cardRep == 0 || (int32) cardAge > minInterval)
+					{
 						availSet.cards.push_back(card);
+						availSet.cardAges.push_back(cardAge);
+					}
+					//CMG_LOG_DEBUG() << "    - " << cardRep << " [" << cardAge << "] - " << card->GetRussian();
 				}
 
-				if (!availSet.cards.empty())
+				if (!availSet.cards.empty() && it.first != ProficiencyLevel::k_new)
+				{
 					availableSets.push_back(availSet);
+					availSetAges.push_back(availSetAge);
+				}
 			}
 		}
 
 		if (!availableSets.empty())
 		{
-			auto& nextSet = ChooseWeightedByAge<AvailableSet>(availableSets);
-			card = ChooseWeightedByAge<Card::sptr>(nextSet.cards);
+			auto& nextSet = ChooseWeighted<AvailableSet>(availableSets, availSetAges);
+			card = ChooseWeighted<Card::sptr>(nextSet.cards, nextSet.cardAges);
 			return card;
 		}
 

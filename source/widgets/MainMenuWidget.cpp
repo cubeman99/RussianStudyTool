@@ -22,20 +22,10 @@ void MainMenuItemWidget::SetMetrics(const StudySetMetrics & metrics)
 	m_proficiencyBar.SetMetrics(metrics);
 }
 
-void MainMenuItemWidget::OnUpdate(float timeDelta)
-{
-}
-
-void MainMenuItemWidget::OnRender(AppGraphics & g, float timeDelta)
-{
-}
-
-
 MainMenuWidget::MainMenuWidget(CardSetPackage::sptr package) :
 	m_package(package)
 {
 	SetPackage(package);
-
 
 	m_labelTitle.SetAlign(TextAlign::MIDDLE_LEFT);
 	m_titleWidget.SetBackgroundColor(GUIConfig::color_background_light);

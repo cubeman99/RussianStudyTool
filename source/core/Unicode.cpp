@@ -27,3 +27,7 @@ unistr ConvertFromUTF8(const std::string& str)
 	return ConvertFromUTF8(str.data());
 }
 
+std::ostream& operator<<(std::ostream& out, const unistr& text)
+{
+	return (out << ConvertToUTF8(text));
+}

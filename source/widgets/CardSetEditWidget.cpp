@@ -118,6 +118,7 @@ void CardSetEditWidget::ApplyChanges()
 	CMG_LOG_INFO() << "Applying changes";
 
 	auto& cardDatabase = GetApp()->GetCardDatabase();
+	auto& studyDatabase = GetApp()->GetStudyDatabase();
 
 	for (CardRow::sptr row : m_table.GetItems())
 	{
@@ -156,6 +157,7 @@ void CardSetEditWidget::ApplyChanges()
 
 	Refresh();
 	cardDatabase.SaveChanges();
+	studyDatabase.SaveChanges();
 }
 
 void CardSetEditWidget::Refresh()
@@ -354,12 +356,15 @@ void CardSetEditWidget::OnPressEnterType(CardRow::sptr row)
 void CardSetEditWidget::OnPressEnterRussian(CardRow::sptr row)
 {
 	// Predict the word type from the russian ending
-	row->UpdateState();
-	WordType predictedWordType;
-	if (ru::TryPredictWordType(row->m_ruKey.russian, predictedWordType))
+	if (row->m_inputType->GetText().length() == 0)
 	{
-		unistr typeName = ConvertFromUTF8(EnumToShortString(predictedWordType));
-		row->m_inputType->SetText(typeName);
+		row->UpdateState();
+		WordType predictedWordType;
+		if (ru::TryPredictWordType(row->m_ruKey.russian, predictedWordType))
+		{
+			unistr typeName = ConvertFromUTF8(EnumToShortString(predictedWordType));
+			row->m_inputType->SetText(typeName);
+		}
 	}
 
 	GetOrCreateAdjacentRow(row, false)->m_inputRussian->Focus();

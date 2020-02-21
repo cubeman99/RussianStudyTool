@@ -15,11 +15,11 @@ Error LoadDocumentFromFile(const Path& path,
 	return ParseDocument(outDocument, str.c_str());
 }
 
-Error LoadDocumentFromFile(const std::filesystem::path& path,
+Error LoadDocumentFromFile(const PathU16& path,
 	rapidjson::Document& outDocument)
 {
 	rapidjson::Document document;
-	std::ifstream file(path);
+	std::ifstream file((const wchar_t*) path.c_str());
 	std::string str((std::istreambuf_iterator<char>(file)),
 		std::istreambuf_iterator<char>());
 	return ParseDocument(outDocument, str.c_str());
@@ -51,11 +51,11 @@ Error SaveDocumentToFile(const Path& path,
 	return error;
 }
 
-Error SaveDocumentToFile(const std::filesystem::path& path,
+Error SaveDocumentToFile(const PathU16& path,
 	const rapidjson::Document& document)
 {
 	FILE* file = nullptr;
-	errno_t fopenError = _wfopen_s(&file, path.c_str(), L"wb");
+	errno_t fopenError = _wfopen_s(&file, (const wchar_t*) path.c_str(), L"wb");
 	if (fopenError != 0)
 	{
 		return CMG_ERROR(CommonErrorTypes::k_file_corrupt);

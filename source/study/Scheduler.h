@@ -60,8 +60,8 @@ private:
 	Card::sptr GetNewCard();
 	CardSchedulingInfo& GetCardSchedulingInfo(Card::sptr card);
 
-	template <class T_Set, class T_Array>
-	T_Set& ChooseWeightedByAge(T_Array& set);
+	template<typename T_Item, typename T_Weight>
+	static inline T_Item& ChooseWeighted(Array<T_Item>& items, const Array<T_Weight>& weights);
 
 private:
 	StudyDatabase& m_studyDatabase;
@@ -74,9 +74,21 @@ private:
 	Map<ProficiencyLevel, ProficiencySet> m_proficiencySets;
 };
 
-template<class T_Set, class T_Array>
-inline T_Set& Scheduler::ChooseWeightedByAge(T_Array& set)
+template<typename T_Item, typename T_Weight>
+inline T_Item& Scheduler::ChooseWeighted(Array<T_Item>& items, const Array<T_Weight>& weights)
 {
-	// TODO: implement this
-	return Random::Choose<T_Set>(set);
+	T_Weight weightSum = T_Weight(0);
+	for (const T_Weight& weight : weights)
+		weightSum += weight;
+	if (weightSum == T_Weight(0))
+		return Random::Choose(items);
+	uint32 choice = Random::NextInt(weightSum);
+	weightSum = 0;
+	for (uint32 i = 0; i < weights.size(); i++)
+	{
+		weightSum += weights[i];
+		if (choice < weightSum)
+			return items[i];
+	}
+	return items.back();
 }

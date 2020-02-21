@@ -17,17 +17,13 @@ public:
 
 	void SetMetrics(const StudySetMetrics& metrics);
 
-	virtual void OnUpdate(float timeDelta) override;
-	virtual void OnRender(AppGraphics& g, float timeDelta) override;
 	virtual void OnPress() override { m_clicked.Emit(); }
 
 private:
-
 	IStudySet* m_studySet;
 	HBoxLayout m_layout;
 	Label m_labelName;
 	StudyProficiencyBar m_proficiencyBar;
-
 	EventSignal<> m_clicked;
 };
 
