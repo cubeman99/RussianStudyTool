@@ -1,8 +1,25 @@
 ﻿#include "Config.h"
 
-CONFIG_MACRO_GUI(GUIConfig, EXPAND_TO_CONFIG_DEFINE)
+// GUI Config
+Color GUIConfig::color_text = Color(230, 230, 230);
+Color GUIConfig::color_text_cursor = GUIConfig::color_text;
+Color GUIConfig::color_text_highlighted = Color(255, 0, 0);
+Color GUIConfig::color_text_box_background = Color(25, 25, 25);
+Color GUIConfig::color_text_box_background_text = Color(128, 128, 128);
+Color GUIConfig::color_text_box_selection_background = Color(46, 67, 89);
+Color GUIConfig::color_background = Color(10, 10, 10);
+Color GUIConfig::color_background_light = Color(25, 25, 25);
+Color GUIConfig::color_background_alternate = Color(20, 20, 20);
+Color GUIConfig::color_background_focused = Color(25, 25, 30);
+Color GUIConfig::color_background_highlighted = Color(50, 50, 50);
+Color GUIConfig::color_button_background = Color(40, 40, 40);
+Color GUIConfig::color_button_background_highlighted = Color(60, 60, 60);
+Color GUIConfig::color_button_background_pressed = Color(80, 80, 80);
+Color GUIConfig::color_button_background_focused = Color(140, 140, 140);
+Color GUIConfig::color_outline = Color(128, 128, 128);
+Color GUIConfig::color_outline_focused = Color(0, 255, 255);
 
-
+// App Config
 Color Config::k_colorEditedNew = Color(0, 128, 0);
 Color Config::k_colorEditedModified = Color(100, 100, 0);
 Color Config::k_colorEditedMatched = Color(20, 20, 100);

@@ -20,7 +20,7 @@ public:
 	virtual void OnUpdate(float timeDelta) override;
 	virtual void OnRender(AppGraphics& g, float timeDelta) override;
 
-private:
+protected:
 	AccentedText m_text;
 	Font::sptr m_font;
 	Color m_color = Color::WHITE;

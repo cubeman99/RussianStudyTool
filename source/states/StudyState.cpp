@@ -5,6 +5,7 @@
 #include "widgets/RelatedCardsWidget.h"
 #include "widgets/AddCardToSetWidget.h"
 #include "widgets/CardEditWidget.h"
+#include "widgets/ExampleTextWidget.h"
 
 StudyState::StudyState(IStudySet* studySet, const StudyParams& studyParams) :
 	m_studySet(studySet),
@@ -36,9 +37,11 @@ StudyState::StudyState(IStudySet* studySet, const StudyParams& studyParams) :
 	m_anchorLayout.Add(&m_widgetRevealed);
 
 	m_anchorLayout.Add(&m_labelHistoryScore)
-		.Pin(0.5f, 0.0f, TextAlign::TOP_CENTER).Offset(0.0f, topTopStart);
+		.Pin(0.5f, 0.0f, TextAlign::CENTERED)
+		.Offset(0.0f, 0.0f, 0.0f, barHeight);
 	m_anchorLayout.Add(&m_labelEncounterTime)
-		.Pin(1.0f, 0.0f, TextAlign::TOP_RIGHT).Offset(-16.0f, topTopStart);
+		.Pin(1.0f, 0.0f, TextAlign::MIDDLE_RIGHT)
+		.Offset(0.0f, 0.0f, 0.0f, barHeight);
 	m_anchorLayout.Add(&m_labelWordType)
 		.Pin(0.5f, 0.2f, TextAlign::CENTERED);
 	m_anchorLayout.Add(&m_labelCardTextShown)
@@ -68,7 +71,9 @@ StudyState::StudyState(IStudySet* studySet, const StudyParams& studyParams) :
 		.Pin(1.0f, 1.0f, TextAlign::BOTTOM_RIGHT)
 		.Offset(-8.0f, -barHeight - 16);
 	m_layoutRevealed.Add(&m_layoutCardSets)
-		.Pin(1.0f, 0.0f, TextAlign::TOP_RIGHT).Offset(-16.0f, topTopStart + 40);
+		.Pin(1.0f, 0.0f, TextAlign::TOP_RIGHT).Offset(-16.0f, topTopStart);
+	m_layoutRevealed.Add(&m_layoutExamples)
+		.Pin(0.0f, 0.0f, TextAlign::TOP_LEFT).Offset(16.0f, topTopStart);
 
 	m_layoutNounInfo.SetMargins(0.0f);
 	m_layoutNounInfo.Add(&m_tableNounDeclension);
@@ -216,7 +221,10 @@ void StudyState::ShowCard(Card::sptr card, Language shownSide)
 {
 	auto app = (RussianStudyToolApp*) GetApp();
 	auto& cardDatabase = app->GetCardDatabase();
+	auto& exampleDatabase = app->GetExampleDatabase();
 	m_card = card;
+	m_term = nullptr;
+	m_wikiWord = nullptr;
 	m_cardStudyData = app->GetStudyDatabase().GetCardStudyData(m_card);
 	m_shownSide = shownSide;
 	m_revealedSide = (shownSide == Language::k_english ?
@@ -227,26 +235,63 @@ void StudyState::ShowCard(Card::sptr card, Language shownSide)
 	Font::sptr fontSmall = GetApp()->GetResourceManager()->Get<Font>(Res::FONT_SMALL);
 
 	// Wiktionary word
-	m_term = app->GetWiktionary().GetTerm(m_card->GetRuKey().russian);
-	if (!m_term)
-		m_term = app->GetWiktionary().DownloadTerm(m_card->GetRuKey().russian);
-	m_wikiWord = nullptr;
-	if (m_term)
-		m_wikiWord = m_term->GetWord(m_card->GetWordType());
+	Array<unistr> wordNames = m_card->GetWordNames();
+	if (!wordNames.empty())
+	{
+		for (uint32 i = 0; i < wordNames.size() && !m_term; i++)
+		{
+			CMG_LOG_DEBUG() << wordNames[i];
+			m_term = app->GetWiktionary().GetTerm(wordNames[i]);
+			if (!m_term)
+				m_term = app->GetWiktionary().DownloadTerm(wordNames[i]);
+		}
+		if (m_term)
+		{
+			m_wikiWord = m_term->GetWord(m_card->GetWordType());
+			if (!m_wikiWord)
+			{
+				for (WordType wordType : EnumValues<WordType>())
+				{
+					m_wikiWord = m_term->GetWord(wordType);
+					if (m_wikiWord)
+						break;
+				}
+			}
+		}
+	}
 
 	m_layoutDefinitions.Clear();
 	m_widgetNounInfo.SetVisible(false);
 	m_widgetAdjectiveInfo.SetVisible(false);
 	m_widgetVerbInfo.SetVisible(false);
-	m_listRelatedCards.Clear();
 
 	// Related cards
+	m_listRelatedCards.Clear();
 	if (!m_card->GetRelatedCards().empty())
 	{
 		for (Card::sptr relatedCard : m_card->GetRelatedCards())
 			m_listRelatedCards.AddWord(relatedCard->GetRussian());
 		m_layoutDefinitions.Add(&m_listRelatedCards);
 	}
+
+	// Examples
+	m_layoutExamples.Clear();
+	Array<SentenceMatch> exampleMatches =
+		exampleDatabase.GetExampleSentences(m_card);
+	uint32 exampleCount = Math::Min(exampleMatches.size(),
+		Config::k_maxExamplesToDisplay);
+	for (uint32 i = 0; i < exampleCount; i++)
+	{
+		SentenceMatch& match = exampleMatches[i];
+		ExampleTextWidget* exampleLabel = new ExampleTextWidget(match);
+		exampleLabel->SetFont(fontSmall);
+		m_layoutExamples.Add(exampleLabel);
+	}
+	Label* exampleCountLabel = new Label(
+		std::to_string(exampleMatches.size()) + " total examples");
+	exampleCountLabel->SetFont(fontSmall);
+	exampleCountLabel->SetColor(GUIConfig::color_text_box_background_text);
+	m_layoutExamples.Add(exampleCountLabel);
 
 	if (m_wikiWord)
 	{

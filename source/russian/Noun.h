@@ -9,10 +9,11 @@ class NounDeclension
 {
 public:
 	NounDeclension();
-
+	
 	const AccentedText& GetDeclension(Case nounCase, Plurality plurality) const;
 	void SetDeclension(Case nounCase, Plurality plurality, const AccentedText& text);
 
+	virtual void GetAllForms(Set<AccentedText>& outForms) const;
 	void Serialize(rapidjson::Value& value,
 		rapidjson::Document::AllocatorType& allocator);
 	Error Deserialize(rapidjson::Value& data);

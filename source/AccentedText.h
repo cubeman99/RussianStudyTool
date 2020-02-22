@@ -21,12 +21,12 @@ public:
 	//AccentedText(const char* str);
 	//AccentedText(const String& str);
 	
-	AccentedText& operator +=(const AccentedText& other);
-	AccentedText& operator +=(const unistr& str);
-	AccentedText operator +(const AccentedText& other) const;
-	AccentedText operator +(const unistr& str) const;
-	AccentedText operator +(const char* str) const;
-	AccentedText operator +(const unichar* str) const;
+	AccentedText& operator+=(const AccentedText& other);
+	AccentedText& operator+=(const unistr& str);
+	AccentedText operator+(const AccentedText& other) const;
+	AccentedText operator+(const unistr& str) const;
+	AccentedText operator+(const char* str) const;
+	AccentedText operator+(const unichar* str) const;
 	unichar operator [](uint32 index) const;
 	bool operator==(const AccentedText& other) const;
 	bool operator!=(const AccentedText& other) const;
@@ -34,10 +34,15 @@ public:
 	bool operator>(const AccentedText& other) const;
 
 	bool empty() const;
-	const unistr& GetString() const { return m_string; }
-	uint32 GetAccentCount() const { return m_accents.size(); }
-	uint32 GetAccentIndex(uint32 i) const { return m_accents[i]; }
+	size_t length() const;
+	AccentedText substr(size_t offset = 0, size_t count = unistr::npos) const;
+	bool HasAccentAt(uint32 index) const;
+	const unistr& GetString() const;
+	uint32 GetAccentCount() const;
+	uint32 GetAccentIndex(uint32 i) const;
 	unistr ToMarkedString() const;
+
+	void AddChar(unichar c, bool accent = false);
 
 	std::ostream& StreamOut(std::ostream &out) const;
 

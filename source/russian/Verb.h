@@ -28,6 +28,7 @@ public:
 	void SetParticiple(Participle participle, Tense tense, const AccentedText& text);
 	void SetImperative(Plurality plurality, const AccentedText& text);
 
+	virtual void GetAllForms(Set<AccentedText>& outForms) const;
 	void Serialize(rapidjson::Value& value,
 		rapidjson::Document::AllocatorType& allocator);
 	Error Deserialize(rapidjson::Value& data);

@@ -45,7 +45,8 @@ namespace ru
 
 bool IsRussian(unichar c)
 {
-	return (c >= u'а' && c <= u'я') || (c >= u'А' && c <= u'Я');
+	return ((c >= u'а' && c <= u'я') || (c >= u'А' && c <= u'Я') ||
+		c == u'ё' || c == u'Ё');
 }
 
 bool IsSoft(unichar c)
@@ -112,6 +113,8 @@ unichar ToLowerChar(unichar c)
 {
 	if (c >= u'А' && c <= u'Я')
 		return c + 32;
+	if (c == u'Ё')
+		return u'ё';
 	return (unichar) ::tolower((int) c);
 }
 
@@ -119,6 +122,8 @@ unichar ToUpperChar(unichar c)
 {
 	if (c >= u'а' && c <= u'я')
 		return c - 32;
+	if (c == u'ё')
+		return u'Ё';
 	return (unichar) ::toupper((int) c);
 }
 

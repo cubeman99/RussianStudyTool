@@ -5,14 +5,21 @@ CardSearchWidget::CardSearchWidget()
 {
 	// Create table
 	auto& table = GetTable();
+	table.SetSpacing(1);
 	table.AddColumn("Type", [](Card::sptr card) {
-		return (Widget*) new Label(EnumToString(card->GetWordType()));
+		Label* label = new Label(EnumToShortString(card->GetWordType()));
+		label->SetBackgroundColor(GUIConfig::color_background_alternate);
+		return (Widget*) label;
 	}, 1.0f);
 	table.AddColumn("Russian", [](Card::sptr card) {
-		return (Widget*) new Label(card->GetRussian());
+		Label* label = new Label(card->GetRussian());
+		label->SetBackgroundColor(GUIConfig::color_background_alternate);
+		return (Widget*) label;
 	}, 2.0f);
 	table.AddColumn("English", [](Card::sptr card) {
-		return (Widget*) new Label(card->GetEnglish());
+		Label* label = new Label(card->GetEnglish());
+		label->SetBackgroundColor(GUIConfig::color_background_alternate);
+		return (Widget*) label;
 	}, 2.0f);
 }
 

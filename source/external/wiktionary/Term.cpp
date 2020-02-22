@@ -61,6 +61,11 @@ Word::Word(WordType wordType) :
 {
 }
 
+void Word::GetAllForms(Set<AccentedText>& outForms) const
+{
+	outForms.insert(m_text);
+}
+
 void Word::Serialize(rapidjson::Value& value,
 	rapidjson::Document::AllocatorType& allocator)
 {
@@ -202,6 +207,12 @@ const Word::sptr Term::GetWord(WordType wordType) const
 	return nullptr;
 }
 
+void Term::GetAllForms(Set<AccentedText>& outForms) const
+{
+	for (auto it : m_words)
+		it.second->GetAllForms(outForms);
+}
+
 void Term::Serialize(rapidjson::Value& value,
 	rapidjson::Document::AllocatorType& allocator)
 {
@@ -275,6 +286,11 @@ Noun::Noun() :
 {
 }
 
+void Noun::GetAllForms(Set<AccentedText>& outForms) const
+{
+	m_declension.GetAllForms(outForms);
+}
+
 void Noun::Serialize(rapidjson::Value& value,
 	rapidjson::Document::AllocatorType& allocator)
 {
@@ -304,6 +320,11 @@ Adjective::Adjective() :
 {
 }
 
+void Adjective::GetAllForms(Set<AccentedText>& outForms) const
+{
+	m_declension.GetAllForms(outForms);
+}
+
 void Adjective::Serialize(rapidjson::Value& value,
 	rapidjson::Document::AllocatorType& allocator)
 {
@@ -329,6 +350,11 @@ Error Adjective::Deserialize(rapidjson::Value& data)
 Verb::Verb() :
 	Word(WordType::k_verb)
 {
+}
+
+void Verb::GetAllForms(Set<AccentedText>& outForms) const
+{
+	m_conjugation.GetAllForms(outForms);
 }
 
 void Verb::Serialize(rapidjson::Value& value,

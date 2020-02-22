@@ -21,6 +21,8 @@
     <ClCompile Include="..\source\Config.cpp" />
     <ClCompile Include="..\source\core\JsonUtility.cpp" />
     <ClCompile Include="..\source\core\Unicode.cpp" />
+    <ClCompile Include="..\source\examples\ExampleDatabase.cpp" />
+    <ClCompile Include="..\source\examples\Story.cpp" />
     <ClCompile Include="..\source\external\RequestInterface.cpp" />
     <ClCompile Include="..\source\external\wiktionary\Parser.cpp" />
     <ClCompile Include="..\source\external\wiktionary\Wiktionary.cpp" />
@@ -48,6 +50,7 @@
     <ClCompile Include="..\source\russian\Adjective.cpp" />
     <ClCompile Include="..\source\russian\Noun.cpp" />
     <ClCompile Include="..\source\russian\Verb.cpp" />
+    <ClCompile Include="..\source\russian\WordDatabase.cpp" />
     <ClCompile Include="..\source\states\ApplicationState.cpp" />
     <ClCompile Include="..\source\states\ApplicationStateStack.cpp" />
     <ClCompile Include="..\source\states\GUIState.cpp" />
@@ -67,6 +70,7 @@
     <ClCompile Include="..\source\widgets\CardSetSearchWidget.cpp" />
     <ClCompile Include="..\source\widgets\DeclensionTable.cpp" />
     <ClCompile Include="..\source\widgets\editors\CreateCardSetWidget.cpp" />
+    <ClCompile Include="..\source\widgets\ExampleTextWidget.cpp" />
     <ClCompile Include="..\source\widgets\GenericTableWidget.cpp" />
     <ClCompile Include="..\source\widgets\MainMenuWidget.cpp" />
     <ClCompile Include="..\source\widgets\MenuWidget.cpp" />
@@ -87,6 +91,8 @@
     <ClInclude Include="..\source\core\Delegate.h" />
     <ClInclude Include="..\source\core\JsonUtility.h" />
     <ClInclude Include="..\source\core\Unicode.h" />
+    <ClInclude Include="..\source\examples\ExampleDatabase.h" />
+    <ClInclude Include="..\source\examples\Story.h" />
     <ClInclude Include="..\source\external\RequestInterface.h" />
     <ClInclude Include="..\source\external\wiktionary\Parser.h" />
     <ClInclude Include="..\source\external\wiktionary\Wiktionary.h" />
@@ -116,6 +122,7 @@
     <ClInclude Include="..\source\russian\Adjective.h" />
     <ClInclude Include="..\source\russian\Noun.h" />
     <ClInclude Include="..\source\russian\Verb.h" />
+    <ClInclude Include="..\source\russian\WordDatabase.h" />
     <ClInclude Include="..\source\states\ApplicationState.h" />
     <ClInclude Include="..\source\states\ApplicationStateStack.h" />
     <ClInclude Include="..\source\states\GUIState.h" />
@@ -135,6 +142,7 @@
     <ClInclude Include="..\source\widgets\CardSetSearchWidget.h" />
     <ClInclude Include="..\source\widgets\DeclensionTable.h" />
     <ClInclude Include="..\source\widgets\editors\CreateCardSetWidget.h" />
+    <ClInclude Include="..\source\widgets\ExampleTextWidget.h" />
     <ClInclude Include="..\source\widgets\GenericTableWidget.h" />
     <ClInclude Include="..\source\widgets\MainMenuWidget.h" />
     <ClInclude Include="..\source\widgets\MenuWidget.h" />

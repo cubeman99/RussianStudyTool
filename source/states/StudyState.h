@@ -87,6 +87,7 @@ private:
 	HBoxLayout m_layoutTagsShown;
 	HBoxLayout m_layoutTagsRevealed;
 	VBoxLayout m_layoutCardSets;
+	VBoxLayout m_layoutExamples;
 
 	Widget m_titleWidget;
 	Label m_labelTitle;

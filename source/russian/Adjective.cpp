@@ -12,6 +12,17 @@ AdjectiveDeclension::AdjectiveDeclension()
 	}
 }
 
+void AdjectiveDeclension::GetAllForms(Set<AccentedText>& outForms) const
+{
+	for (auto it : m_declension)
+		outForms.insert(it.second);
+	for (auto it : m_shortForms)
+	{
+		if (it.second.length() > 0)
+			outForms.insert(it.second);
+	}
+}
+
 const AccentedText& AdjectiveDeclension::GetDeclension(
 	Case nounCase, Gender gender) const
 {

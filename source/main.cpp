@@ -7,6 +7,7 @@
 #include "gui/gui.h"
 #include "RussianApp.h"
 #include "external/RequestInterface.h"
+#include "examples/ExampleDatabase.h"
 
 class TestClass
 {
@@ -25,6 +26,29 @@ int main(int argc, char* argv[])
 	Random::SeedTime();
 	cmg::core::console::EnableUnicode();
 	Config::Initialize();
+
+	/*
+	ExampleDatabase m_exampleDatabase;
+	Story::sptr story;
+	m_exampleDatabase.LoadExamples(PathU16(u"C:/workspace/python/russian-study-tool/data/examples"));
+	//m_exampleDatabase.LoadStory(PathU16(u"C:/workspace/python/russian-study-tool/data/examples/stories/Маленький секрет.story"), story);
+
+	//Array<unistr> words = { u"нужнО", u"Наказать" };
+	Array<unistr> words = { u"по", u"крайней" };
+	auto matches = m_exampleDatabase.GetExampleSentences(words);
+	for (auto match : matches)
+	{
+		CMG_LOG_DEBUG() << match.sentence;
+	}
+	//Array<std::pair<uint32, uint32>> results;
+	//uint32 count = m_exampleDatabase.GetExamplesInSentence(
+	//	u"— Ты была плохой девочкой, Луна. Тебя за это ну'жно наказа'ть. – Сказала принцесса. НУЖНО НАКАЗА'ТЬ!!!", words, results);
+	//std::cout << count << std::endl;
+
+	system("pause");
+	return 0;
+	*/
+
 	/*
 	RequestInterface requests;
 	wiki::Wiktionary wiktionary(requests);

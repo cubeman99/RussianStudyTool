@@ -9,6 +9,7 @@
 #include "states/ApplicationStateStack.h"
 #include "states/TestState.h"
 #include "widgets/MainMenuWidget.h"
+#include "examples/ExampleDatabase.h"
 #include "study/StudyDatabase.h"
 #include "external/wiktionary/Wiktionary.h"
 #include "PedalInput.h"
@@ -75,6 +76,7 @@ public:
 
 	CardDatabase& GetCardDatabase() { return m_cardDatabase; }
 	StudyDatabase& GetStudyDatabase() { return m_studyDatabase; }
+	ExampleDatabase& GetExampleDatabase() { return m_exampleDatabase; }
 	wiki::Wiktionary& GetWiktionary() { return m_wiktionary; }
 
 	ApplicationStateStack& GetStateStack() { return m_stateStack; };
@@ -97,6 +99,7 @@ private:
 	// Databases
 	CardDatabase m_cardDatabase;
 	StudyDatabase m_studyDatabase;
+	ExampleDatabase m_exampleDatabase;
 	wiki::Wiktionary m_wiktionary;
 	RequestInterface m_requests;
 

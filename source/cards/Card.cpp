@@ -61,6 +61,32 @@ EnumFlags<CardTags>& Card::GetTags()
 	return m_tags;
 }
 
+Array<unistr> Card::GetWordNames() const
+{
+	const unistr& str = m_text.russian.GetString();
+	Array<unistr> words;
+	uint32 length = str.length();
+	unistr word;
+	uint32 count = 0;
+
+	for (uint32 i = 0; i <= length; i++)
+	{
+		unichar c = (i < length ? ru::ToLowerChar(str[i]) : u';');
+
+		if (ru::IsRussian(c))
+		{
+			word += c;
+		}
+		else if (word.length() > 0)
+		{
+			words.push_back(word);
+			word = u"";
+		}
+	}
+
+	return words;
+}
+
 void Card::SetData(const CardData& data)
 {
 	m_type = data.type;

@@ -3,9 +3,9 @@
 
 RelatedWordList::RelatedWordList()
 {
-	m_layoutWords.SetSpacing(2.0f);
+	m_layoutWords.SetSpacing(8.0f);
 	m_layoutWords.SetMargins(0.0f);
-	m_layout.SetSpacing(4.0f);
+	m_layout.SetSpacing(8.0f);
 	m_layout.SetMargins(0.0f);
 	m_layout.Add(&m_label);
 	m_layout.Add(&m_layoutWords);

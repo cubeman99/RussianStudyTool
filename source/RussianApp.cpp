@@ -5,16 +5,20 @@
 #include "widgets/TestWidget.h"
 #include "widgets/CardSetEditWidget.h"
 #include "widgets/CardSetBrowserWidget.h"
+#include "examples/ExampleDatabase.h"
 
 // Comment this out to use the REAL card dataset
-#define USE_TEST_DATA
+//#define USE_TEST_DATA
 
 static const Path g_assetsPath = "../assets";
+static const PathU16 g_assetsPathU16 = u"../assets";
 
 #ifdef USE_TEST_DATA
 static const Path g_dataPath = g_assetsPath / "data";
+static const PathU16 g_dataPathU16 = g_assetsPathU16 / PathU16(u"data");
 #else
 static const Path g_dataPath = "C:/workspace/python/russian-study-tool/data";
+static const PathU16 g_dataPathU16 = u"C:/workspace/python/russian-study-tool/data";
 #endif
 
 RussianStudyToolApp* RussianStudyToolApp::s_instance = nullptr;
@@ -22,6 +26,7 @@ RussianStudyToolApp* RussianStudyToolApp::s_instance = nullptr;
 
 RussianStudyToolApp::RussianStudyToolApp() :
 	m_studyDatabase(m_cardDatabase),
+	m_exampleDatabase(m_wiktionary),
 	m_wiktionary(m_requests)
 {
 	s_instance = this;
@@ -63,26 +68,28 @@ void RussianStudyToolApp::OnInitialize()
 
 	Path path = g_assetsPath / Path(Res::FONT);
 
-	File file;
-	Error error = file.Open(path, FileAccess::READ, FileType::BINARY);
-	file.Close();
-
 	//resourceManager->LoadBuiltInFont(m_font, BuiltInFonts::FONT_CONSOLE);
-	resourceManager->LoadFont(m_font, Res::FONT, 14, 0x20, 0x500);
-	resourceManager->LoadFont(m_fontSmall, Res::FONT_SMALL, 12, 0x20, 0x500);
-	resourceManager->LoadFont(m_fontLarge, Res::FONT_LARGE, 24, 0x20, 0x500);
+	resourceManager->LoadFont(m_font, Res::FONT, 16, 0x20, 0x500);
+	resourceManager->LoadFont(m_fontSmall, Res::FONT_SMALL, 14, 0x20, 0x500);
+	resourceManager->LoadFont(m_fontLarge, Res::FONT_LARGE, 30, 0x20, 0x500);
 	
-	// Load all datasets
 	m_studyDatabase.SetStudyDataPath(g_dataPath / "study_data.json");
+	m_wiktionary.SetDataPath(g_dataPath / "wiktionary.json");
+
+	// Load all datasets
+	m_exampleDatabase.LoadExamples(g_dataPathU16 / PathU16(u"examples"));
 	if (m_studyDatabase.GetStudyDataPath().FileExists())
 		m_studyDatabase.LoadStudyData();
 	m_cardDatabase.LoadCardData(g_dataPath / "card_data.json");
 	m_cardDatabase.LoadCardSets(g_dataPath / "cards");
-	m_wiktionary.SetDataPath(g_dataPath / "wiktionary.json");
 	if (m_wiktionary.GetDataPath().FileExists())
 		m_wiktionary.Load();
 
+#ifdef USE_TEST_DATA
+	CardSet::sptr cardSet = m_cardDatabase.GetCardSet(CardSetKey(u"conversation"));
+#else
 	CardSet::sptr cardSet = m_cardDatabase.GetCardSet(CardSetKey(u"common words"));
+#endif
 
 	m_mainMenuWidget = new MainMenuWidget(m_cardDatabase.GetRootPackage());
 	PushState(new GUIState(m_mainMenuWidget));

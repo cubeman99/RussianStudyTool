@@ -35,6 +35,7 @@ public:
 	CardEnKey GetEnKey() const;
 	Set<Card::sptr>& GetRelatedCards();
 	EnumFlags<CardTags>& GetTags();
+	Array<unistr> GetWordNames() const;
 
 	void SetData(const CardData& data);
 	CardData GetData();

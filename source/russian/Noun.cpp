@@ -11,6 +11,12 @@ NounDeclension::NounDeclension()
 	}
 }
 
+void NounDeclension::GetAllForms(Set<AccentedText>& outForms) const
+{
+	for (auto it : m_declension)
+		outForms.insert(it.second);
+}
+
 const AccentedText& NounDeclension::GetDeclension(
 	Case nounCase, Plurality plurality) const
 {

@@ -108,6 +108,22 @@ void VerbConjugation::SetImperative(Plurality plurality, const AccentedText & te
 	m_imperative[plurality] = text;
 }
 
+void VerbConjugation::GetAllForms(Set<AccentedText>& outForms) const
+{
+	outForms.insert(m_infinitive);
+	for (auto it : m_nonPast)
+		outForms.insert(it.second);
+	for (auto it : m_past)
+		outForms.insert(it.second);
+	for (auto it : m_imperative)
+		outForms.insert(it.second);
+	for (auto it : m_participles)
+	{
+		if (it.second.length() > 0)
+			outForms.insert(it.second);
+	}
+}
+
 void VerbConjugation::Serialize(rapidjson::Value& value,
 	rapidjson::Document::AllocatorType& allocator)
 {

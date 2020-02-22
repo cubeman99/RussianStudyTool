@@ -46,6 +46,9 @@
     <Filter Include="Source Files\widgets\editors">
       <UniqueIdentifier>{fbb13fd3-8678-4877-9484-874d2a188561}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\examples">
+      <UniqueIdentifier>{bf5c8c7b-4f0f-4790-9464-5c10e2ceaf44}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\source\main.cpp">
@@ -236,6 +239,18 @@
     </ClCompile>
     <ClCompile Include="..\source\widgets\editors\CreateCardSetWidget.cpp">
       <Filter>Source Files\widgets\editors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\examples\ExampleDatabase.cpp">
+      <Filter>Source Files\examples</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\examples\Story.cpp">
+      <Filter>Source Files\examples</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\widgets\ExampleTextWidget.cpp">
+      <Filter>Source Files\widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\russian\WordDatabase.cpp">
+      <Filter>Source Files\russian</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -439,6 +454,18 @@
     </ClInclude>
     <ClInclude Include="..\source\widgets\editors\CreateCardSetWidget.h">
       <Filter>Source Files\widgets\editors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\examples\ExampleDatabase.h">
+      <Filter>Source Files\examples</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\examples\Story.h">
+      <Filter>Source Files\examples</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\ExampleTextWidget.h">
+      <Filter>Source Files\widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\russian\WordDatabase.h">
+      <Filter>Source Files\russian</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

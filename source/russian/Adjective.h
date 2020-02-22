@@ -11,11 +11,12 @@ public:
 	AdjectiveDeclension();
 
 	const AccentedText& GetDeclension(Case adjectiveCase, Gender gender) const;
-	void SetDeclension(Case adjectiveCase, Gender gender, const AccentedText& text);
-
 	const AccentedText& GetShortForm(Gender gender) const;
+
+	void SetDeclension(Case adjectiveCase, Gender gender, const AccentedText& text);
 	void SetShortForm(Gender gender, const AccentedText& text);
 
+	virtual void GetAllForms(Set<AccentedText>& outForms) const;
 	void Serialize(rapidjson::Value& value,
 		rapidjson::Document::AllocatorType& allocator);
 	Error Deserialize(rapidjson::Value& data);

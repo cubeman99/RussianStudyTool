@@ -148,12 +148,56 @@ bool AccentedText::empty() const
 	return m_string.empty();
 }
 
+size_t AccentedText::length() const
+{
+	return m_string.length();
+}
+
+AccentedText AccentedText::substr(size_t offset, size_t count) const
+{
+	AccentedText substring;
+	substring.m_string = m_string.substr(offset, count);
+	for (uint32 accentIndex : m_accents)
+	{
+		if (accentIndex >= offset && accentIndex < offset + count)
+			substring.m_accents.push_back(accentIndex);
+	}
+	return substring;
+}
+
+bool AccentedText::HasAccentAt(uint32 index) const
+{
+	return cmg::container::Contains(m_accents, index);
+}
+
+const unistr& AccentedText::GetString() const
+{
+	return m_string;
+}
+
+uint32 AccentedText::GetAccentCount() const
+{
+	return m_accents.size();
+}
+
+uint32 AccentedText::GetAccentIndex(uint32 i) const
+{
+	return m_accents[i];
+}
+
 unistr AccentedText::ToMarkedString() const
 {
 	unistr str = m_string;
 	for (uint32 i = 0; i < m_accents.size(); i++)
 		str.insert(m_accents[i] + i + 1, 1, ACCENT_OUTPUT_CHAR);
 	return str;
+}
+
+void AccentedText::AddChar(unichar c, bool accent)
+{
+	if (accent)
+		m_accents.push_back(m_string.length());
+	m_string += c;
 }
 
 std::ostream& AccentedText::StreamOut(std::ostream& out) const

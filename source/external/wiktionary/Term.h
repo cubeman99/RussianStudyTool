@@ -55,6 +55,7 @@ public:
 	void SetText(const AccentedText& text) { m_text = text; }
 	void SetEtymology(const AccentedText& etymology) { m_etymology = etymology; }
 
+	virtual void GetAllForms(Set<AccentedText>& outForms) const;
 	virtual void Serialize(rapidjson::Value& value,
 		rapidjson::Document::AllocatorType& allocator);
 	virtual Error Deserialize(rapidjson::Value& data);
@@ -83,6 +84,7 @@ public:
 
 	void SetDeclension(const ru::NounDeclension& declension) { m_declension = declension; }
 
+	virtual void GetAllForms(Set<AccentedText>& outForms) const;
 	void Serialize(rapidjson::Value& value,
 		rapidjson::Document::AllocatorType& allocator) override;
 	Error Deserialize(rapidjson::Value& data) override;
@@ -104,6 +106,7 @@ public:
 
 	void SetDeclension(const ru::AdjectiveDeclension& declension) { m_declension = declension; }
 
+	virtual void GetAllForms(Set<AccentedText>& outForms) const;
 	void Serialize(rapidjson::Value& value,
 		rapidjson::Document::AllocatorType& allocator) override;
 	Error Deserialize(rapidjson::Value& data) override;
@@ -127,6 +130,7 @@ public:
 
 	void SetConjugation(const ru::VerbConjugation& conjugation) { m_conjugation = conjugation; }
 
+	virtual void GetAllForms(Set<AccentedText>& outForms) const;
 	void Serialize(rapidjson::Value& value,
 		rapidjson::Document::AllocatorType& allocator) override;
 	Error Deserialize(rapidjson::Value& data) override;
@@ -150,6 +154,7 @@ public:
 	AppTimestamp GetDownloadTimestamp() const { return m_downloadTimestamp; }
 	Word::sptr GetWord(WordType wordType);
 	const Word::sptr GetWord(WordType wordType) const;
+	void GetAllForms(Set<AccentedText>& outForms) const;
 
 	void Serialize(rapidjson::Value& value,
 		rapidjson::Document::AllocatorType& allocator);

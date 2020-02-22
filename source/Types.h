@@ -154,7 +154,8 @@ DECLARE_ENUM_WITH_COUNT(ProficiencyLevel, ENUM_MACRO_PROFICIENCY_LEVEL)
 	_ex(_context, adjective_as_noun, , adjasnoun) \
 	_ex(_context, verb_of_motion,    , verb_of_motion) \
 	_ex(_context, curse,             , curse) \
-	_ex(_context, idiom,             , idiom)
+	_ex(_context, idiom,             , idiom) \
+	_ex(_context, diminutive,        , dim)
 DECLARE_ENUM_WITH_COUNT(CardTags, ENUM_MACRO_CARD_TAG)
 
 
