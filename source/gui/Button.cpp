@@ -38,10 +38,12 @@ void Button::OnUpdate(float timeDelta)
 
 void Button::OnRender(AppGraphics& g, float timeDelta)
 {
-	Color color = GUIConfig::color_button_background;
+	Color color = GetBackgroundColor();
 	if (m_isDown)
-		color = GUIConfig::color_button_background_pressed;
-	SetBackgroundColor(color);
+	{
+		auto rect = GetBounds();
+		g.FillRect(rect, Color::Lerp(color, Color::WHITE, 0.2f));
+	}
 
 	Label::OnRender(g, timeDelta);
 }

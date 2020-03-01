@@ -148,6 +148,7 @@ public:
 	using sptr = cmg::shared_ptr<Term>;
 
 	Term();
+	Term(const AccentedText& text);
 
 	const AccentedText& GetText() const { return m_text; }
 	const AccentedText& GetEtymology() const { return  m_etymology; }

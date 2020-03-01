@@ -35,10 +35,10 @@ void BoxLayout::CalcSizes()
 				m_minSize[1 - m_axis], childMinSize[1 - m_axis]);
 		}
 	}
-	m_minSize += m_marginTopLeft + m_marginBottomRight +
-		(m_spacing * ((float) m_children.size() - 1));
-	m_maxSize += m_marginTopLeft + m_marginBottomRight +
-		(m_spacing * ((float) m_children.size() - 1));
+	m_minSize += m_marginTopLeft + m_marginBottomRight;
+	m_minSize[m_axis] += m_spacing[m_axis] * ((float) m_children.size() - 1);
+	m_maxSize += m_marginTopLeft + m_marginBottomRight;
+	m_maxSize[m_axis] += m_spacing[m_axis] * ((float) m_children.size() - 1);
 }
 
 void BoxLayout::Update(float timeDelta)

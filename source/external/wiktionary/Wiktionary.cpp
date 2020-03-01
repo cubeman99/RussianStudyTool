@@ -29,6 +29,9 @@ Term::sptr Wiktionary::GetTerm(const unistr& text)
 
 Term::sptr Wiktionary::DownloadTerm(const unistr& text)
 {
+	if (cmg::container::Contains(m_404Terms, text))
+		return nullptr;
+
 	Term::sptr term = m_parser.DownloadTerm(text);
 
 	if (term)
@@ -36,9 +39,12 @@ Term::sptr Wiktionary::DownloadTerm(const unistr& text)
 		std::lock_guard<std::recursive_mutex> guard(m_mutex);
 		m_terms[text] = term;
 	}
+	else
+	{
+		m_404Terms.insert(text);
+	}
 
-	if (term)
-		Save();
+	Save();
 
 	return term;
 }
@@ -70,15 +76,24 @@ Error Wiktionary::Load(const Path& path)
 	if (error.Failed())
 		return error.Uncheck();
 
-	// TOOD: error terms
+	// Error term lists
+	rapidjson::Value& termListData404 = document["404_terms"];
+	for (auto it = termListData404.Begin(); it != termListData404.End(); it++)
+		m_404Terms.insert(ConvertFromUTF8(it->GetString()));
+	rapidjson::Value& termListDataError = document["error_terms"];
+	for (auto it = termListDataError.Begin(); it != termListDataError.End(); it++)
+		m_errorTerms.insert(ConvertFromUTF8(it->GetString()));
+	rapidjson::Value& termListDataNoWords = document["no_word_terms"];
+	for (auto it = termListDataNoWords.Begin(); it != termListDataNoWords.End(); it++)
+		m_noWordTerms.insert(ConvertFromUTF8(it->GetString()));
 
 	// Deserialize all terms
 	rapidjson::Value& termsDataList = document["terms"];
 	for (auto it = termsDataList.MemberBegin();
 		it != termsDataList.MemberEnd(); it++)
 	{
-		Term::sptr term = cmg::make_shared<Term>();
 		unistr key = ConvertFromUTF8(it->name.GetString());
+		Term::sptr term = cmg::make_shared<Term>(key);
 		error = term->Deserialize(it->value);
 		if (error.Failed())
 			return error.Uncheck();
@@ -147,6 +162,11 @@ Error Wiktionary::Save(const Path& path)
 
 	// Save to the file
 	return json::SaveDocumentToFile(path, document);
+}
+
+unistr Wiktionary::GetTermURL(Term::sptr term, bool russianSection)
+{
+	return Parser::GetTermURL(term->GetText().GetString(), russianSection);
 }
 
 

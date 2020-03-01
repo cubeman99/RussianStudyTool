@@ -40,6 +40,12 @@ void CardSetPackage::AddCardSet(CardSet::sptr cardSet)
 	m_cardSets.push_back(cardSet);
 }
 
+void CardSetPackage::RemoveCardSet(CardSet::sptr cardSet)
+{
+	cmg::container::EraseIfFound(m_cardSets, cardSet);
+	cardSet->SetParent(nullptr);
+}
+
 void CardSetPackage::AddPackage(CardSetPackage::sptr package)
 {
 	m_packages.push_back(package);

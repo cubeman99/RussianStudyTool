@@ -30,17 +30,6 @@ AppTimestamp Card::GetCreationTimestamp() const
 	return m_creationTimestamp;
 }
 
-CardKey Card::GetKey() const
-{
-	CardKey key;
-	key.type = m_type;
-	key.english = m_text.english.GetString();
-	key.russian = m_text.russian.GetString();
-	ru::ToLowerIP(key.russian);
-	ru::ToLowerIP(key.english);
-	return key;
-}
-
 CardRuKey Card::GetRuKey() const
 {
 	return CardRuKey(m_type, m_text.russian);
@@ -59,6 +48,43 @@ Set<Card::sptr>& Card::GetRelatedCards()
 EnumFlags<CardTags>& Card::GetTags()
 {
 	return m_tags;
+}
+
+Array<unistr> Card::GetWordPatterns() const
+{
+	const unistr& str = m_text.russian.GetString();
+	Array<unistr> patternList;
+	uint32 length = str.length();
+	unistr word;
+	unistr pattern;
+	uint32 count = 0;
+
+	for (uint32 i = 0; i <= length; i++)
+	{
+		unichar c = (i < length ? ru::ToLowerChar(str[i]) : u';');
+
+		if (ru::IsRussian(c) || c == u'-')
+		{
+			word += c;
+		}
+		else
+		{
+			if (word.length() > 0)
+			{
+				if (!pattern.empty())
+					pattern += u' ';
+				pattern += word;
+				word = u"";
+			}
+			if (c == u';' && !pattern.empty())
+			{
+				patternList.push_back(pattern);
+				pattern = u"";
+			}
+		}
+	}
+
+	return patternList;
 }
 
 Array<unistr> Card::GetWordNames() const

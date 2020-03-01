@@ -73,7 +73,7 @@ void CardDatabase::MarkCardSetDirty(CardSet::sptr cardSet)
 
 Error CardDatabase::LoadCardData(const Path& path)
 {
-	CMG_LOG_INFO() << "Loading cards";
+	CMG_LOG_INFO() << "Loading card data";
 	m_cardDataPath = path;
 
 	// Open the json file
@@ -82,7 +82,7 @@ Error CardDatabase::LoadCardData(const Path& path)
 	File::OpenAndGetContents(path, json);
 	document.Parse(json.c_str());
 	if (document.HasParseError())
-		return CMG_ERROR(CommonErrorTypes::k_file_corrupt);
+		return CMG_ERROR(Error::k_file_corrupt);
 
 	// Gather all card data
 	Array<rapidjson::Value*> cardData;
@@ -242,6 +242,28 @@ Error CardDatabase::SaveChanges()
 	return CMG_ERROR_SUCCESS;
 }
 
+Error CardDatabase::SaveAllCardSets()
+{
+	return SaveAllCardSets(m_rootPackage);
+}
+
+Error CardDatabase::SaveAllCardSets(CardSetPackage::sptr package)
+{
+	for (CardSet::sptr cardSet : package->GetCardSets())
+	{
+		Error error = SaveCardSet(cardSet);
+		if (error.Failed())
+			return error.Uncheck();
+	}
+	for (CardSetPackage::sptr subPackage : package->GetPackages())
+	{
+		Error error = SaveAllCardSets(subPackage);
+		if (error.Failed())
+			return error.Uncheck();
+	}
+	return CMG_ERROR_SUCCESS;
+}
+
 Error CardDatabase::LoadCardSets(const Path& path)
 {
 	CMG_LOG_INFO() << "Loading card sets from directory: " << path;
@@ -326,7 +348,7 @@ void CardDatabase::SerializeCard(rapidjson::Value& outData,
 		for (Card::sptr relatedCard : relatedCards)
 		{
 			rapidjson::Value jsonRelatedCard(rapidjson::kArrayType);
-			SerializeCardKey(jsonRelatedCard, relatedCard->GetKey(), allocator);
+			SerializeCardKey(jsonRelatedCard, relatedCard->GetRuKey(), allocator);
 			relatedCardsListData.PushBack(jsonRelatedCard.Move(), allocator);
 		}
 		outData.AddMember("rel", relatedCardsListData, allocator);
@@ -394,7 +416,6 @@ CardSetPackage::sptr CardDatabase::LoadCardSetPackage(
 	CardSetPackage::sptr package = cmg::make_shared<CardSetPackage>(name);
 	package->m_path = path;
 	Error loadError;
-	//CMG_LOG_INFO() << "Loading package: " << path.wstring();
 
 	for (auto& p : std::filesystem::directory_iterator(
 		std::filesystem::path((const wchar_t*) path.c_str())))
@@ -434,7 +455,6 @@ CardSetPackage::sptr CardDatabase::LoadCardSetPackage(
 Error CardDatabase::LoadCardSet(const PathU16& path, CardSet::sptr& outCardSet)
 {
 	Error error;
-	CMG_LOG_INFO() << "Loading card set: " << path;
 
 	// Open the json file
 	rapidjson::Document document;
@@ -490,7 +510,7 @@ Error CardDatabase::SaveCardSet(CardSet::sptr cardSet, const PathU16& path)
 	for (Card::sptr card : cardSet->GetCards())
 	{
 		rapidjson::Value cardData(rapidjson::kArrayType);
-		SerializeCardKey(cardData, card->GetKey(), allocator);
+		SerializeCardKey(cardData, card->GetRuKey(), allocator);
 		cardDataList.PushBack(cardData.Move(), allocator);
 	}
 	cardSetData.AddMember("cards", cardDataList, allocator);
@@ -709,13 +729,93 @@ CardSet::sptr CardDatabase::CreateCardSet(CardSetPackage::sptr package,
 	return cardSet;
 }
 
+Error CardDatabase::MergeCardSets(CardSet::sptr from, CardSet::sptr to)
+{
+	CMG_LOG_INFO() << "Merging card set '" << from->GetName() <<
+		"' into '" << to->GetName() << "'";
+	if (from == to)
+		return CMG_ERROR_FAILURE;
+
+	// Add all cards from the source into the destination
+	for (auto card : from->GetCards())
+	{
+		if (!to->HasCard(card))
+			AddCardToSet(card, to);
+	}
+
+	// Delete the source card set
+	return DeleteCardSet(from);
+}
+
+Error CardDatabase::DeleteCardSet(CardSet::sptr cardSet)
+{
+	{
+		std::lock_guard<std::recursive_mutex> guard(m_mutexCardSets);
+
+		// Delete the card set file
+		Error error = cmg::os::RemoveFile(cardSet->GetPath());
+		if (error.Failed())
+			return error.Uncheck();
+
+		// Remove the card set from its package
+		CardSetPackage::sptr package = cardSet->GetParent();
+		if (package)
+			package->RemoveCardSet(cardSet);
+
+		// Remove the card set key entry
+		m_keyToCardSets.erase(cardSet->GetKey());
+	}
+
+	m_cardSetDeleted.Emit(cardSet);
+	return CMG_ERROR_SUCCESS;
+}
+
+Error CardDatabase::DeleteAndReplaceCard(Card::sptr from, Card::sptr to)
+{
+	CMG_LOG_INFO() << "Deleting card '" << from->GetRussian() <<
+		"' and replacing with '" << to->GetRussian() << "'";
+	if (from == to)
+		return CMG_ERROR_FAILURE;
+
+	// Merge related cards
+	for (Card::sptr relatedCard : from->GetRelatedCards())
+	{
+		if (relatedCard != to)
+			LinkRelatedCards(to, relatedCard);
+	}
+
+	// Replace 'from' with 'to' for each card set
+	for (CardSet::sptr cardSet : GetCardSetsWithCard(from))
+	{
+		RemoveCardFromSet(to, cardSet);
+		AddCardToSet(to, cardSet);
+	}
+
+	return CMG_ERROR_SUCCESS;
+}
+
+void CardDatabase::DeleteCard(Card::sptr card)
+{
+	// Remove the card from its card sets
+	for (CardSet::sptr cardSet : GetCardSetsWithCard(card))
+		RemoveCardFromSet(card, cardSet);
+
+	// Remove the card key entry
+	{
+		std::lock_guard<std::recursive_mutex> guardCards(m_mutexCards);
+		MarkCardDirty(card, false);
+		m_russianToCards.erase(card->GetRuKey());
+		m_englishToCards.erase(card->GetEnKey());
+	}
+
+	m_cardDeleted.Emit(card);
+}
+
 void CardDatabase::SerializeCardKey(rapidjson::Value& arrayValue,
-	const CardKey& key, rapidjson::Document::AllocatorType& allocator)
+	const CardRuKey& key, rapidjson::Document::AllocatorType& allocator)
 {
 	String keyType = EnumToString(key.type);
 	String keyRussian = ConvertToUTF8(key.russian);
-	String keyEnglish = ConvertToUTF8(key.english);
 	arrayValue.PushBack(rapidjson::Value(keyType.c_str(), allocator).Move(), allocator);
 	arrayValue.PushBack(rapidjson::Value(keyRussian.c_str(), allocator).Move(), allocator);
-	arrayValue.PushBack(rapidjson::Value(keyEnglish.c_str(), allocator).Move(), allocator);
 }

@@ -40,8 +40,27 @@ bool TranslationPair::operator!=(const TranslationPair& other) const
 }
 
 
-namespace ru
+namespace ru {
+
+bool StringMatch(const unistr& left, const unistr& right)
 {
+	uint32 lengthLeft = left.length();
+	uint32 lengthRight = right.length();
+	if (lengthLeft != lengthRight)
+		return false;
+	for (uint32 i = 0; i < lengthRight; i++)
+	{
+		unichar a = ru::ToLowerChar(left[i]);
+		unichar b = ru::ToLowerChar(right[i]);
+		if (a == u'ё')
+			a = u'е';
+		if (b == u'ё')
+			b = u'е';
+		if (a != b)
+			return false;
+	}
+	return true;
+}
 
 bool IsRussian(unichar c)
 {

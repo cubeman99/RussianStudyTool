@@ -31,6 +31,10 @@ public:
 	CardSet::sptr CreateCardSet(CardSetPackage::sptr package,
 		const AccentedText& name, const unistr& fileName,
 		CardSetType cardSetType);
+	Error MergeCardSets(CardSet::sptr from, CardSet::sptr to);
+	Error DeleteCardSet(CardSet::sptr cardSet);
+	Error DeleteAndReplaceCard(Card::sptr from, Card::sptr to);
+	void DeleteCard(Card::sptr card);
 
 	Error LoadCardData(const Path& path);
 	Error SaveCardData();
@@ -38,6 +42,8 @@ public:
 	Error LoadCardSets(const Path& path);
 	Error SaveCardSet(CardSet::sptr cardSet);
 	Error SaveChanges();
+	Error SaveAllCardSets();
+	Error SaveAllCardSets(CardSetPackage::sptr package);
 
 	// Events
 	inline EventSignal<Card::sptr>& CardCreated() { return m_cardCreated; }
@@ -46,11 +52,12 @@ public:
 	inline EventSignal<Card::sptr>& CardDataChanged() { return m_cardDataChanged; }
 	inline EventSignal<CardSet::sptr>& CardSetCreated() { return m_cardSetCreated; }
 	inline EventSignal<CardSet::sptr>& CardSetChanged() { return m_cardSetChanged; }
+	inline EventSignal<CardSet::sptr>& CardSetDeleted() { return m_cardSetDeleted; }
 	inline EventSignal<Card::sptr, CardSet::sptr>& CardAddedToSet() { return m_cardAddedToSet; }
 	inline EventSignal<Card::sptr, CardSet::sptr>& CardRemovedFromSet() { return m_cardRemovedFromSet; }
 
 public:
-	static void SerializeCardKey(rapidjson::Value& arrayValue, const CardKey& key,
+	static void SerializeCardKey(rapidjson::Value& arrayValue, const CardRuKey& key,
 		rapidjson::Document::AllocatorType& allocator);
 
 private:
@@ -89,6 +96,7 @@ private:
 	EventSignal<Card::sptr, CardRuKey> m_cardKeyChanged;
 	EventSignal<Card::sptr> m_cardDataChanged;
 	EventSignal<CardSet::sptr> m_cardSetCreated;
+	EventSignal<CardSet::sptr> m_cardSetDeleted;
 	EventSignal<CardSet::sptr> m_cardSetChanged;
 	EventSignal<Card::sptr, CardSet::sptr> m_cardAddedToSet;
 	EventSignal<Card::sptr, CardSet::sptr> m_cardRemovedFromSet;

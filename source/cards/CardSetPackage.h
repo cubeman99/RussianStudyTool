@@ -23,6 +23,7 @@ public:
 	Array<CardSet::sptr>& GetCardSets() { return m_cardSets; }
 
 	void AddCardSet(CardSet::sptr cardSet);
+	void RemoveCardSet(CardSet::sptr cardSet);
 	void AddPackage(CardSetPackage::sptr package);
 	void SetParent(CardSetPackage::sptr parent);
 

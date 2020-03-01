@@ -252,6 +252,9 @@
     <ClCompile Include="..\source\russian\WordDatabase.cpp">
       <Filter>Source Files\russian</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\widgets\CardListView.cpp">
+      <Filter>Source Files\widgets</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\Graphics.h">
@@ -466,6 +469,9 @@
     </ClInclude>
     <ClInclude Include="..\source\russian\WordDatabase.h">
       <Filter>Source Files\russian</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\CardListView.h">
+      <Filter>Source Files\widgets</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

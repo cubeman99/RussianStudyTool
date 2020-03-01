@@ -28,7 +28,9 @@ public:
 	virtual const Array<Card::sptr>& GetCards() const override { return m_cards; }
 	Array<Card::sptr>& GetCards() { return m_cards; }
 
+	void ClearCards();
 	void AddCard(Card::sptr card);
+	void RemoveCard(Card::sptr card);
 
 private:
 	AccentedText m_name;

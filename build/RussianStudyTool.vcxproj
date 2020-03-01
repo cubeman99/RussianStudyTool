@@ -64,6 +64,7 @@
     <ClCompile Include="..\source\widgets\AddCardToSetWidget.cpp" />
     <ClCompile Include="..\source\widgets\AppWidget.cpp" />
     <ClCompile Include="..\source\widgets\CardEditWidget.cpp" />
+    <ClCompile Include="..\source\widgets\CardListView.cpp" />
     <ClCompile Include="..\source\widgets\CardSearchWidget.cpp" />
     <ClCompile Include="..\source\widgets\CardSetBrowserWidget.cpp" />
     <ClCompile Include="..\source\widgets\CardSetEditWidget.cpp" />
@@ -136,6 +137,7 @@
     <ClInclude Include="..\source\widgets\AddCardToSetWidget.h" />
     <ClInclude Include="..\source\widgets\AppWidget.h" />
     <ClInclude Include="..\source\widgets\CardEditWidget.h" />
+    <ClInclude Include="..\source\widgets\CardListView.h" />
     <ClInclude Include="..\source\widgets\CardSearchWidget.h" />
     <ClInclude Include="..\source\widgets\CardSetBrowserWidget.h" />
     <ClInclude Include="..\source\widgets\CardSetEditWidget.h" />

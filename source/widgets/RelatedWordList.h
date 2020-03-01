@@ -5,11 +5,25 @@
 #include "cards/Card.h"
 
 
-class RelatedWordWidget : public Label
+class RelatedWordWidget : public AppWidget
 {
 public:
-	RelatedWordWidget();
+	friend class RelatedWordList;
 
+	RelatedWordWidget(const AccentedText& text);
+
+	virtual void OnInitialize() override;
+
+	Card::sptr GetCard() const { return m_card; }
+	wiki::Term::sptr GetWiktionaryTerm() const { return m_term; }
+	const AccentedText& GetText() const { return m_label.GetText(); }
+	EventSignal<>& Clicked() { return m_label.Clicked(); }
+
+private:
+	Button m_label;
+	HBoxLayout m_mainLayout;
+	Card::sptr m_card;
+	wiki::Term::sptr m_term;
 };
 
 
@@ -20,7 +34,7 @@ public:
 
 	void Clear();
 	void SetLabel(const AccentedText& text);
-	void AddWord(const AccentedText& text);
+	RelatedWordWidget* AddWord(const AccentedText& text);
 
 	virtual void OnInitialize() override;
 

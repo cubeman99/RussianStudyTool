@@ -459,10 +459,10 @@ Parser::~Parser()
 
 Term::sptr Parser::DownloadTerm(const unistr& text)
 {
-	unistr url = u"https://en.wiktionary.org/wiki/" + text;
+	CMG_LOG_DEBUG() << "Downloading wiktionary term: " << text;
+	unistr url = GetTermURL(text, false);
 	String content;
 	Error error = m_requests.Request(ConvertToUTF8(url), content);
-	CMG_LOG_DEBUG() << "Downloading wiktionary term: " << text;
 	if (error.Failed())
 	{
 		CMG_LOG_ERROR() << "Failed to download URL " << url;
@@ -511,7 +511,7 @@ Term::sptr Parser::DownloadTerm(const unistr& text)
 	if (!russianSection)
 		return nullptr;
 
-	Term::sptr term = cmg::make_shared<Term>();
+	Term::sptr term = cmg::make_shared<Term>(text);
 
 	// Parse top-level etymology
 	PageSection* etymology = russianSection->GetSection("etymology 1");
@@ -538,6 +538,17 @@ Term::sptr Parser::DownloadTerm(const unistr& text)
 	
 	term->m_downloadTimestamp = GetAppTimestamp();
 	return term;
+}
+
+unistr Parser::GetTermURL(const unistr& term, bool russianSection)
+{
+	unistr termStr = term;
+	ru::ToLowerIP(termStr);
+	cmg::string::ReplaceAll(termStr, u" ", u"_");
+	unistr url = u"https://en.wiktionary.org/wiki/" + termStr;
+	if (russianSection)
+		url += u"#Russian";
+	return url;
 }
 
 

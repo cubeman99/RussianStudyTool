@@ -5,6 +5,7 @@
 #include "widgets/TestWidget.h"
 #include "widgets/CardSetEditWidget.h"
 #include "widgets/CardSetBrowserWidget.h"
+#include "widgets/CardListView.h"
 #include "examples/ExampleDatabase.h"
 
 // Comment this out to use the REAL card dataset
@@ -88,15 +89,18 @@ void RussianStudyToolApp::OnInitialize()
 #ifdef USE_TEST_DATA
 	CardSet::sptr cardSet = m_cardDatabase.GetCardSet(CardSetKey(u"conversation"));
 #else
-	CardSet::sptr cardSet = m_cardDatabase.GetCardSet(CardSetKey(u"common words"));
+	//CardSet::sptr cardSet = m_cardDatabase.GetCardSet(CardSetKey(u"common words"));
+	CardSet::sptr cardSet = m_cardDatabase.GetCardSet(CardSetKey(u"important phrases"));
 #endif
 
 	m_mainMenuWidget = new MainMenuWidget(m_cardDatabase.GetRootPackage());
 	PushState(new GUIState(m_mainMenuWidget));
 	//PushState(new CardSearchWidget());
 	//PushState(new CardSetEditWidget(cardSet));
-	PushState(new StudyState(cardSet.get()));
+	//PushState(new StudyState(cardSet.get(), cardSet));
+	//PushState(new CardListView(cardSet.get()));
 
+	//m_cardDatabase.SaveAllCardSets();
 	//m_cardDatabase.SaveCardData();
 
 	m_stateStack.Begin(this);

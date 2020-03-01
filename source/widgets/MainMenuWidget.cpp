@@ -2,6 +2,9 @@
 #include "RussianApp.h"
 #include "widgets/CardSetEditWidget.h"
 #include "states/StudyState.h"
+#include "widgets/editors/CreateCardSetWidget.h"
+#include "widgets/CardListView.h"
+
 
 MainMenuItemWidget::MainMenuItemWidget(const AccentedText& name, IStudySet* studySet) :
 	m_studySet(studySet)
@@ -13,7 +16,8 @@ MainMenuItemWidget::MainMenuItemWidget(const AccentedText& name, IStudySet* stud
 	m_labelName.SetColor(GUIConfig::color_text);
 
 	m_layout.Add(&m_labelName, 1.0f);
-	m_layout.Add(&m_proficiencyBar, 1.0f);
+	if (m_studySet)
+		m_layout.Add(&m_proficiencyBar, 1.0f);
 	SetLayout(&m_layout);
 }
 
@@ -23,13 +27,16 @@ void MainMenuItemWidget::SetMetrics(const StudySetMetrics & metrics)
 }
 
 MainMenuWidget::MainMenuWidget(CardSetPackage::sptr package) :
-	m_package(package)
+	m_package(package),
+	m_studySetOrphans("Orphan Cards"),
+	m_studySetUncategorized("Uncategorized Cards")
 {
 	SetPackage(package);
 
 	m_labelTitle.SetAlign(TextAlign::MIDDLE_LEFT);
 	m_titleWidget.SetBackgroundColor(GUIConfig::color_background_light);
 	m_titleLayout.Add(&m_labelTitle, 1.0f);
+	m_titleLayout.Add(&m_labelScore, 1.0f);
 	m_titleLayout.Add(&m_topProficiencyBar, 1.0f);
 	m_titleWidget.SetLayout(&m_titleLayout);
 
@@ -59,6 +66,7 @@ void MainMenuWidget::SetPackage(CardSetPackage::sptr package,
 	m_optionLayout.Clear();
 	m_cardSetItems.clear();
 	m_packageItems.clear();
+	m_studySetItems.clear();
 
 	m_labelTitle.SetText(package->GetName());
 
@@ -100,25 +108,59 @@ void MainMenuWidget::SetPackage(CardSetPackage::sptr package,
 		m_cardSetItems[cardSet] = button;
 	}
 
+	if (!m_package->GetParent())
+	{
+		// Orphans
+		button = AddMenuOption("** Orphans", &m_studySetOrphans);
+		button->Clicked().Connect(
+			this, (IStudySet*) &m_studySetOrphans, &MainMenuWidget::OpenStudySet);
+		m_studySetItems[&m_studySetOrphans] = button;
+
+		// Uncategorized
+		button = AddMenuOption("** Uncategorized", &m_studySetUncategorized);
+		button->Clicked().Connect(
+			this, (IStudySet*) &m_studySetUncategorized, &MainMenuWidget::OpenStudySet);
+		m_studySetItems[&m_studySetUncategorized] = button;
+	}
+
 	// Option to select this package
 	button = AddMenuOption("[" + m_package->GetName() + "]", m_package.get());
 	button->Clicked().Connect(
 		this, m_package, &MainMenuWidget::OpenCardPackage);
 	m_packageItems[m_package] = button;
+	if (selectPackage == m_package)
+		toSelect = button;
 
 	if (toSelect)
 		toSelect->Focus();
+
+	// Calculate metrics for study sets
+	if (GetApp())
+	{
+		auto& studyDatabase = GetApp()->GetStudyDatabase();
+		for (auto it : m_studySetItems)
+			it.second->SetMetrics(studyDatabase.GetStudySetMetrics(it.first));
+	}
 }
 
 void MainMenuWidget::OpenCardSet(CardSet::sptr cardSet)
 {
 	MenuWidget* menu = new MenuWidget(cardSet->GetName());
-	PopulateMenuOptions(menu, cardSet.get());
-	// TODO: card list
-	menu->AddMenuOption("List", true, nullptr);
+	PopulateMenuOptions(menu, cardSet.get(), cardSet);
 	menu->AddMenuOption("Edit", true, 
 		new CaptureMethodDelegate(this, cardSet,
 			&MainMenuWidget::OpenCardSetEditor));
+	menu->AddMenuOption("Delete and merge", true, 
+		new CaptureMethodDelegate(this, cardSet,
+			&MainMenuWidget::OpenCardSetMerge));
+	menu->AddCancelOption();
+	GetApp()->PushState(menu);
+}
+
+void MainMenuWidget::OpenStudySet(IStudySet* studySet)
+{
+	MenuWidget* menu = new MenuWidget(studySet->GetName());
+	PopulateMenuOptions(menu, studySet, nullptr);
 	menu->AddCancelOption();
 	GetApp()->PushState(menu);
 }
@@ -126,7 +168,10 @@ void MainMenuWidget::OpenCardSet(CardSet::sptr cardSet)
 void MainMenuWidget::OpenCardPackage(CardSetPackage::sptr package)
 {
 	MenuWidget* menu = new MenuWidget(package->GetName());
-	PopulateMenuOptions(menu, package.get());
+	PopulateMenuOptions(menu, package.get(), nullptr);
+	menu->AddMenuOption("Create New Card Set", true, 
+		new CaptureMethodDelegate(this, package,
+			&MainMenuWidget::OpenCreateCardSetWidget));
 	menu->AddCancelOption();
 	GetApp()->PushState(menu);
 }
@@ -154,6 +199,30 @@ MainMenuItemWidget* MainMenuWidget::AddMenuOption(
 	return option;
 }
 
+void MainMenuWidget::OnInitialize()
+{
+	if (m_package && m_package->GetParent())
+		return;
+
+	auto& cardDatabase = GetApp()->GetCardDatabase();
+
+	// Create study sets for orphan and uncategorized cards
+	m_studySetOrphans.ClearCards();
+	m_studySetUncategorized.ClearCards();
+	for (auto it : cardDatabase.GetCards())
+		RefreshStudySetsForCard(it.second);
+
+	// Calculate metrics for study sets
+	auto& studyDatabase = GetApp()->GetStudyDatabase();
+	for (auto it : m_studySetItems)
+		it.second->SetMetrics(studyDatabase.GetStudySetMetrics(it.first));
+
+	cardDatabase.CardAddedToSet().Connect(
+		this, &MainMenuWidget::OnCardAddedToSet);
+	cardDatabase.CardAddedToSet().Connect(
+		this, &MainMenuWidget::OnCardRemovedFromSet);
+}
+
 void MainMenuWidget::OnUpdate(float timeDelta)
 {
 	auto keyboard = GetApp()->GetKeyboard();
@@ -166,16 +235,22 @@ void MainMenuWidget::OnUpdate(float timeDelta)
 		it.second->SetMetrics(studyDatabase.GetStudyMetrics(it.first));
 	for (auto it : m_packageItems)
 		it.second->SetMetrics(studyDatabase.GetStudyMetrics(it.first));
-	m_topProficiencyBar.SetMetrics(studyDatabase.GetStudyMetrics(m_package));
+
+	// Get study metrics
+	StudySetMetrics metrics = studyDatabase.GetStudyMetrics(m_package);
+	int realCount = (int) (metrics.GetHistoryScore() * metrics.GetTotalCount());
+	m_labelScore.SetText(std::to_string(realCount));
+	m_topProficiencyBar.SetMetrics(metrics);
 }
 
 void MainMenuWidget::OnRender(AppGraphics& g, float timeDelta)
 {
 }
 
-void MainMenuWidget::OpenStudyState(IStudySet * studySet)
+void MainMenuWidget::OpenStudyState(StudyStateOptions options)
 {
-	GetApp()->PushState(new StudyState(studySet));
+	GetApp()->PushState(new StudyState(
+		options.studySet, options.cardSet, options.studyParams));
 }
 
 void MainMenuWidget::OpenCardSetEditor(CardSet::sptr cardSet)
@@ -183,25 +258,115 @@ void MainMenuWidget::OpenCardSetEditor(CardSet::sptr cardSet)
 	GetApp()->PushState(new CardSetEditWidget(cardSet));
 }
 
-void MainMenuWidget::PopulateMenuOptions(MenuWidget* menu, IStudySet* studySet)
+void MainMenuWidget::OpenCardListView(IStudySet* studySet)
 {
+	GetApp()->PushState(new CardListView(studySet));
+}
+
+void MainMenuWidget::OpenCreateCardSetWidget(CardSetPackage::sptr package)
+{
+	CreateCardSetWidget* widget = new CreateCardSetWidget("", package);
+	widget->CardSetCreated().Connect(this, &MainMenuWidget::OnCardSetCreated);
+	GetApp()->PushState(widget);
+}
+
+void MainMenuWidget::PopulateMenuOptions(MenuWidget* menu,
+	IStudySet* studySet, CardSet::sptr cardSet)
+{
+	StudyStateOptions options;
+	options.studySet = studySet;
+	options.cardSet = cardSet;
 	menu->AddMenuOption("Quiz Random Sides", true, 
-		new CaptureMethodDelegate(this, studySet,
+		new CaptureMethodDelegate(this, options,
 			&MainMenuWidget::OpenStudyState));
-	menu->AddMenuOption("Quiz Random Forms", true, 
+	// menu->AddMenuOption("Quiz Random Forms", true, 
+	// 	new CaptureMethodDelegate(this, studySet,
+	// 		&MainMenuWidget::OpenStudyState));
+	// menu->AddMenuOption("Quiz English", true, 
+	// 	new CaptureMethodDelegate(this, studySet,
+	// 		&MainMenuWidget::OpenStudyState));
+	// menu->AddMenuOption("Quiz Russian", true, 
+	// 	new CaptureMethodDelegate(this, studySet,
+	// 		&MainMenuWidget::OpenStudyState));
+	// menu->AddMenuOption("Quiz New Cards", true, 
+	// 	new CaptureMethodDelegate(this, studySet,
+	// 		&MainMenuWidget::OpenStudyState));
+	// menu->AddMenuOption("Quiz Problem Cards", true, 
+	// 	new CaptureMethodDelegate(this, studySet,
+	// 		&MainMenuWidget::OpenStudyState));
+	// menu->AddMenuOption("Query", true, nullptr);
+	menu->AddMenuOption("List", true, 
 		new CaptureMethodDelegate(this, studySet,
-			&MainMenuWidget::OpenStudyState));
-	menu->AddMenuOption("Quiz English", true, 
-		new CaptureMethodDelegate(this, studySet,
-			&MainMenuWidget::OpenStudyState));
-	menu->AddMenuOption("Quiz Russian", true, 
-		new CaptureMethodDelegate(this, studySet,
-			&MainMenuWidget::OpenStudyState));
-	menu->AddMenuOption("Quiz New Cards", true, 
-		new CaptureMethodDelegate(this, studySet,
-			&MainMenuWidget::OpenStudyState));
-	menu->AddMenuOption("Quiz Problem Cards", true, 
-		new CaptureMethodDelegate(this, studySet,
-			&MainMenuWidget::OpenStudyState));
-	menu->AddMenuOption("Query", true, nullptr);
+			&MainMenuWidget::OpenCardListView));
+}
+
+void MainMenuWidget::OnCardSetCreated(CardSet::sptr cardSet)
+{
+	if (cardSet->GetParent() == m_package)
+	{
+		SetPackage(m_package, m_package);
+	}
+}
+
+void MainMenuWidget::OpenCardSetMerge(CardSet::sptr cardSet)
+{
+	auto& cardDatabase = GetApp()->GetCardDatabase();
+	CardSetBrowserWidget* widget = new CardSetBrowserWidget(
+		cardSet->GetParent());
+	widget->SetCloseOnSelectCardSet(true);
+	widget->CardSetClicked().Connect(
+		this, cardSet, &MainMenuWidget::MergeCardSetInto);
+	GetApp()->PushState(widget);
+}
+
+void MainMenuWidget::MergeCardSetInto(CardSet::sptr from, CardSet::sptr to)
+{
+	if (from != to)
+	{
+		auto& cardDatabase = GetApp()->GetCardDatabase();
+		cardDatabase.MergeCardSets(from, to);
+		cardDatabase.SaveChanges();
+		SetPackage(m_package);
+	}
+	else
+	{
+		CMG_LOG_WARN() << "Cannot merge a card set into itself!";
+	}
+}
+
+void MainMenuWidget::OnCardAddedToSet(Card::sptr card, CardSet::sptr cardSet)
+{
+	RefreshStudySetsForCard(card);
+}
+
+void MainMenuWidget::OnCardRemovedFromSet(Card::sptr card, CardSet::sptr cardSet)
+{
+	RefreshStudySetsForCard(card);
+}
+
+void MainMenuWidget::RefreshStudySetsForCard(Card::sptr card)
+{
+	auto& cardDatabase = GetApp()->GetCardDatabase();
+
+	auto& cardSets = cardDatabase.GetCardSetsWithCard(card);
+	bool isOrphan = cardSets.empty();
+	bool isCategorized = false;
+	for (auto cardSet : cardSets)
+	{
+		if (cardSet->GetCardSetType() == CardSetType::k_categorical)
+		{
+			isCategorized = true;
+			break;
+		}
+	}
+
+	if (isOrphan)
+		m_studySetOrphans.AddCard(card);
+	else
+		m_studySetOrphans.RemoveCard(card);
+
+	if (!isCategorized)
+		m_studySetUncategorized.AddCard(card);
+	else
+		m_studySetUncategorized.RemoveCard(card);
 }

@@ -65,7 +65,7 @@ void CreateCardSetWidget::UpdateState()
 	m_validName = (m_isKeyUnique && !m_name.empty());
 
 	// Auto-generate a file name from name
-	unistr fileName = m_name.GetString();
+	unistr fileName = ru::ToLower(m_name.GetString());
 	cmg::string::ReplaceAll(fileName, u" ", u"_");
 	cmg::string::ReplaceAll(fileName, u"'", u" ");
 	cmg::string::ReplaceAll(fileName, u"/", u"-");

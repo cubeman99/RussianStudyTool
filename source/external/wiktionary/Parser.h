@@ -21,6 +21,8 @@ public:
 
 	Term::sptr DownloadTerm(const unistr& text);
 
+	static unistr GetTermURL(const unistr& term, bool russianSection);
+
 private:
 	RequestInterface& m_requests;
 };

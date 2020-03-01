@@ -143,7 +143,7 @@ void GridLayout::CalcSizes()
 		}
 
 		float pad = axisInfo.marginBegin + axisInfo.marginEnd +
-			(axisInfo.spacing * ((float) m_children.size() - 1));
+			(axisInfo.spacing * ((float) axisInfo.count - 1));
 		m_minSize[axis] += pad;
 		m_maxSize[axis] += pad;
 	}

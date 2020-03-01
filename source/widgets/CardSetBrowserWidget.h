@@ -19,6 +19,7 @@ public:
 
 	void SetPackage(CardSetPackage::sptr package,
 		CardSetPackage::sptr selectPackage = nullptr);
+	void SetCloseOnSelectCardSet(bool closeOnSelectCardSet);
 	void NavigateIntoCardPackage(CardSetPackage::sptr package);
 	void GoBack();
 
@@ -27,6 +28,8 @@ private:
 
 private:
 	CardSetPackage::sptr m_package;
+
+	bool m_closeOnSelectCardSet = false;
 
 	VBoxLayout m_mainLayout;
 	AbstractScrollArea m_scrollArea;

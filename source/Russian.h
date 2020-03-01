@@ -22,6 +22,7 @@ public:
 namespace ru
 {
 
+bool StringMatch(const unistr& left, const unistr& right);
 bool IsRussian(unichar c);
 bool IsSoft(unichar c);
 bool IsHard(unichar c);

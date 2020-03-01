@@ -78,10 +78,10 @@ Widget* GUIManager::GetWidgetAtPoint(GUIObject* object, const Vector2f& point)
 
 Vector2f GUIManager::GetCursorPosition() const
 {
-	if (!m_cursorWidget)
+	if (!m_focusedWidget)
 		return m_bounds.GetCenter();
 	float fract = m_cursorPosition - Math::Floor(m_cursorPosition);
-	Rect2f bounds = m_cursorWidget->GetBounds();
+	Rect2f bounds = m_focusedWidget->GetBounds();
 	Vector2f point = bounds.GetCenter();
 	int axis = 1;
 	point[axis] = bounds.position[axis] + (fract * bounds.size[axis]);
@@ -134,6 +134,8 @@ void GUIManager::SetFocus(Widget* widget)
 			m_focusedWidget->LostFocus().Emit();
 		}
 		m_focusedWidget = widget;
+		m_cursorPosition = 0.5f;
+		m_showCursor = false;
 		if (m_focusedWidget)
 		{
 			m_focusedWidget->m_isFocused = true;
@@ -298,10 +300,7 @@ void GUIManager::Update(float timeDelta)
 	GetFocusableWidgets(m_rootWidget, m_focusableWidgets);
 	if (m_focusedWidget && std::find(m_focusableWidgets.begin(),
 		m_focusableWidgets.end(), m_focusedWidget) == m_focusableWidgets.end())
-		m_focusedWidget = nullptr;
-	if (m_cursorWidget && std::find(m_focusableWidgets.begin(),
-		m_focusableWidgets.end(), m_cursorWidget) == m_focusableWidgets.end())
-		m_cursorWidget = nullptr;
+		SetFocus(nullptr);
 
 	auto window = m_app->GetWindow();
 	Vector2f windowSize(
@@ -322,23 +321,23 @@ void GUIManager::Update(float timeDelta)
 		keyboard->IsKeyDown(Keys::right_shift);
 	bool tab = keyboard->IsKeyPressed(Keys::tab);
 
+	// Focus cycle
 	if (ctrl && tab)
-	{
 		CycleFocus(false);
-	}
 	else if (ctrl && shift && tab)
-	{
 		CycleFocus(true);
-	}
+
+	// Widget press event
 	if (keyboard->IsKeyPressed(Keys::enter) ||
 		middlePedal.IsPressed())
 	{
 		if (m_focusedWidget)
-		{
 			m_focusedWidget->OnPress();
-		}
 	}
 
+	// Cursor movement
+	if (!m_focusedWidget)
+		m_cursorPosition = 0.5f;
 	float move = 0.0f;
 	float speed = 10.0f;
 	move += rightPedal.GetAmount();
@@ -350,24 +349,27 @@ void GUIManager::Update(float timeDelta)
 	move = Math::Sign(move) * Math::Abs(move);
 	if (Math::Abs(move) > 0.001f)
 	{
-		if (!m_cursorWidget)
-			m_cursorPosition = 0.5f;
-		m_cursorPosition += move * timeDelta * speed;
 		if (!m_focusedWidget)
 			CycleFocus(false);
-		m_cursorWidget = m_focusedWidget;
+		if (m_focusedWidget)
+		{
+			m_cursorPosition += move * timeDelta * speed;
 
-		if (m_cursorPosition > 1.0f)
-		{
-			m_cursorPosition -= 1.0f;
-			m_cursorWidget = CycleFocus(false);
+			if (m_cursorPosition > 1.0f)
+			{
+				float nextCursorPosition = m_cursorPosition - 1.0f;
+				CycleFocus(false);
+				m_cursorPosition = nextCursorPosition;
+			}
+			else if (m_cursorPosition < 0.0f)
+			{
+				float nextCursorPosition = m_cursorPosition + 1.0f;
+				CycleFocus(true);
+				m_cursorPosition = nextCursorPosition;
+			}
+			m_movedCursor.Emit();
+			m_showCursor = true;
 		}
-		else if (m_cursorPosition < 0.0f)
-		{
-			m_cursorPosition += 1.0f;
-			m_cursorWidget = CycleFocus(true);
-		}
-		m_movedCursor.Emit();
 	}
 
 	m_rootWidget->m_bounds = m_bounds;
@@ -383,10 +385,11 @@ void GUIManager::Render(AppGraphics& g, float timeDelta)
 		m_rootWidget->Render(g, timeDelta);
 	}
 
-	if (m_cursorWidget)
+	// Draw the cursor
+	if (m_focusedWidget && m_showCursor)
 	{
 		float fract = m_cursorPosition - Math::Floor(m_cursorPosition);
-		Rect2f bounds = m_cursorWidget->GetBounds();
+		Rect2f bounds = m_focusedWidget->GetBounds();
 		int axis = 1;
 		Vector2f a, b;
 		a[axis] = bounds.position[axis] + fract * bounds.size[axis];

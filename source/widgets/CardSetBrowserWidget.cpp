@@ -108,6 +108,11 @@ void CardSetBrowserWidget::SetPackage(CardSetPackage::sptr package,
 		toSelect->Focus();
 }
 
+void CardSetBrowserWidget::SetCloseOnSelectCardSet(bool closeOnSelectCardSet)
+{
+	m_closeOnSelectCardSet = closeOnSelectCardSet;
+}
+
 void CardSetBrowserWidget::NavigateIntoCardPackage(CardSetPackage::sptr package)
 {
 	SetPackage(package);
@@ -122,4 +127,6 @@ void CardSetBrowserWidget::GoBack()
 void CardSetBrowserWidget::OnClickCardSet(CardSet::sptr cardSet)
 {
 	m_cardSetClicked.Emit(cardSet);
+	if (m_closeOnSelectCardSet)
+		Close();
 }

@@ -29,9 +29,7 @@ uint32 ExampleDatabase::GetExamplesInSentence(const AccentedText& sentence,
 	// at the end of the sentence.
 	for (uint32 i = 0; i <= length; i++)
 	{
-		unichar c = (i < length ? ru::ToLowerChar(str[i]) : u'.');
-		if (c == u'ё')
-			c = u'е';
+		unichar c = (i < length ? str[i] : u'.');
 
 		if (ru::IsRussian(c))
 		{
@@ -57,7 +55,7 @@ uint32 ExampleDatabase::GetExamplesInSentence(const AccentedText& sentence,
 						wordMatches = false;
 						for (const unistr& wordForm : words.words[j])
 						{
-							wordMatches = (wordForm == sentenceWordList[wordIndex + j]);
+							wordMatches = ru::StringMatch(wordForm, sentenceWordList[wordIndex + j]);
 							if (wordMatches)
 								break;
 						}
@@ -91,8 +89,6 @@ Set<unistr> ExampleDatabase::GetWordForms(const unistr& word)
 		for (const AccentedText& text : accentedForms)
 		{
 			unistr str = text.GetString();
-			ru::ToLowerIP(str);
-			cmg::string::ReplaceAll(str, u"ё", u"e");
 			if (str.length() > 0)
 				forms.insert(str);
 		}
@@ -114,9 +110,7 @@ Array<SentenceMatch> ExampleDatabase::GetExampleSentences(Card::sptr card)
 	// at the end of the sentence.
 	for (uint32 i = 0; i <= length; i++)
 	{
-		unichar c = (i < length ? ru::ToLowerChar(str[i]) : u';');
-		if (c == u'ё')
-			c = u'е';
+		unichar c = (i < length ? str[i] : u';');
 
 		if (ru::IsRussian(c))
 		{

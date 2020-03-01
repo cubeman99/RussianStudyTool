@@ -47,8 +47,8 @@ protected:
 	Rect2f m_bounds;
 	Widget* m_rootWidget = nullptr;
 	Widget* m_focusedWidget = nullptr;
-	Widget* m_cursorWidget = nullptr;
-	float m_cursorPosition = 0.0f;
+	float m_cursorPosition = 0.5f;
+	bool m_showCursor = false;
 	Array<Widget*> m_mouseDownWidgets;
 
 	// Cached values

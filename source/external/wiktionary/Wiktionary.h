@@ -10,6 +10,7 @@
 #include "external/wiktionary/Term.h"
 #include "external/wiktionary/Parser.h"
 #include "external/RequestInterface.h"
+#include <cmgInput\cmgJoystick.h>
 
 namespace wiki
 {
@@ -29,6 +30,8 @@ public:
 	Error Load(const Path& path);
 	Error Save();
 	Error Save(const Path& path);
+
+	static unistr GetTermURL(Term::sptr term, bool russianSection);
 
 private:
 	Wiktionary(const Wiktionary& copy) = delete;

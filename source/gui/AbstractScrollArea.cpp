@@ -89,12 +89,8 @@ void AbstractScrollArea::OnUpdate(float timeDelta)
 		m_scrollBars[1].GetValue());
 	m_areaLayout.SetOffset(offset);
 
-	/*
-		offset.y = math::Lerp(
-			self.scroll_position,
-			desired_scroll_position,
-			0.2)
-		if abs(self.scroll_position - desired_scroll_position) < 2:*/
+	// Always auto-scroll
+	OnMoveCursor();
 }
 
 SubRegionLayout::SubRegionLayout() :

@@ -18,6 +18,7 @@ public:
 	Layout* GetLayout() const { return m_layout; }
 	bool IsFocused() const { return m_isFocused; }
 	bool IsFocusable() const { return m_isFocusable; }
+	const Color& GetBackgroundColor() const { return m_backgroundColor; }
 
 	void SetLayout(Layout* layout);
 	void SetWindowTitle(const AccentedText& windowTitle) { m_windowTitle = windowTitle; }

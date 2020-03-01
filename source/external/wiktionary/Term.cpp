@@ -191,6 +191,11 @@ Term::Term()
 {
 }
 
+Term::Term(const AccentedText& text) :
+	m_text(text)
+{
+}
+
 Word::sptr Term::GetWord(WordType wordType)
 {
 	auto it = m_words.find(wordType);
@@ -243,7 +248,7 @@ Error Term::Deserialize(rapidjson::Value& data)
 {
 	Error error;
 
-	m_text = AccentedText(data["text"].GetString());
+	//m_text = AccentedText(data["text"].GetString());
 	m_downloadTimestamp = data["download_timestamp"].GetDouble();
 
 	if (data.HasMember("etymology"))

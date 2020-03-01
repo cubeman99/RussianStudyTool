@@ -36,14 +36,15 @@ uint32 CardSearchWidget::FindResults(unistr searchText,
 		for (auto it : cards)
 		{
 			Card::sptr card = it.second;
-			CardKey key = card->GetKey();
+			CardRuKey ruKey = card->GetRuKey();
+			CardEnKey enKey = card->GetEnKey();
 			int score = 0;
 			if (!MatchesFilter(card))
 				continue;
-			else if (key.russian.find(searchText) != unistr::npos)
-				matches.push_back({key.russian.length(), card});
-			else if (key.english.find(searchText) != unistr::npos)
-				matches.push_back({key.english.length(), card});
+			else if (ruKey.russian.find(searchText) != unistr::npos)
+				matches.push_back({ruKey.russian.length(), card});
+			else if (enKey.english.find(searchText) != unistr::npos)
+				matches.push_back({enKey.english.length(), card});
 		}
 	}
 

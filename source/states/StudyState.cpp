@@ -7,8 +7,9 @@
 #include "widgets/CardEditWidget.h"
 #include "widgets/ExampleTextWidget.h"
 
-StudyState::StudyState(IStudySet* studySet, const StudyParams& studyParams) :
+StudyState::StudyState(IStudySet* studySet, CardSet::sptr cardSet, const StudyParams& studyParams) :
 	m_studySet(studySet),
+	m_cardSet(cardSet),
 	m_studyParams(studyParams)
 {
 	float barHeight = 32.0f;
@@ -23,7 +24,11 @@ StudyState::StudyState(IStudySet* studySet, const StudyParams& studyParams) :
 
 	m_listCounterparts.SetLabel("Counterparts:");
 	m_listRelatedCards.SetLabel("Related Cards:");
-	
+	m_listRelatedTerms.SetLabel("Related Terms:");
+	m_listDerivedTerms.SetLabel("Derived Terms:");
+	m_listSynonyms.SetLabel("Synonyms:");
+	m_listAntonyms.SetLabel("Antonyms:");
+		
 	m_layoutTagsRevealed.SetMargins(0.0f);
 	m_layoutTagsRevealed.SetSpacing(4.0f);
 	m_layoutTagsShown.SetMargins(0.0f);
@@ -44,10 +49,6 @@ StudyState::StudyState(IStudySet* studySet, const StudyParams& studyParams) :
 		.Offset(0.0f, 0.0f, 0.0f, barHeight);
 	m_anchorLayout.Add(&m_labelWordType)
 		.Pin(0.5f, 0.2f, TextAlign::CENTERED);
-	m_anchorLayout.Add(&m_labelCardTextShown)
-		.Pin(0.5f, 0.5f, TextAlign::BOTTOM_CENTER).Offset(0, -20);
-	m_layoutRevealed.Add(&m_labelCardTextRevealed)
-		.Pin(0.5f, 0.5f, TextAlign::TOP_CENTER).Offset(0, 20);
 	m_layoutUnrevealed.Add(&m_widgetTagsShown)
 		.Pin(0.5f, 0.5f, TextAlign::BOTTOM_CENTER).Offset(0, -80);
 	m_layoutRevealed.Add(&m_widgetTagsRevealed)
@@ -74,6 +75,11 @@ StudyState::StudyState(IStudySet* studySet, const StudyParams& studyParams) :
 		.Pin(1.0f, 0.0f, TextAlign::TOP_RIGHT).Offset(-16.0f, topTopStart);
 	m_layoutRevealed.Add(&m_layoutExamples)
 		.Pin(0.0f, 0.0f, TextAlign::TOP_LEFT).Offset(16.0f, topTopStart);
+
+	m_anchorLayout.Add(&m_labelCardTextShown)
+		.Pin(0.5f, 0.5f, TextAlign::BOTTOM_CENTER).Offset(0, -20);
+	m_layoutRevealed.Add(&m_labelCardTextRevealed)
+		.Pin(0.5f, 0.5f, TextAlign::TOP_CENTER).Offset(0, 20);
 
 	m_layoutNounInfo.SetMargins(0.0f);
 	m_layoutNounInfo.Add(&m_tableNounDeclension);
@@ -119,13 +125,13 @@ StudyState::StudyState(IStudySet* studySet, const StudyParams& studyParams) :
 	m_labelHistoryScore.SetColor(Color::WHITE);
 
 	// Connect signals
-	AddKeyShortcut("e", [this]() { OpenCardEditView(); return true; });
-	AddKeyShortcut("r", [this]() { OpenRelatedCardsView(); return true; });
-	AddKeyShortcut("s", [this]() { OpenAddCardToSetView(); return true; });
+	AddKeyShortcut("e", [this]() { OpenCardEditView(m_card); return true; });
+	AddKeyShortcut("r", [this]() { OpenRelatedCardsView(m_card); return true; });
+	AddKeyShortcut("s", [this]() { OpenAddCardToSetView(m_card); return true; });
 	AddKeyShortcut("enter", [this]() { MarkGoodAndNext(); return true; });
 	AddKeyShortcut("backspace", [this]() { RevealOrMarkBadAndNext(); return true; });
 	//AddKeyShortcut("escape", [this]() { ShowPauseMenu(); return true; });
-	AddKeyShortcut("i", [this]() { OpenInWebBrowser(); return true; });
+	AddKeyShortcut("i", [this]() { OpenCardInWebBrowser(); return true; });
 	AddKeyShortcut("Ctrl+C", [this]() { Copy(); return true; });
 }
 
@@ -235,12 +241,15 @@ void StudyState::ShowCard(Card::sptr card, Language shownSide)
 	Font::sptr fontSmall = GetApp()->GetResourceManager()->Get<Font>(Res::FONT_SMALL);
 
 	// Wiktionary word
-	Array<unistr> wordNames = m_card->GetWordNames();
+	Array<unistr> wordNames;
+	for (const unistr& pattern : m_card->GetWordPatterns())
+		wordNames.push_back(pattern);
+	for (const unistr& pattern : m_card->GetWordNames())
+		wordNames.push_back(pattern);
 	if (!wordNames.empty())
 	{
 		for (uint32 i = 0; i < wordNames.size() && !m_term; i++)
 		{
-			CMG_LOG_DEBUG() << wordNames[i];
 			m_term = app->GetWiktionary().GetTerm(wordNames[i]);
 			if (!m_term)
 				m_term = app->GetWiktionary().DownloadTerm(wordNames[i]);
@@ -270,7 +279,11 @@ void StudyState::ShowCard(Card::sptr card, Language shownSide)
 	if (!m_card->GetRelatedCards().empty())
 	{
 		for (Card::sptr relatedCard : m_card->GetRelatedCards())
-			m_listRelatedCards.AddWord(relatedCard->GetRussian());
+		{
+			RelatedWordWidget* widget =
+				m_listRelatedCards.AddWord(relatedCard->GetRussian());
+			widget->Clicked().Connect(this, widget, &StudyState::OnClickWordBox);
+		}
 		m_layoutDefinitions.Add(&m_listRelatedCards);
 	}
 
@@ -331,20 +344,44 @@ void StudyState::ShowCard(Card::sptr card, Language shownSide)
 			// Counterparts
 			m_listCounterparts.Clear();
 			for (const AccentedText& counterpart : verb->GetCounterparts())
-				m_listCounterparts.AddWord(counterpart);
+			{
+				RelatedWordWidget* widget = m_listCounterparts.AddWord(counterpart);
+				widget->Clicked().Connect(this, widget, &StudyState::OnClickWordBox);
+			}
 		}
+
+		// Related terms
+		if (PopulateTermList(m_listRelatedTerms, m_wikiWord->GetRelatedTerms()))
+			m_layoutDefinitions.Add(&m_listRelatedTerms);
+		if (PopulateTermList(m_listDerivedTerms, m_wikiWord->GetDerivedTerms()))
+			m_layoutDefinitions.Add(&m_listDerivedTerms);
+		if (PopulateTermList(m_listSynonyms, m_wikiWord->GetSynonyms()))
+			m_layoutDefinitions.Add(&m_listSynonyms);
+		if (PopulateTermList(m_listAntonyms, m_wikiWord->GetAntonyms()))
+			m_layoutDefinitions.Add(&m_listAntonyms);
 
 		// Add definitions
 		m_layoutDefinitions.Add(new Label(
-			m_wikiWord->GetText() + AccentedText(u":"), fontSmall));
+			m_wikiWord->GetText() + AccentedText(" (" +
+				EnumToString(m_wikiWord->GetWordType()) + "):"), fontSmall));
 		uint32 number = 1;
-		for (auto definition : m_wikiWord->GetDefinitions())
+		const auto& wordDefinitions = m_wikiWord->GetDefinitions();
+		for (auto definition : wordDefinitions)
 		{
 			std::stringstream ss;
 			ss << number << ". ";
 			AccentedText text = ss.str() + definition.GetDefinition();
 			m_layoutDefinitions.Add(new Label(text, fontSmall));
 			number++;
+			if (number > 10)
+			{
+				Label* label = new Label(
+					"(+ " + std::to_string(wordDefinitions.size() - number + 1) +
+					" others)", fontSmall);
+				label->SetBackgroundColor(GUIConfig::color_text_box_background_text);
+				m_layoutDefinitions.Add(label);
+				break;
+			}
 		}
 	}
 
@@ -450,41 +487,43 @@ void StudyState::ShowPauseMenu()
 	MenuWidget* menu = new MenuWidget("Options");
 	menu->AddCancelOption("Resume");
 	menu->AddMenuOption("Edit Card", true,
-		new MethodDelegate(this, &StudyState::OpenCardEditView));
+		new CaptureMethodDelegate(this, m_card, &StudyState::OpenCardEditView));
 	menu->AddMenuOption("Edit Related Card", true,
-		new MethodDelegate(this, &StudyState::OpenRelatedCardsView));
+		new CaptureMethodDelegate(this, m_card, &StudyState::OpenRelatedCardsView));
 	menu->AddMenuOption("Add to Card Sets", true,
-		new MethodDelegate(this, &StudyState::OpenAddCardToSetView));
+		new CaptureMethodDelegate(this, m_card, &StudyState::OpenAddCardToSetView));
 	//menu->AddMenuOption("Edit Card Set", nullptr); 
 	menu->AddMenuOption("Main Menu", true,
 		new MethodDelegate((Widget*) this, &Widget::Close));
 	GetApp()->PushState(menu);
 }
 
-void StudyState::OpenCardEditView()
+void StudyState::OpenCardEditView(Card::sptr card)
 {
-	GetApp()->PushState(new CardEditWidget(m_card));
+	GetApp()->PushState(new CardEditWidget(card));
 }
 
-void StudyState::OpenRelatedCardsView()
+void StudyState::OpenRelatedCardsView(Card::sptr card)
 {
-	GetApp()->PushState(new RelatedCardsWidget(m_card));
+	GetApp()->PushState(new RelatedCardsWidget(card));
 }
 
-void StudyState::OpenAddCardToSetView()
+void StudyState::OpenAddCardToSetView(Card::sptr card)
 {
-	GetApp()->PushState(new AddCardToSetWidget(m_card));
+	GetApp()->PushState(new AddCardToSetWidget(card));
 }
 
-void StudyState::OpenInWebBrowser()
+void StudyState::OpenCardInWebBrowser()
 {
 	if (m_term)
-	{
-		std::stringstream ss;
-		unistr url = u"https://en.wiktionary.org/wiki/" +
-			m_term->GetText().GetString();
-		cmg::os::OpenInWebBrowser(url);
-	}
+		OpenInWebBrowser(m_term->GetText().GetString());
+}
+
+void StudyState::OpenInWebBrowser(const AccentedText& text)
+{
+	unistr url = wiki::Parser::GetTermURL(text.GetString(), true);
+	CMG_LOG_DEBUG() << "Opening web page: " << url;
+	cmg::os::OpenInWebBrowser(url);
 }
 
 void StudyState::Copy()
@@ -498,8 +537,108 @@ void StudyState::OnCardDataChanged(Card::sptr card)
 		ShowCard(card, m_shownSide);
 }
 
-void StudyState::OnCardAddedOrRemovedFromSet(Card::sptr card, CardSet::sptr cardSet)
+void StudyState::OnCardAddedOrRemovedFromSet(
+	Card::sptr card, CardSet::sptr cardSet)
 {
 	if (card == m_card)
 		ShowCard(card, m_shownSide);
+}
+
+bool StudyState::PopulateTermList(RelatedWordList& termList,
+	const Set<AccentedText>& terms)
+{
+	termList.Clear();
+	if (terms.empty())
+		return false;
+	for (const AccentedText& term : terms)
+	{
+		RelatedWordWidget* widget = termList.AddWord(term);
+		widget->Clicked().Connect(this, widget, &StudyState::OnClickWordBox);
+	}
+	return true;
+}
+
+void StudyState::OnClickWordBox(RelatedWordWidget* widget)
+{
+	AccentedText title = widget->GetText();
+	Card::sptr card = widget->GetCard();
+	wiki::Term::sptr term = widget->GetWiktionaryTerm();
+	if (card)
+	{
+		title += " - ";
+		title += card->GetEnglish();
+	}
+	MenuWidget* menu = new MenuWidget(title);
+	MenuItemWidget* menuOption;
+	menu->AddCancelOption("Cancel");
+
+	menuOption = menu->AddMenuOption("Create as Card", true,
+		new CaptureMethodDelegate(this, widget, &StudyState::OnChooseCreateAsCard));
+	menuOption->SetEnabled(card == nullptr);
+
+	menuOption = menu->AddMenuOption("Open in Wiktionary", true,
+		new CaptureMethodDelegate<StudyState, const AccentedText&, void>(
+			this, widget->GetText(), &StudyState::OpenInWebBrowser));
+
+	menuOption = menu->AddMenuOption("Edit Card", true,
+		new CaptureMethodDelegate(this, card, &StudyState::OpenCardEditView));
+	menuOption->SetEnabled(card != nullptr);
+
+	if (!card || !m_cardSet || !m_cardSet->HasCard(card))
+		menuOption = menu->AddMenuOption("Add to Card Set", true,
+			new CaptureMethodDelegate(this, card, &StudyState::OnChooseAddToCardSet));
+	else
+		menuOption = menu->AddMenuOption("Remove from Card Set", true,
+			new CaptureMethodDelegate(this, card, &StudyState::OnChooseRemoveFromCardSet));
+	menuOption->SetEnabled(card != nullptr && m_cardSet != nullptr);
+
+	if (!card || !cmg::container::Contains(m_card->GetRelatedCards(), card))
+		menuOption = menu->AddMenuOption("Add to related cards", true,
+			new CaptureMethodDelegate(this, card, &StudyState::OnChooseAddToRelatedCards));
+	else
+		menuOption = menu->AddMenuOption("Remove from related cards", true,
+			new CaptureMethodDelegate(this, card, &StudyState::OnChooseRemoveFromRelatedCards));
+	menuOption->SetEnabled(card != nullptr);
+
+	GetApp()->PushState(menu);
+}
+
+void StudyState::OnChooseCreateAsCard(RelatedWordWidget* widget)
+{
+	wiki::Term::sptr term = widget->GetWiktionaryTerm();
+	//GetApp()->PushState(new CardEditWidget(card));
+}
+
+void StudyState::OnChooseAddToRelatedCards(Card::sptr card)
+{
+	auto& cardDatabase = GetApp()->GetCardDatabase();
+	cardDatabase.LinkRelatedCards(m_card, card);
+	cardDatabase.SaveChanges();
+}
+
+void StudyState::OnChooseRemoveFromRelatedCards(Card::sptr card)
+{
+	auto& cardDatabase = GetApp()->GetCardDatabase();
+	cardDatabase.UnlinkRelatedCards(m_card, card);
+	cardDatabase.SaveChanges();
+}
+
+void StudyState::OnChooseAddToCardSet(Card::sptr card)
+{
+	if (m_cardSet)
+	{
+		auto& cardDatabase = GetApp()->GetCardDatabase();
+		cardDatabase.AddCardToSet(card, m_cardSet);
+		cardDatabase.SaveChanges();
+	}
+}
+
+void StudyState::OnChooseRemoveFromCardSet(Card::sptr card)
+{
+	if (m_cardSet)
+	{
+		auto& cardDatabase = GetApp()->GetCardDatabase();
+		cardDatabase.RemoveCardFromSet(card, m_cardSet);
+		cardDatabase.SaveChanges();
+	}
 }

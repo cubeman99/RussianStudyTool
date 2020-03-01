@@ -132,6 +132,7 @@ void StudyDatabase::MarkCard(Card::sptr card, bool knewIt)
 	{
 		studyData.m_proficiencyLevel = (knewIt ?
 			ProficiencyLevel::k_easy : ProficiencyLevel::k_hard);
+		OnCardStudyDataChanged(card);
 	}
 	else if (knewIt)
 	{

@@ -13,7 +13,8 @@
 class StudyState : public AppWidget
 {
 public:
-	StudyState(IStudySet* studySet, const StudyParams& studyParams = StudyParams());
+	StudyState(IStudySet* studySet, CardSet::sptr cardSet,
+		const StudyParams& studyParams = StudyParams());
 	virtual ~StudyState() {}
 
 	virtual void OnInitialize() override;
@@ -29,17 +30,27 @@ public:
 	void MarkGoodAndNext();
 	void RevealOrMarkBadAndNext();
 	void ShowPauseMenu();
-	void OpenCardEditView();
-	void OpenRelatedCardsView();
-	void OpenAddCardToSetView();
-	void OpenInWebBrowser();
+	void OpenCardEditView(Card::sptr card);
+	void OpenRelatedCardsView(Card::sptr card);
+	void OpenAddCardToSetView(Card::sptr card);
+	void OpenCardInWebBrowser();
 	void Copy();
 
 	void OnCardDataChanged(Card::sptr card);
 	void OnCardAddedOrRemovedFromSet(Card::sptr card, CardSet::sptr cardSet);
 
 private:
+	void OpenInWebBrowser(const AccentedText& text);
+	bool PopulateTermList(RelatedWordList& termList, const Set<AccentedText>& terms);
+	void OnClickWordBox(RelatedWordWidget* widget);
+	void OnChooseCreateAsCard(RelatedWordWidget* widget);
+	void OnChooseAddToRelatedCards(Card::sptr card);
+	void OnChooseRemoveFromRelatedCards(Card::sptr card);
+	void OnChooseAddToCardSet(Card::sptr card);
+	void OnChooseRemoveFromCardSet(Card::sptr card);
+
 	Card::sptr m_card;
+	CardSet::sptr m_cardSet;
 	CardStudyData m_cardStudyData;
 	wiki::Term::sptr m_term;
 	wiki::Word::sptr m_wikiWord;
@@ -54,6 +65,10 @@ private:
 	// Word widgets
 	VBoxLayout m_layoutDefinitions;
 	RelatedWordList m_listRelatedCards;
+	RelatedWordList m_listRelatedTerms;
+	RelatedWordList m_listDerivedTerms;
+	RelatedWordList m_listSynonyms;
+	RelatedWordList m_listAntonyms;
 
 	// Noun widgets
 	Widget m_widgetNounInfo;

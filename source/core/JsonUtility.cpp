@@ -32,7 +32,7 @@ Error ParseDocument(rapidjson::Document& outDocument, const char* str)
 	{
 		rapidjson::ParseResult result = (rapidjson::ParseResult) outDocument;
 		CMG_LOG_ERROR() << "JSON Parse error!";
-		return CMG_ERROR(CommonErrorTypes::k_file_corrupt);
+		return CMG_ERROR(Error::k_file_corrupt);
 	}
 	return CMG_ERROR_SUCCESS;
 }
@@ -43,9 +43,7 @@ Error SaveDocumentToFile(const Path& path,
 	FILE* file = nullptr;
 	errno_t fopenError = fopen_s(&file, path.c_str(), "wb");
 	if (fopenError != 0)
-	{
-		return CMG_ERROR(CommonErrorTypes::k_file_corrupt);
-	}
+		return CMG_ERROR_FROM_ERRNO(fopenError);
 	Error error = SaveDocumentToFile(file, document);
 	fclose(file);
 	return error;
@@ -57,9 +55,7 @@ Error SaveDocumentToFile(const PathU16& path,
 	FILE* file = nullptr;
 	errno_t fopenError = _wfopen_s(&file, (const wchar_t*) path.c_str(), L"wb");
 	if (fopenError != 0)
-	{
-		return CMG_ERROR(CommonErrorTypes::k_file_corrupt);
-	}
+		return CMG_ERROR_FROM_ERRNO(fopenError);
 	Error error = SaveDocumentToFile(file, document);
 	fclose(file);
 	return error;

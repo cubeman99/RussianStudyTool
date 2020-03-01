@@ -37,6 +37,8 @@ void AppGraphics::DrawAccentedText(Font* font, const AccentedText& text,
 		unichar c = string[charIndex];
 		uint32 charCode = static_cast<uint32>(c);
 		glyph = font->GetGlyph(charCode);
+		//if (!glyph)
+		//	glyph = font->GetGlyph((uint32) u'¿');
 
 		if (charCode == (uint32) '\n')
 		{
@@ -49,7 +51,7 @@ void AppGraphics::DrawAccentedText(Font* font, const AccentedText& text,
 		}
 
 		// Draw accent mark
-		if (accentIndex < text.GetAccentCount() &&
+		if (glyph && accentIndex < text.GetAccentCount() &&
 			charIndex == text.GetAccentIndex(accentIndex))
 		{
 			float xx = (glyph->GetMinX() + glyph->GetMaxX()) * 0.5f;

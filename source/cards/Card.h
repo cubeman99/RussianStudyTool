@@ -30,11 +30,11 @@ public:
 	const TranslationPair& GetText() const;
 	const AccentedText& GetText(Language language) const;
 	AppTimestamp GetCreationTimestamp() const;
-	CardKey GetKey() const;
 	CardRuKey GetRuKey() const;
 	CardEnKey GetEnKey() const;
 	Set<Card::sptr>& GetRelatedCards();
 	EnumFlags<CardTags>& GetTags();
+	Array<unistr> GetWordPatterns() const;
 	Array<unistr> GetWordNames() const;
 
 	void SetData(const CardData& data);
