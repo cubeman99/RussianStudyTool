@@ -36,6 +36,8 @@ unistr ToLower(unistr str);
 unistr ToUpper(unistr str);
 void ToLowerIP(unistr& str);
 void ToUpperIP(unistr& str);
+unistr ToRussianKeyboard(const unistr& str);
+unistr ToEnglishKeyboard(const unistr& str);
 
 bool TryPredictWordType(const unistr& text, WordType& outWordType);
 

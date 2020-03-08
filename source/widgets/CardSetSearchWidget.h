@@ -11,5 +11,9 @@ public:
 
 	virtual uint32 FindResults(unistr searchText,
 		Array<CardSet::sptr>& results) override;
+
+private:
+	void OnClickCardSet(CardSet::sptr cardSet);
+	void OnRowCreated(GenericTableWidget<CardSet::sptr>::Row& row);
 };
 

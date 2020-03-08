@@ -17,13 +17,20 @@ public:
 	int32 GetIndex(T_Item item) const;
 	uint32 GetCount() const;
 
-	void AddTextColumn(const AccentedText& name, float stretch = 0.0f);
-	void AddColumn(const AccentedText& name, WidgetCreateFunc func, float stretch = 0.0f);
-	void AddColumn(const AccentedText& name, WidgetCreateDelegate* func, float stretch = 0.0f);
+	void AddColumn(const AccentedText& name, float stretch = 0.0f);
 	void Clear();
 	void AddItem(T_Item item);
 	void RemoveItem(T_Item item);
 	void InsertItem(uint32 index, T_Item item);
+
+
+	struct Row
+	{
+		T_Item item;
+		Array<Widget*> widgets;
+	};
+
+	EventSignal<Row&>& RowCreated() { return m_rowCreated; }
 
 private:
 	struct Column
@@ -31,9 +38,10 @@ private:
 		AccentedText name;
 		float stretch = 0.0f;
 		Label* headerLabel = nullptr;
-		WidgetCreateDelegate* createFunction = nullptr;
 	};
 	void AddColumn(Column column);
+
+	EventSignal<Row&> m_rowCreated;
 
 	GridLayout m_gridLayout;
 	Array<Column> m_columns;
@@ -79,30 +87,11 @@ GenericTableWidget<T_Item>::GenericTableWidget()
 }
 
 template <class T_Item>
-void GenericTableWidget<T_Item>::AddTextColumn(const AccentedText& name, float stretch)
+void GenericTableWidget<T_Item>::AddColumn(const AccentedText& name, float stretch)
 {
 	Column column;
 	column.name = name;
 	column.stretch = stretch;
-	column.createFunction = nullptr;
-	AddColumn(column);
-}
-
-template <class T_Item>
-void GenericTableWidget<T_Item>::AddColumn(
-	const AccentedText& name, WidgetCreateFunc func, float stretch)
-{
-	AddColumn(name, new FunctionDelegate<Widget*, T_Item>(func), stretch);
-}
-
-template<class T_Item>
-inline void GenericTableWidget<T_Item>::AddColumn(
-	const AccentedText& name, WidgetCreateDelegate* func, float stretch)
-{
-	Column column;
-	column.name = name;
-	column.stretch = stretch;
-	column.createFunction = func;
 	AddColumn(column);
 }
 
@@ -124,14 +113,15 @@ inline void GenericTableWidget<T_Item>::InsertItem(uint32 index, T_Item item)
 {
 	m_items.insert(m_items.begin() + index, item);
 	m_gridLayout.InsertRow(index + 1);
-	for (uint32 columnIndex = 0; columnIndex < m_columns.size(); columnIndex++)
+	Row row;
+	row.item = item;
+	m_rowCreated.Emit(row);
+	uint32 count = Math::Min(row.widgets.size(), m_columns.size());
+	for (uint32 columnIndex = 0; columnIndex < count; columnIndex++)
 	{
 		Column& column = m_columns[columnIndex];
-		if (column.createFunction)
-		{
-			Widget* widget = column.createFunction->Call(item);
-			m_gridLayout.Add(widget, index + 1, columnIndex);
-		}
+		if (row.widgets[columnIndex])
+			m_gridLayout.Add(row.widgets[columnIndex], index + 1, columnIndex);
 	}
 }
 
@@ -151,7 +141,7 @@ template <class T_Item>
 void GenericTableWidget<T_Item>::AddColumn(Column column)
 {
 	uint32 columnIndex = m_columns.size();
-	column.headerLabel = new Label(column.name);
+	column.headerLabel = AllocateObject<Label>(column.name);
 	m_gridLayout.Add(column.headerLabel, 0, columnIndex);
 	m_gridLayout.SetColumnStretch(columnIndex, column.stretch);
 	m_columns.push_back(column);

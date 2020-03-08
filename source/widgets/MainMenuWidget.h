@@ -8,10 +8,15 @@
 #include "widgets/MenuWidget.h"
 #include "study/Scheduler.h"
 
+#define DECLARE_GUI_OBJECT(_class) \
+	using sptr = cmg::shared_ptr<_class>
+
 
 class MainMenuItemWidget : public AppWidget
 {
 public:
+	DECLARE_GUI_OBJECT(MainMenuItemWidget);
+
 	MainMenuItemWidget(const AccentedText& name, IStudySet* studySet);
 
 	EventSignal<>& Clicked() { return m_clicked; }
@@ -33,13 +38,16 @@ class MainMenuWidget : public AppWidget
 {
 public:
 	MainMenuWidget(CardSetPackage::sptr package);
+	virtual ~MainMenuWidget();
 
+	void Clear();
 	void SetPackage(CardSetPackage::sptr package,
 		CardSetPackage::sptr selectPackage = nullptr);
 	void OpenCardSet(CardSet::sptr cardSet);
 	void OpenStudySet(IStudySet* studySet);
 	void OpenCardPackage(CardSetPackage::sptr package);
-	MainMenuItemWidget* AddMenuOption(const AccentedText& name,
+	void OpenCardEditor();
+	MainMenuItemWidget::sptr AddMenuOption(const AccentedText& name,
 		IStudySet* studySet = nullptr);
 
 	void NavigateIntoCardPackage(CardSetPackage::sptr package);
@@ -65,14 +73,17 @@ private:
 	void OnCardSetCreated(CardSet::sptr cardSet);
 	void OpenCardSetMerge(CardSet::sptr cardSet);
 	void MergeCardSetInto(CardSet::sptr from, CardSet::sptr to);
+	void OnCardCreated(Card::sptr card);
+	void OnCardDeleted(Card::sptr card);
 	void OnCardAddedToSet(Card::sptr card, CardSet::sptr cardSet);
 	void OnCardRemovedFromSet(Card::sptr card, CardSet::sptr cardSet);
 	void RefreshStudySetsForCard(Card::sptr card);
 	CardSetPackage::sptr m_package;
 
-	Map<IStudySet*, MainMenuItemWidget*> m_studySetItems;
-	Map<CardSet::sptr, MainMenuItemWidget*> m_cardSetItems;
-	Map<CardSetPackage::sptr, MainMenuItemWidget*> m_packageItems;
+	Array<MainMenuItemWidget::sptr> m_menuItems;
+	Map<IStudySet*, MainMenuItemWidget::sptr> m_studySetItems;
+	Map<CardSet::sptr, MainMenuItemWidget::sptr> m_cardSetItems;
+	Map<CardSetPackage::sptr, MainMenuItemWidget::sptr> m_packageItems;
 
 	VBoxLayout m_mainLayout;
 	AbstractScrollArea m_scrollArea;

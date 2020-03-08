@@ -8,6 +8,8 @@
 #include "external/wiktionary/Term.h"
 #include "widgets/DeclensionTable.h"
 #include "widgets/RelatedWordList.h"
+#include "widgets/StudyHistoryTimeline.h"
+#include "widgets/WordDefinitionWidget.h"
 
 
 class StudyState : public AppWidget
@@ -25,6 +27,7 @@ public:
 	void MarkCard(bool knewIt);
 	void Reveal();
 	void NextCard();
+	void ReshowCard();
 	void ShowCard(Card::sptr card, Language shownSide);
 
 	void MarkGoodAndNext();
@@ -63,6 +66,7 @@ private:
 	Language m_revealedSide = Language::k_russian;
 
 	// Word widgets
+	WordDefinitionWidget m_wordDefinitionWidget;
 	VBoxLayout m_layoutDefinitions;
 	RelatedWordList m_listRelatedCards;
 	RelatedWordList m_listRelatedTerms;
@@ -112,6 +116,6 @@ private:
 	Label m_labelCardTextShown;
 	Label m_labelCardTextRevealed;
 	Label m_labelWordType;
-	Label m_labelHistoryScore;
 	Label m_labelEncounterTime;
+	StudyHistoryWidget m_studyHistoryTimeline;
 };

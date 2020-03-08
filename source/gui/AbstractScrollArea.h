@@ -7,7 +7,7 @@
 class SubRegionLayout : public Layout
 {
 public:
-	SubRegionLayout();
+	SubRegionLayout(bool horizontalStretch, bool verticalStretch);
 
 	Widget* GetWidget();
 	const Vector2f& GetOffset() const;
@@ -26,6 +26,7 @@ private:
 	Vector2f m_offset = Vector2f::ZERO;
 	RenderTarget m_renderTarget;
 	Color m_backgroundColor;
+	bool m_axisStretch[2] = { true, true };
 };
 
 
@@ -33,7 +34,7 @@ private:
 class AbstractScrollArea : public Widget
 {
 public:
-	AbstractScrollArea();
+	AbstractScrollArea(bool horizontalScroll = false, bool verticalScroll = true);
 
 	Widget* GetWidget();
 	void SetWidget(Widget* widget);

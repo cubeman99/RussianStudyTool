@@ -6,11 +6,12 @@
 #include "rapidjson/document.h"
 #include <mutex>
 
-class StudyDatabase
+
+class StudyDatabase : public EventSignalListener
 {
 public:
 	StudyDatabase(CardDatabase& cardDatabase);
-	~StudyDatabase();
+	virtual ~StudyDatabase();
 
 	const Path& GetStudyDataPath() const;
 	CardStudyData& GetCardStudyData(Card::sptr card);
@@ -37,9 +38,6 @@ public:
 	Error SaveStudyData();
 	Error SaveStudyData(const Path& path);
 	Error SaveChanges();
-
-	static Error DeserializeCardStudyData(rapidjson::Value& data,
-		CardRuKey& outKey, CardStudyData& outCardStudyData);
 
 private:
 	void OnCardKeyChanged(Card::sptr card, CardRuKey oldKey);

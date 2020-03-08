@@ -4,6 +4,7 @@
 #include "states/StudyState.h"
 #include "widgets/editors/CreateCardSetWidget.h"
 #include "widgets/CardListView.h"
+#include "widgets/CardEditWidget.h"
 
 
 MainMenuItemWidget::MainMenuItemWidget(const AccentedText& name, IStudySet* studySet) :
@@ -58,19 +59,32 @@ MainMenuWidget::MainMenuWidget(CardSetPackage::sptr package) :
 	});
 }
 
-void MainMenuWidget::SetPackage(CardSetPackage::sptr package,
-	CardSetPackage::sptr selectPackage)
+MainMenuWidget::~MainMenuWidget()
 {
-	MainMenuItemWidget* button;
-	m_package = package;
+	Clear();
+}
+
+void MainMenuWidget::Clear()
+{
+	m_package = nullptr;
 	m_optionLayout.Clear();
 	m_cardSetItems.clear();
 	m_packageItems.clear();
 	m_studySetItems.clear();
+	m_menuItems.clear();
+}
+
+void MainMenuWidget::SetPackage(CardSetPackage::sptr package,
+	CardSetPackage::sptr selectPackage)
+{
+	Clear();
+
+	MainMenuItemWidget::sptr button;
+	m_package = package;
 
 	m_labelTitle.SetText(package->GetName());
 
-	Widget* toSelect = nullptr;
+	MainMenuItemWidget::sptr toSelect = nullptr;
 
 	// Option to go back or quit
 	if (m_package->GetParent())
@@ -121,6 +135,10 @@ void MainMenuWidget::SetPackage(CardSetPackage::sptr package,
 		button->Clicked().Connect(
 			this, (IStudySet*) &m_studySetUncategorized, &MainMenuWidget::OpenStudySet);
 		m_studySetItems[&m_studySetUncategorized] = button;
+
+		// Card editor
+		button = AddMenuOption("** Card Editor");
+		button->Clicked().Connect(this, &MainMenuWidget::OpenCardEditor);
 	}
 
 	// Option to select this package
@@ -176,6 +194,11 @@ void MainMenuWidget::OpenCardPackage(CardSetPackage::sptr package)
 	GetApp()->PushState(menu);
 }
 
+void MainMenuWidget::OpenCardEditor()
+{
+	GetApp()->PushState(new CardEditWidget());
+}
+
 void MainMenuWidget::NavigateIntoCardPackage(CardSetPackage::sptr package)
 {
 	SetPackage(package);
@@ -191,11 +214,13 @@ void MainMenuWidget::GoBack()
 		Close();
 }
 
-MainMenuItemWidget* MainMenuWidget::AddMenuOption(
+MainMenuItemWidget::sptr MainMenuWidget::AddMenuOption(
 	const AccentedText& name, IStudySet* studySet)
 {
-	MainMenuItemWidget* option = new MainMenuItemWidget(name, studySet);
-	m_optionLayout.Add(option);
+	MainMenuItemWidget::sptr option = cmg::make_shared<MainMenuItemWidget>(
+		name, studySet);
+	m_menuItems.push_back(option);
+	m_optionLayout.Add(option.get());
 	return option;
 }
 
@@ -221,6 +246,10 @@ void MainMenuWidget::OnInitialize()
 		this, &MainMenuWidget::OnCardAddedToSet);
 	cardDatabase.CardAddedToSet().Connect(
 		this, &MainMenuWidget::OnCardRemovedFromSet);
+	cardDatabase.CardCreated().Connect(
+		this, &MainMenuWidget::OnCardCreated);
+	cardDatabase.CardDeleted().Connect(
+		this, &MainMenuWidget::OnCardDeleted);
 }
 
 void MainMenuWidget::OnUpdate(float timeDelta)
@@ -332,6 +361,16 @@ void MainMenuWidget::MergeCardSetInto(CardSet::sptr from, CardSet::sptr to)
 	{
 		CMG_LOG_WARN() << "Cannot merge a card set into itself!";
 	}
+}
+
+void MainMenuWidget::OnCardCreated(Card::sptr card)
+{
+	RefreshStudySetsForCard(card);
+}
+
+void MainMenuWidget::OnCardDeleted(Card::sptr card)
+{
+	RefreshStudySetsForCard(card);
 }
 
 void MainMenuWidget::OnCardAddedToSet(Card::sptr card, CardSet::sptr cardSet)

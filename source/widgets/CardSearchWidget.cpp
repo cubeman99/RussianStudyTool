@@ -6,26 +6,19 @@ CardSearchWidget::CardSearchWidget()
 	// Create table
 	auto& table = GetTable();
 	table.SetSpacing(1);
-	table.AddColumn("Type", [](Card::sptr card) {
-		Label* label = new Label(EnumToShortString(card->GetWordType()));
-		label->SetBackgroundColor(GUIConfig::color_background_alternate);
-		return (Widget*) label;
-	}, 1.0f);
-	table.AddColumn("Russian", [](Card::sptr card) {
-		Label* label = new Label(card->GetRussian());
-		label->SetBackgroundColor(GUIConfig::color_background_alternate);
-		return (Widget*) label;
-	}, 2.0f);
-	table.AddColumn("English", [](Card::sptr card) {
-		Label* label = new Label(card->GetEnglish());
-		label->SetBackgroundColor(GUIConfig::color_background_alternate);
-		return (Widget*) label;
-	}, 2.0f);
+	table.AddColumn("Type", 1.0f);
+	table.AddColumn("Russian", 2.0f);
+	table.AddColumn("English", 2.0f);
+	table.AddColumn("Add", 0.0f);
+
+	table.RowCreated().Connect(this, &CardSearchWidget::OnRowCreated);
 }
 
 uint32 CardSearchWidget::FindResults(unistr searchText,
 	Array<Card::sptr>& results)
 {
+	unistr enSearchText = ru::ToEnglishKeyboard(searchText);
+	unistr ruSearchText = ru::ToRussianKeyboard(searchText);
 	ru::ToLowerIP(searchText);
 	std::replace(searchText.begin(), searchText.end(), u'ё', u'е');
 	auto& cards = GetApp()->GetCardDatabase().GetCards();
@@ -45,6 +38,10 @@ uint32 CardSearchWidget::FindResults(unistr searchText,
 				matches.push_back({ruKey.russian.length(), card});
 			else if (enKey.english.find(searchText) != unistr::npos)
 				matches.push_back({enKey.english.length(), card});
+			else if (ruKey.russian.find(ruSearchText) != unistr::npos)
+				matches.push_back({ruKey.russian.length(), card});
+			else if (enKey.english.find(enSearchText) != unistr::npos)
+				matches.push_back({enKey.english.length(), card});
 		}
 	}
 
@@ -57,4 +54,24 @@ uint32 CardSearchWidget::FindResults(unistr searchText,
 		results.push_back(it.second);
 	}
 	return matches.size();
+}
+
+void CardSearchWidget::OnClickCard(Card::sptr card)
+{
+	ItemClicked().Emit(card);
+}
+
+void CardSearchWidget::OnRowCreated(GenericTableWidget<Card::sptr>::Row& row)
+{
+	Card::sptr card = row.item;
+	row.widgets.push_back(AllocateObject<Label>(
+		EnumToString(card->GetWordType())));
+	row.widgets.push_back(AllocateObject<Label>(
+		card->GetRussian()));
+	row.widgets.push_back(AllocateObject<Label>(
+		card->GetEnglish()));
+	Button* button = AllocateObject<Button>("Add");
+	button->Clicked().Connect(
+		this, card, &CardSearchWidget::OnClickCard);
+	row.widgets.push_back(button);
 }

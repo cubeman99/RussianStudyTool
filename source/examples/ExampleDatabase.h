@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Russian.h"
+#include "russian/Russian.h"
 #include "examples/Story.h"
 #include "external/wiktionary/Wiktionary.h"
 #include "cards/Card.h"

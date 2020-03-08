@@ -8,10 +8,14 @@ GUIManager::GUIManager()
 GUIManager::~GUIManager()
 {
 	if (m_rootWidget)
-		UninitializeObjects(m_rootWidget);
+	{
+		m_rootWidget->Uninitialize();
+		delete m_rootWidget;  // FIXME: this is a bit nasty
+		m_rootWidget = nullptr;
+	}
 }
 
-void GUIManager::SetApplication(Application * app)
+void GUIManager::SetApplication(Application* app)
 {
 	m_app = app;
 }
@@ -20,7 +24,7 @@ void GUIManager::SetRootWidget(Widget* rootWidget)
 {
 	m_rootWidget = rootWidget;
 	if (rootWidget)
-		InitializeObjects(rootWidget);
+		rootWidget->Initialize(this);
 }
 
 Widget* GUIManager::GetRootWidget()
@@ -159,6 +163,10 @@ void GUIManager::OnMouseUp(Window::MouseUpEvent * e)
 
 bool GUIManager::TriggerMouseDown(GUIObject* object, Window::MouseDownEvent* e)
 {
+	if (!object->IsEnabled() || !object->IsVisible() ||
+		!object->GetBounds().Contains(Vector2f(e->location)))
+		return false;
+
 	uint32 numChildren = object->GetNumChildren();
 	for (uint32 i = 0; i < numChildren; i++)
 	{
@@ -170,8 +178,7 @@ bool GUIManager::TriggerMouseDown(GUIObject* object, Window::MouseDownEvent* e)
 		}
 	}
 
-	if (object->IsWidget() && object->IsEnabled() && object->IsVisible() &&
-		object->GetBounds().Contains(Vector2f(e->location)))
+	if (object->IsWidget())
 	{
 		Widget* widget = (Widget*) object;
 		bool captured = widget->OnMouseDown(e->button, Vector2f(e->location));
@@ -254,35 +261,12 @@ void GUIManager::End()
 {
 }
 
-void GUIManager::InitializeObjects(GUIObject* object)
+void GUIManager::OnObjectInitialized(GUIObject* object)
 {
-	// Initialize the object and all its children
-	Array<GUIObject*> objects;
-	IterateObjects(object, [this, &objects](GUIObject* childObject) {
-		childObject->m_guiManager = this;
-		objects.push_back(childObject);
-		return false;
-	});
-	for (GUIObject* childObject : objects)
-		childObject->OnInitialize();
 }
 
-void GUIManager::UninitializeObjects(GUIObject* object)
+void GUIManager::OnObjectUninitialized(GUIObject* object)
 {
-	// TODO: GUIObject garbage collection?
-	// Would need to know how it was allocated.
-
-	// Un-initialize the object and all its children
-	Array<GUIObject*> objects;
-	IterateObjects(object, [this, &objects](GUIObject* childObject) {
-		childObject->m_guiManager = nullptr;
-		objects.push_back(childObject);
-		return false;
-	});
-	for (GUIObject* childObject : objects)
-		childObject->OnUninitialize();
-
-	// Cycle focus if the focused object was removed
 	if (m_focusedWidget == object)
 	{
 		SetFocus(nullptr);

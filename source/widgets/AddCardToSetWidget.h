@@ -14,11 +14,11 @@ public:
 	void Refresh();
 
 private:
-	Widget* CreateRemoveButton(CardSet::sptr card);
 	void OnClickCardSet(CardSet::sptr cardSet);
 	void OnClickAdd(CardSet::sptr cardSet);
 	void OnClickRemove(CardSet::sptr cardSet);
 	void OnClickCreateCardSet();
+	void OnRowCreated(GenericTableWidget<CardSet::sptr>::Row& row);
 	void AutoAdd();
 	bool SearchFilter(CardSet::sptr card);
 	void ApplyChanges();

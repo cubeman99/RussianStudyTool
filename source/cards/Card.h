@@ -32,6 +32,7 @@ public:
 	AppTimestamp GetCreationTimestamp() const;
 	CardRuKey GetRuKey() const;
 	CardEnKey GetEnKey() const;
+	bool HasRelatedCards(Card::sptr card) const;
 	Set<Card::sptr>& GetRelatedCards();
 	EnumFlags<CardTags>& GetTags();
 	Array<unistr> GetWordPatterns() const;

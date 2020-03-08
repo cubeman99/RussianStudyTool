@@ -33,8 +33,8 @@ public:
 
 	void Begin();
 	void End();
-	void InitializeObjects(GUIObject* object);
-	void UninitializeObjects(GUIObject* object);
+	void OnObjectInitialized(GUIObject* object);
+	void OnObjectUninitialized(GUIObject* object);
 	void Update(float timeDelta);
 	void Render(AppGraphics& g, float timeDelta);
 
@@ -55,6 +55,7 @@ protected:
 	Array<Widget*> m_allWidgets;
 	Array<Widget*> m_focusableWidgets;
 	EventSignal<> m_movedCursor;
+	Array<GUIObject*> m_allocatedObjects;
 };
 
 template<class Func>

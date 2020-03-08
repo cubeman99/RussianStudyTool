@@ -22,6 +22,7 @@ public:
 	const Set<CardSet::sptr>& GetCardSetsWithCard(Card::sptr card);
 	Map<CardRuKey, Card::sptr>& GetCards() { return m_russianToCards; }
 
+	Error CreateCard(const CardData& cardData, Card::sptr& outCard);
 	Error AddCard(Card::sptr card);
 	Error ModifyCard(Card::sptr card, const CardData& changes);
 	void AddCardToSet(Card::sptr card, CardSet::sptr cardSet);

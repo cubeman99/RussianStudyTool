@@ -7,6 +7,86 @@ namespace
 	const unistr CONSONANTS = u"бвгджзклмнпрстфхцчшщй";
 	const unistr HARD_VOWELS = u"аоуыэ";
 	const unistr SOFT_VOWELS = u"яёюие";
+	std::map<unichar, unichar> keyRussianToEnglish = {
+		{u'й', u'q'},
+		{u'ц', u'w'},
+		{u'у', u'e'},
+		{u'к', u'r'},
+		{u'е', u't'},
+		{u'н', u'y'},
+		{u'г', u'u'},
+		{u'ш', u'i'},
+		{u'щ', u'o'},
+		{u'з', u'p'},
+		{u'х', u'['},
+		{u'ъ', u']'},
+		{u'ф', u'a'},
+		{u'ы', u's'},
+		{u'в', u'd'},
+		{u'а', u'f'},
+		{u'п', u'g'},
+		{u'р', u'h'},
+		{u'о', u'j'},
+		{u'л', u'k'},
+		{u'д', u'l'},
+		{u'ж', u';'},
+		{u'э', u'\''},
+		{u'я', u'z'},
+		{u'ч', u'x'},
+		{u'с', u'c'},
+		{u'м', u'v'},
+		{u'и', u'b'},
+		{u'т', u'n'},
+		{u'ь', u'm'},
+		{u'б', u','},
+		{u'Б', u'<'},
+		{u'ю', u','},
+		{u'Ю', u'>'},
+		{u'.', u'/'},
+		{u',', u'?'},
+		{u'"', u'@'},
+		{u'№', u'#'},
+		{u';', u'$'},
+		{u'%', u'%'},
+		{u':', u'^'},
+		{u'?', u'&'},
+	};
+
+	std::map<unichar, unichar> keyEnglishToRussian = {
+		{u'q', u'й'},
+		{u'w', u'ц'},
+		{u'e', u'у'},
+		{u'r', u'к'},
+		{u't', u'е'},
+		{u'y', u'н'},
+		{u'u', u'г'},
+		{u'i', u'ш'},
+		{u'o', u'щ'},
+		{u'p', u'з'},
+		{u'[', u'х'},
+		{u']', u'ъ'},
+		{u'a', u'ф'},
+		{u's', u'ы'},
+		{u'd', u'в'},
+		{u'f', u'а'},
+		{u'g', u'п'},
+		{u'h', u'р'},
+		{u'j', u'о'},
+		{u'k', u'л'},
+		{u'l', u'д'},
+		{u';', u'ж'},
+		{u'\'', u'э'},
+		{u'z', u'я'},
+		{u'x', u'ч'},
+		{u'c', u'с'},
+		{u'v', u'м'},
+		{u'b', u'и'},
+		{u'n', u'т'},
+		{u'm', u'ь'},
+		{u',', u'б'},
+		{u'.', u'ю'},
+		{u'`', u'ё'},
+	};
 }
 
 
@@ -167,6 +247,46 @@ void ToUpperIP(unistr& str)
 	std::transform(str.begin(), str.end(), str.begin(), ToUpperChar);
 }
 
+unistr ToRussianKeyboard(const unistr& str)
+{
+	unistr result = str;
+	uint32 length = result.length();
+	for (uint32 i = 0; i < length; i++)
+	{
+		unichar c = result[i];
+		auto it = keyEnglishToRussian.find(c);
+		if (it != keyEnglishToRussian.end())
+			result[i] = it->second;
+		else
+		{
+			it = keyEnglishToRussian.find(ru::ToLowerChar(c));
+			if (it != keyEnglishToRussian.end())
+				result[i] = it->second;
+		}
+	}
+	return result;
+}
+
+unistr ToEnglishKeyboard(const unistr& str)
+{
+	unistr result = str;
+	uint32 length = result.length();
+	for (uint32 i = 0; i < length; i++)
+	{
+		unichar c = result[i];
+		auto it = keyRussianToEnglish.find(c);
+		if (it != keyRussianToEnglish.end())
+			result[i] = it->second;
+		else
+		{
+			it = keyRussianToEnglish.find(ru::ToLowerChar(c));
+			if (it != keyRussianToEnglish.end())
+				result[i] = it->second;
+		}
+	}
+	return result;
+}
+
 bool TryPredictWordType(const unistr& text, WordType& outWordType)
 {
 	if (text.find(u' ') != unistr::npos)
@@ -177,10 +297,10 @@ bool TryPredictWordType(const unistr& text, WordType& outWordType)
 	using pair = std::pair<WordType, Array<unistr>>;
 	for (const pair& pair : {
 		pair({WordType::k_adjective, {u"ый", u"ой", u"ий"}}),
-		pair({WordType::k_verb, {u"ть", u"ться", u"ечь", u"сти", u"иьс"}}),
+		pair({WordType::k_verb, {u"ать", u"ить", u"еть", u"ять", u"уть", u"ыть", u"ться", u"ечь", u"сти", u"ись"}}),
 		pair({WordType::k_noun, {u"ство", u"ие", u"ость",
 			u"а", u"н", u"к", u"ц", u"г", u"з", u"р", u"ль", u"ф",
-			u"з", u"т", u"д", u"ь", u"б", u"ж", u"п", u"х"}}),
+			u"з", u"т", u"д", u"б", u"ж", u"п", u"х"}}),
 		pair({WordType::k_adverb, {u"о"}}),
 	})
 	{

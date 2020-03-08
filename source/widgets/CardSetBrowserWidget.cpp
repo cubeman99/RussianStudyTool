@@ -62,7 +62,7 @@ void CardSetBrowserWidget::SetPackage(CardSetPackage::sptr package,
 	for (CardSetPackage::sptr parent = m_package;
 		parent; parent = parent->GetParent())
 	{
-		button = new Button(parent->GetName());
+		button = AllocateObject<Button>(parent->GetName());
 		button->SetAlign(TextAlign::MIDDLE_LEFT);
 		button->Clicked().Connect(this, parent,
 			&CardSetBrowserWidget::NavigateIntoCardPackage);
@@ -73,7 +73,7 @@ void CardSetBrowserWidget::SetPackage(CardSetPackage::sptr package,
 	// Option to go back
 	if (m_package->GetParent())
 	{
-		button = new Button("Back");
+		button = AllocateObject<Button>("Back");
 		button->SetAlign(TextAlign::MIDDLE_LEFT);
 		button->Clicked().Connect(this, &CardSetBrowserWidget::GoBack);
 		m_layoutOptions.Add(button);
@@ -83,7 +83,7 @@ void CardSetBrowserWidget::SetPackage(CardSetPackage::sptr package,
 	// Sub Card Packages
 	for (auto subPackage : m_package->GetPackages())
 	{
-		button = new Button("[...] " + subPackage->GetName());
+		button = AllocateObject<Button>("[...] " + subPackage->GetName());
 		button->SetAlign(TextAlign::MIDDLE_LEFT);
 		button->Clicked().Connect(
 			this, subPackage, &CardSetBrowserWidget::NavigateIntoCardPackage);
@@ -97,7 +97,7 @@ void CardSetBrowserWidget::SetPackage(CardSetPackage::sptr package,
 	// Card Sets
 	for (auto cardSet : m_package->GetCardSets())
 	{
-		button = new Button(cardSet->GetName());
+		button = AllocateObject<Button>(cardSet->GetName());
 		button->SetAlign(TextAlign::MIDDLE_LEFT);
 		button->Clicked().Connect(
 			this, cardSet, &CardSetBrowserWidget::OnClickCardSet);

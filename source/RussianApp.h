@@ -2,14 +2,14 @@
 
 #include <cmgApplication/cmg_application.h>
 #include <cmgMath/cmg_math.h>
-#include "Russian.h"
+#include "russian/Russian.h"
 #include "cards/CardDatabase.h"
 #include "Resources.h"
 #include "states/StudyState.h"
 #include "states/ApplicationStateStack.h"
-#include "states/TestState.h"
 #include "widgets/MainMenuWidget.h"
 #include "examples/ExampleDatabase.h"
+#include "russian/WordDatabase.h"
 #include "study/StudyDatabase.h"
 #include "external/wiktionary/Wiktionary.h"
 #include "PedalInput.h"
@@ -70,13 +70,12 @@ public:
 	void OnUpdate(float timeDelta) override;
 	void OnRender() override;
 
-	void PopState();
-	void PushState(ApplicationState* state);
 	void PushState(Widget* widget);
 
 	CardDatabase& GetCardDatabase() { return m_cardDatabase; }
 	StudyDatabase& GetStudyDatabase() { return m_studyDatabase; }
 	ExampleDatabase& GetExampleDatabase() { return m_exampleDatabase; }
+	WordDatabase& GetWordDatabase() { return m_wordDatabase; }
 	wiki::Wiktionary& GetWiktionary() { return m_wiktionary; }
 
 	ApplicationStateStack& GetStateStack() { return m_stateStack; };
@@ -100,6 +99,7 @@ private:
 	CardDatabase m_cardDatabase;
 	StudyDatabase m_studyDatabase;
 	ExampleDatabase m_exampleDatabase;
+	WordDatabase m_wordDatabase;
 	wiki::Wiktionary m_wiktionary;
 	RequestInterface m_requests;
 
@@ -109,7 +109,7 @@ private:
 	Font::sptr m_fontLarge;
 
 	ApplicationStateStack m_stateStack;
-	MainMenuWidget* m_mainMenuWidget;
+	MainMenuWidget* m_mainMenuWidget = nullptr;
 
 	// Input
 	bool m_isJoystickReady = false;

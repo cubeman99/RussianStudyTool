@@ -51,15 +51,15 @@ MenuWidget::MenuWidget(const AccentedText& title)
 
 void MenuWidget::Clear()
 {
-	m_options.clear();
 	m_optionLayout.Clear();
 	for (auto option : m_options)
-		delete option;
+		DeallocateObject(option);
+	m_options.clear();
 }
 
 MenuItemWidget* MenuWidget::AddMenuOption(const AccentedText& name)
 {
-	MenuItemWidget* option = new MenuItemWidget(name);
+	MenuItemWidget* option = AllocateObject<MenuItemWidget>(name);
 	m_options.push_back(option);
 	m_optionLayout.Add(option);
 	return option;
@@ -88,10 +88,7 @@ void MenuWidget::OnRender(AppGraphics& g, float timeDelta)
 void MenuWidget::OnSelectOption(MenuItemWidget* option)
 {
 	if (option->m_closeMenu)
-	{
 		Close();
-		GetApp()->PopState();
-	}
 	if (option->m_function)
 		option->m_function->Call();
 }
@@ -99,5 +96,4 @@ void MenuWidget::OnSelectOption(MenuItemWidget* option)
 void MenuWidget::Cancel()
 {
 	Close();
-	GetApp()->PopState();
 }

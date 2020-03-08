@@ -125,14 +125,14 @@ void DeclensionTable::InitVerbParticiples(const ru::VerbConjugation& conjugation
 
 void DeclensionTable::SetHeader(const AccentedText& text, uint32 row, uint32 column)
 {
-	Label* label = new Label(text, m_font);
+	Label* label = AllocateObject<Label>(text, m_font);
 	label->SetBackgroundColor(GUIConfig::color_background_alternate);
 	m_gridLayout.Add(label, row, column);
 }
 
 void DeclensionTable::SetText(const AccentedText& text, uint32 row, uint32 column)
 {
-	Label* label = new Label(text, m_font);
+	Label* label = AllocateObject<Label>(text, m_font);
 	label->SetBackgroundColor(GUIConfig::color_background);
 	m_gridLayout.Add(label, row, column);
 }

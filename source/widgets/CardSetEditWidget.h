@@ -1,9 +1,12 @@
 ﻿#pragma once
 
 #include "widgets/CardSearchWidget.h"
+#include "widgets/LanguageTextEdit.h"
+#include "widgets/WordDefinitionWidget.h"
 #include "cards/CardSet.h"
 
-class CardRow
+
+class CardRow : public EventSignalListener
 {
 public:
 	using sptr = cmg::shared_ptr<CardRow>;
@@ -34,10 +37,10 @@ public:
 	CardSet::sptr m_cardSet;
 
 	EnumFlags<CardTags> m_cardTags;
-	TextEdit* m_inputRussian = nullptr;
-	TextEdit* m_inputEnglish = nullptr;
-	TextEdit* m_inputType = nullptr;
-	TextEdit* m_inputCardTags = nullptr;
+	RussianTextEdit* m_inputRussian = nullptr;
+	EnglishTextEdit* m_inputEnglish = nullptr;
+	EnglishTextEdit* m_inputType = nullptr;
+	EnglishTextEdit* m_inputCardTags = nullptr;
 	Button* m_buttonEdit = nullptr;
 	Button* m_buttonRemove = nullptr;
 	EventSignal<> typeModified;
@@ -59,6 +62,7 @@ public:
 	bool m_isEmpty = true;
 };
 
+
 class CardSetEditWidget : public AppWidget
 {
 public:
@@ -73,6 +77,7 @@ public:
 	virtual void OnInitialize() override;
 
 private:
+	void OnRowCreated(GenericTableWidget<CardRow::sptr>::Row& row);
 	bool IsEnglishKeyUnique(Card::sptr card, const CardEnKey& key);
 	bool IsRussianKeyUnique(Card::sptr card, const CardRuKey& key);
 	void AddRow(CardRow::sptr row, int32 index = -1);
@@ -80,16 +85,22 @@ private:
 	void OnCardEnglishModified(CardRow::sptr row);
 	void OnCardRussianModified(CardRow::sptr row);
 	void OnCardEdited(CardRow::sptr row);
+	void OnRowGainedFocus(CardRow::sptr row);
 	void OnPressEnterRussian(CardRow::sptr row);
 	void OnPressEnterType(CardRow::sptr row);
 	void OnPressEnterEnglish(CardRow::sptr row);
 	void OnClickEditCard(CardRow::sptr row);
+	void OnClickSearchedCard(Card::sptr card);
 	CardRow::sptr GetOrCreateAdjacentRow(CardRow::sptr row, bool previous);
 	CardRow::sptr GetOrCreateRow(uint32 index);
 	CardRow::sptr AutoCompleteRow(CardRow::sptr row);
+	CardRow::sptr SetCardForRow(CardRow::sptr row, Card::sptr card);
 	bool SearchFilter(Card::sptr card);
 
+
+private:
 	CardSet::sptr m_cardSet;
+
 	VBoxLayout m_setEditLayout;
 	HBoxLayout m_mainLayout;
 	HBoxLayout m_layoutName;
@@ -99,14 +110,18 @@ private:
 	Button m_buttonCancel;
 	HBoxLayout m_layoutButtons;
 	TextEdit m_inputName;
-	TextEdit m_inputType;
+	EnglishTextEdit m_inputType;
 	GenericTableWidget<CardRow::sptr> m_table;
 	Label m_labelName;
 	Label m_labelType;
+	VBoxLayout m_layoutRight;
 	CardSearchWidget m_searchWidget;
 	AbstractScrollArea m_scrollArea;
+	AbstractScrollArea m_scrollAreaWordInfo;
+	WordDefinitionWidget m_wordDefinitionWidget;
 
 	// Cached
+	CardRow::sptr m_lastSelectedRow;
 	Set<Card::sptr> m_allCards;
 	Map<CardEnKey, Card::sptr> m_englishToCards;
 	Map<CardRuKey, Card::sptr> m_russianToCards;

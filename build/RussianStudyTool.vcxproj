@@ -46,16 +46,15 @@
     <ClCompile Include="..\source\RussianApp.cpp" />
     <ClCompile Include="..\source\Graphics.cpp" />
     <ClCompile Include="..\source\main.cpp" />
-    <ClCompile Include="..\source\Russian.cpp" />
     <ClCompile Include="..\source\russian\Adjective.cpp" />
     <ClCompile Include="..\source\russian\Noun.cpp" />
+    <ClCompile Include="..\source\russian\Russian.cpp" />
     <ClCompile Include="..\source\russian\Verb.cpp" />
     <ClCompile Include="..\source\russian\WordDatabase.cpp" />
     <ClCompile Include="..\source\states\ApplicationState.cpp" />
     <ClCompile Include="..\source\states\ApplicationStateStack.cpp" />
     <ClCompile Include="..\source\states\GUIState.cpp" />
     <ClCompile Include="..\source\states\StudyState.cpp" />
-    <ClCompile Include="..\source\states\TestState.cpp" />
     <ClCompile Include="..\source\study\CardStudyData.cpp" />
     <ClCompile Include="..\source\study\Scheduler.cpp" />
     <ClCompile Include="..\source\study\StudyDatabase.cpp" />
@@ -73,12 +72,15 @@
     <ClCompile Include="..\source\widgets\editors\CreateCardSetWidget.cpp" />
     <ClCompile Include="..\source\widgets\ExampleTextWidget.cpp" />
     <ClCompile Include="..\source\widgets\GenericTableWidget.cpp" />
+    <ClCompile Include="..\source\widgets\LanguageTextEdit.cpp" />
     <ClCompile Include="..\source\widgets\MainMenuWidget.cpp" />
     <ClCompile Include="..\source\widgets\MenuWidget.cpp" />
     <ClCompile Include="..\source\widgets\RelatedCardsWidget.cpp" />
     <ClCompile Include="..\source\widgets\RelatedWordList.cpp" />
+    <ClCompile Include="..\source\widgets\StudyHistoryTimeline.cpp" />
     <ClCompile Include="..\source\widgets\StudyProficiencyBar.cpp" />
     <ClCompile Include="..\source\widgets\TestWidget.cpp" />
+    <ClCompile Include="..\source\widgets\WordDefinitionWidget.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\AccentedText.h" />
@@ -119,16 +121,15 @@
     <ClInclude Include="..\source\Graphics.h" />
     <ClInclude Include="..\source\Macros.h" />
     <ClInclude Include="..\source\Resources.h" />
-    <ClInclude Include="..\source\Russian.h" />
     <ClInclude Include="..\source\russian\Adjective.h" />
     <ClInclude Include="..\source\russian\Noun.h" />
+    <ClInclude Include="..\source\russian\Russian.h" />
     <ClInclude Include="..\source\russian\Verb.h" />
     <ClInclude Include="..\source\russian\WordDatabase.h" />
     <ClInclude Include="..\source\states\ApplicationState.h" />
     <ClInclude Include="..\source\states\ApplicationStateStack.h" />
     <ClInclude Include="..\source\states\GUIState.h" />
     <ClInclude Include="..\source\states\StudyState.h" />
-    <ClInclude Include="..\source\states\TestState.h" />
     <ClInclude Include="..\source\study\CardStudyData.h" />
     <ClInclude Include="..\source\study\Scheduler.h" />
     <ClInclude Include="..\source\study\StudyDatabase.h" />
@@ -146,13 +147,16 @@
     <ClInclude Include="..\source\widgets\editors\CreateCardSetWidget.h" />
     <ClInclude Include="..\source\widgets\ExampleTextWidget.h" />
     <ClInclude Include="..\source\widgets\GenericTableWidget.h" />
+    <ClInclude Include="..\source\widgets\LanguageTextEdit.h" />
     <ClInclude Include="..\source\widgets\MainMenuWidget.h" />
     <ClInclude Include="..\source\widgets\MenuWidget.h" />
     <ClInclude Include="..\source\widgets\RelatedCardsWidget.h" />
     <ClInclude Include="..\source\widgets\RelatedWordList.h" />
     <ClInclude Include="..\source\widgets\SearchWidget.h" />
+    <ClInclude Include="..\source\widgets\StudyHistoryTimeline.h" />
     <ClInclude Include="..\source\widgets\StudyProficiencyBar.h" />
     <ClInclude Include="..\source\widgets\TestWidget.h" />
+    <ClInclude Include="..\source\widgets\WordDefinitionWidget.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{142D2E50-20DD-4504-BEDF-5A1296D97DB2}</ProjectGuid>

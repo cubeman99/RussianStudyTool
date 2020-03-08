@@ -20,6 +20,7 @@ private:
 	void AutoAdd();
 	bool SearchFilter(Card::sptr card);
 	void ApplyChanges();
+	void OnRowCreated(GenericTableWidget<Card::sptr>::Row& row);
 
 	Card::sptr m_card;
 	EventSignal<Card::sptr> m_eventCardModified;

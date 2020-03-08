@@ -30,7 +30,7 @@ private:
 	Array<uint32> m_indices;
 };
 
-class GUIObject : public cmg::EventSubscriber
+class GUIObject : public cmg::EventSubscriber, public EventSignalListener
 {
 public:
 	friend class Widget;
@@ -46,10 +46,12 @@ public:
 	const Vector2f& GetMinSize() const { return m_minSize; }
 	const Vector2f& GetMaxSize() const { return m_maxSize; }
 	GUIObject* GetParent() const { return m_parent; }
-
+	Array<GUIObject*> GetArrayOfChildren();
 	virtual uint32 GetNumChildren() const;
 	virtual GUIObject* GetChild(uint32 index);
 
+	void Initialize(GUIManager* guiManager);
+	void Uninitialize();
 	virtual void OnInitialize() {}
 	virtual void OnUninitialize() {}
 	virtual void OnClose() {}
@@ -59,6 +61,11 @@ public:
 	void SetParent(GUIObject* parent);
 	void SetBounds(const Rect2f& bounds);
 
+	template<class T_Class, typename... T_Args>
+	T_Class* AllocateObject(T_Args... args);
+	void AllocateObject(GUIObject* object);
+	void DeallocateObject(GUIObject* object);
+
 	virtual void OnPress() {}
 	virtual void CalcSizes() = 0;
 	virtual void Update(float timeDelta) = 0;
@@ -66,6 +73,8 @@ public:
 
 	GUIObjectIterator objects_begin();
 	GUIObjectIterator objects_end();
+
+	static int32 s_globalAllocationCount;
 
 protected:
 	static constexpr float DEFAULT_MIN_SIZE = 10;
@@ -76,4 +85,13 @@ protected:
 	Rect2f m_bounds = Rect2f::ZERO;
 	Vector2f m_minSize = Vector2f(10, 10);
 	Vector2f m_maxSize = Vector2f(DEFAULT_MAX_SIZE, DEFAULT_MAX_SIZE);
+	Array<GUIObject*> m_allocatedObjects;
 };
+
+template<class T_Class, typename ...T_Args>
+inline T_Class* GUIObject::AllocateObject(T_Args ...args)
+{
+	T_Class* object = new T_Class(args...);
+	AllocateObject(object);
+	return object;
+}

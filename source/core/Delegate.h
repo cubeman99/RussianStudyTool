@@ -1,9 +1,16 @@
 ﻿#pragma once
 
 
+class DelegateBase
+{
+public:
+	DelegateBase() {}
+	virtual ~DelegateBase() {}
+};
+
 // This is the interface for MemberFunctionHandler that each specialization will use
 template<class T_Return, typename... T_Args>
-class Delegate
+class Delegate : public DelegateBase
 {
 public:
 	Delegate() {}
@@ -51,6 +58,11 @@ public:
 		return (m_instance->*m_method)(args...);
 	}
 
+	virtual T_Instance* GetInstance()
+	{
+		return m_instance;
+	}
+
 private:
 	// Pointer to class instance
 	T_Instance* m_instance;
@@ -83,6 +95,11 @@ public:
 	virtual T_Return Call(T_Args... args) override
 	{
 		return (m_instance->*m_method)(m_state, args...);
+	}
+
+	virtual T_Instance* GetInstance()
+	{
+		return m_instance;
 	}
 
 private:

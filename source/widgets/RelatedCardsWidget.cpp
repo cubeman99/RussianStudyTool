@@ -19,27 +19,20 @@ RelatedCardsWidget::RelatedCardsWidget(Card::sptr card) :
 
 	// Set up related cards table
 	m_table.SetSpacing(1.0f);
-	m_table.AddColumn("Type", [](Card::sptr card) {
-		return (Widget*) new Label(EnumToString(card->GetWordType()));
-	}, 1.0f);
-	m_table.AddColumn("Russian", [](Card::sptr card) {
-		return (Widget*) new Label(card->GetRussian());
-	}, 2.0f);
-	m_table.AddColumn("English", [](Card::sptr card) {
-		return (Widget*) new Label(card->GetEnglish());
-	}, 2.0f);
-	m_table.AddColumn("Remove", new MethodDelegate(
-		this, &RelatedCardsWidget::CreateRemoveButton), 0.0f);
+	m_table.AddColumn("Type", 1.0f);
+	m_table.AddColumn("Russian", 2.0f);
+	m_table.AddColumn("English", 2.0f);
+	m_table.AddColumn("Remove", 0.0f);
 
 	// Set up card search widget
 	m_searchWidget.SetFilter(new MethodDelegate(
 		this, &RelatedCardsWidget::SearchFilter));
-	m_searchWidget.AddButtonColumn("Add", new MethodDelegate(
-		this, &RelatedCardsWidget::OnClickAdd));
 
 	SelectCard(card);
 
 	// Connect signals
+	m_searchWidget.ItemClicked().Connect(this, &RelatedCardsWidget::OnClickAdd);
+	m_table.RowCreated().Connect(this, &RelatedCardsWidget::OnRowCreated);
 	m_buttonDone.Clicked().Connect((Widget*) this, &Widget::Close);
 	Closed().Connect(this, &RelatedCardsWidget::ApplyChanges);
 }
@@ -117,10 +110,17 @@ void RelatedCardsWidget::ApplyChanges()
 	m_eventCardModified.Emit(m_card);
 }
 
-Widget* RelatedCardsWidget::CreateRemoveButton(Card::sptr card)
+void RelatedCardsWidget::OnRowCreated(GenericTableWidget<Card::sptr>::Row& row)
 {
-	Button* button = new Button("Remove");
+	Card::sptr card = row.item;
+	row.widgets.push_back(AllocateObject<Label>(
+		EnumToString(card->GetWordType())));
+	row.widgets.push_back(AllocateObject<Label>(
+		card->GetRussian()));
+	row.widgets.push_back(AllocateObject<Label>(
+		card->GetEnglish()));
+	Button* button = AllocateObject<Button>("Remove");
 	button->Clicked().Connect(
 		this, card, &RelatedCardsWidget::OnClickRemove);
-	return (Widget*) button;
+	row.widgets.push_back(button);
 }

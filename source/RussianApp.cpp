@@ -9,7 +9,9 @@
 #include "examples/ExampleDatabase.h"
 
 // Comment this out to use the REAL card dataset
-//#define USE_TEST_DATA
+#ifdef _DEBUG
+#define USE_TEST_DATA
+#endif
 
 static const Path g_assetsPath = "../assets";
 static const PathU16 g_assetsPathU16 = u"../assets";
@@ -28,6 +30,7 @@ RussianStudyToolApp* RussianStudyToolApp::s_instance = nullptr;
 RussianStudyToolApp::RussianStudyToolApp() :
 	m_studyDatabase(m_cardDatabase),
 	m_exampleDatabase(m_wiktionary),
+	m_wordDatabase(m_wiktionary),
 	m_wiktionary(m_requests)
 {
 	s_instance = this;
@@ -94,7 +97,8 @@ void RussianStudyToolApp::OnInitialize()
 #endif
 
 	m_mainMenuWidget = new MainMenuWidget(m_cardDatabase.GetRootPackage());
-	PushState(new GUIState(m_mainMenuWidget));
+	PushState(m_mainMenuWidget);
+	//PushState(new Widget());
 	//PushState(new CardSearchWidget());
 	//PushState(new CardSetEditWidget(cardSet));
 	//PushState(new StudyState(cardSet.get(), cardSet));
@@ -111,8 +115,6 @@ void RussianStudyToolApp::OnInitialize()
 
 void RussianStudyToolApp::OnQuit()
 {
-	delete m_mainMenuWidget;
-	m_mainMenuWidget = nullptr;
 	m_stateStack.OnEnd();
 }
 
@@ -185,7 +187,14 @@ void RussianStudyToolApp::OnRender()
 	g.SetWindowOrthoProjection();
 	
 	m_stateStack.Render(g, 0.0f);
-	
+
+//#ifdef _DEBUG
+	String str;
+	str = "Allocs: " + std::to_string(GUIObject::s_globalAllocationCount);
+	str += ",  Connections: " + std::to_string(EventSignalBase::s_globalSignalConnectionCount);
+	g.DrawString(m_font.get(), str, Vector2f(10, 10), Color::RED);
+//#endif
+
 	/*
 	if (m_joystick)
 	{
@@ -229,16 +238,6 @@ void RussianStudyToolApp::OnKeyDown(Window::KeyDownEvent* e)
 void RussianStudyToolApp::OnKeyTyped(Window::KeyTypedEvent* e)
 {
 	m_stateStack.OnKeyTyped(e);
-}
-
-void RussianStudyToolApp::PopState()
-{
-	m_stateStack.Pop();
-}
-
-void RussianStudyToolApp::PushState(ApplicationState* state)
-{
-	m_stateStack.Push(state);
 }
 
 void RussianStudyToolApp::PushState(Widget* widget)

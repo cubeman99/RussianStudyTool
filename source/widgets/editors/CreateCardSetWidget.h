@@ -2,6 +2,8 @@
 
 #include "widgets/CardSetBrowserWidget.h"
 #include "cards/CardSetPackage.h"
+#include "widgets/LanguageTextEdit.h"
+
 
 class CreateCardSetWidget : public AppWidget
 {
@@ -27,7 +29,7 @@ private:
 	Label m_labelFileName;
 	TextEdit m_inputName;
 	TextEdit m_inputFileName;
-	TextEdit m_inputType;
+	EnglishTextEdit m_inputType;
 	Button m_buttonCreate;
 	Button m_buttonCancel;
 	CardSetBrowserWidget m_cardSetBrowser;

@@ -15,7 +15,7 @@ public:
 	CardListView(IStudySet* studySet);
 
 	void SetCards(IStudySet* studySet);
-	void SetPage(uint32 pageIndex);
+	void SetPage(uint32 pageIndex, bool changeFocus);
 
 	virtual void OnInitialize() override;
 	virtual void OnUpdate(float timeDelta) override;
@@ -35,11 +35,11 @@ private:
 		EventSignal<> m_clicked;
 
 		Card::sptr m_card;
-		Label displayNumber;
-		Label displayType;
-		Label displayRussian;
-		Label displayEnglish;
-		Label displayTags;
+		Label m_labelNumber;
+		Label m_labelType;
+		Label m_labelRussian;
+		Label m_labelEnglish;
+		HBoxLayout m_layoutTags;
 		Label m_labelScore;
 	};
 
@@ -49,11 +49,17 @@ private:
 	void OpenRelatedCardsView(Card::sptr card);
 	void OpenAddCardToSetView(Card::sptr card);
 	void OnCardDataChanged(Card::sptr card);
+	void OnCardAddedOrRemovedFromSet(Card::sptr card, CardSet::sptr cardSet);
 	void RefreshRow(Row::sptr row);
 	void GoToNextPage();
 	void GoToPrevPage();
+	void OnClickRefresh();
+	void RepopulateCardList(bool forceRefresh, bool changeFocus);
+	bool GetSortedCardList(Array<Card::sptr>& outCardList);
 
 	IStudySet* m_studySet;
+	Array<Card::sptr> m_cards;
+	bool m_isStudySetChanged = false;
 
 	uint32 m_cardsPerPage = 100;
 	uint32 m_pageIndex = 0;
@@ -61,6 +67,7 @@ private:
 
 	VBoxLayout m_mainLayout;
 	HBoxLayout m_layoutTitle;
+	HBoxLayout m_layoutPageNavigation;
 	Widget m_titleWidget;
 	StudyProficiencyBar m_topProficiencyBar;
 	Label m_labelName;
@@ -68,6 +75,7 @@ private:
 	Label m_labelPage;
 	Button m_buttonNextPage;
 	Button m_buttonPrevPage;
+	Button m_buttonRefreshList;
 
 	AbstractScrollArea m_scrollArea;
 	Widget m_widgetCardList;

@@ -531,6 +531,16 @@ Error CardDatabase::SaveCardSet(CardSet::sptr cardSet, const PathU16& path)
 	return CMG_ERROR_SUCCESS;
 }
 
+Error CardDatabase::CreateCard(const CardData& cardData, Card::sptr& outCard)
+{
+	outCard = cmg::make_shared<Card>();
+	outCard->SetData(cardData);
+	Error error = AddCard(outCard);
+	if (error.Failed())
+		outCard = nullptr;
+	return error.Uncheck();
+}
+
 Error CardDatabase::AddCard(Card::sptr card)
 {
 	CardRuKey ruKey = card->GetRuKey();

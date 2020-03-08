@@ -25,30 +25,25 @@ AddCardToSetWidget::AddCardToSetWidget(Card::sptr card) :
 
 	// Set up related cards table
 	m_table.SetSpacing(1.0f);
-	m_table.AddColumn("Name", [](CardSet::sptr cardSet) {
-		return (Widget*) new Label(cardSet->GetName());
-	}, 1.0f);
-	m_table.AddColumn("Size", [](CardSet::sptr cardSet) {
-		return (Widget*) new Label(std::to_string(cardSet->GetCards().size()));
-	}, 0.0f);
-	m_table.AddColumn("Remove", new MethodDelegate(
-		this, &AddCardToSetWidget::CreateRemoveButton), 0.0f);
+	m_table.AddColumn("Name", 1.0f);
+	m_table.AddColumn("Size", 0.0f);
+	m_table.AddColumn("Remove", 0.0f);
 
 	// Set up card search widget
 	m_searchWidget.SetFilter(new MethodDelegate(
 		this, &AddCardToSetWidget::SearchFilter));
-	m_searchWidget.AddButtonColumn("Add", new MethodDelegate(
-		this, &AddCardToSetWidget::OnClickAdd));
-
-	SelectCard(card);
 
 	// Connect signals
+	m_table.RowCreated().Connect(this, &AddCardToSetWidget::OnRowCreated);
+	m_searchWidget.ItemClicked().Connect(this, &AddCardToSetWidget::OnClickAdd);
 	m_buttonDone.Clicked().Connect((Widget*) this, &Widget::Close);
 	Closed().Connect(this, &AddCardToSetWidget::ApplyChanges);
 	m_cardSetBrowser.CardSetClicked().Connect(
 		this, &AddCardToSetWidget::OnClickCardSet);
 	m_buttonCreateNewCardSet.Clicked().Connect(
 		this, &AddCardToSetWidget::OnClickCreateCardSet);
+
+	SelectCard(card);
 }
 
 void AddCardToSetWidget::OnInitialize()
@@ -151,10 +146,15 @@ void AddCardToSetWidget::ApplyChanges()
 	}
 }
 
-Widget* AddCardToSetWidget::CreateRemoveButton(CardSet::sptr cardSet)
+void AddCardToSetWidget::OnRowCreated(GenericTableWidget<CardSet::sptr>::Row& row)
 {
-	Button* button = new Button("Remove");
+	CardSet::sptr cardSet = row.item;
+	row.widgets.push_back(AllocateObject<Label>(
+		cardSet->GetName()));
+	row.widgets.push_back(AllocateObject<Label>(
+		std::to_string(cardSet->GetCards().size())));
+	Button* button = AllocateObject<Button>("Remove");
 	button->Clicked().Connect(
 		this, cardSet, &AddCardToSetWidget::OnClickRemove);
-	return (Widget*) button;
+	row.widgets.push_back(button);
 }

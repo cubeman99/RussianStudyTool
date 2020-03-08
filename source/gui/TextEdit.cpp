@@ -112,6 +112,8 @@ void TextEdit::Paste()
 	unistr clipboardText = cmg::os::GetClipboardUnicodeText();
 	if (HasSelection())
 		DeleteSelection();
+	// Convert to-and-from accented text to standardize accent chars
+	clipboardText = AccentedText(clipboardText).ToMarkedString();
 	m_text.insert(m_cursorPosition, clipboardText);
 	m_cursorPosition += clipboardText.length();
 }

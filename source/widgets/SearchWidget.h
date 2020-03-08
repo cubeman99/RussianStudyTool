@@ -25,8 +25,7 @@ public:
 
 	void SetSearchText(const unistr& text);
 	void SetFilter(FilterFunc* function) { m_filterFunction = function; }
-	void AddButtonColumn(const AccentedText& name,
-		Delegate<void, T_Item>* clickedCallback);
+	EventSignal<T_Item>& ItemClicked() { return m_itemClicked; }
 	void RefreshResults();
 	
 	virtual void OnInitialize() override;
@@ -35,11 +34,12 @@ private:
 	struct ButtonInfo
 	{
 		AccentedText name;
-		Delegate<void, T_Item>* clickedCallback;
+		EventSignal<T_Item>* clicked;
 	};
 	Widget* CreateButton(ButtonInfo info, T_Item item);
 
 private:
+	EventSignal<T_Item> m_itemClicked;
 	VBoxLayout m_mainLayout;
 	HBoxLayout m_layoutSearchBox;
 	HBoxLayout m_layoutResultsLabel;
@@ -109,18 +109,6 @@ inline bool SearchWidget<T_Item>::MatchesFilter(T_Item item)
 }
 
 template<class T_Item>
-inline void SearchWidget<T_Item>::AddButtonColumn(
-	const AccentedText& name, Delegate<void, T_Item>* clickedCallback)
-{
-	ButtonInfo info;
-	info.name = name;
-	info.clickedCallback = clickedCallback;
-	m_table.AddColumn(name, new CaptureMethodDelegate<
-		SearchWidget, ButtonInfo, Widget*, T_Item>(
-		this, info, &SearchWidget::CreateButton), 0.0f);
-}
-
-template<class T_Item>
 inline T_Item SearchWidget<T_Item>::GetTopResult()
 {
 	if (m_table.GetCount() > 0)
@@ -131,9 +119,9 @@ inline T_Item SearchWidget<T_Item>::GetTopResult()
 template<class T_Item>
 inline Widget* SearchWidget<T_Item>::CreateButton(ButtonInfo info, T_Item card)
 {
-	Button* button = new Button(info.name);
-	button->Clicked().Connect(
-		new CaptureMethodDelegate<Delegate<void, T_Item>, T_Item, void>(
-			card, info.clickedCallback));
+	Button* button = AllocateObject<Button>(info.name);
+	button->Clicked().Connect(card, info.clickedCallback.Emit)
+		//new CaptureMethodDelegate<Delegate<void, T_Item>, T_Item, void>(
+		//	card, info.clickedCallback));
 	return (Widget*) button;
 }

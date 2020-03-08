@@ -159,7 +159,7 @@ void BoxLayout::Add(const Array<GUIObject*>& children)
 
 void BoxLayout::AddStretch(float stretch)
 {
-	Add(new Widget(), stretch);
+	Add(AllocateObject<Widget>(), stretch);
 }
 
 void BoxLayout::SetStretch(GUIObject * child, float stretch)

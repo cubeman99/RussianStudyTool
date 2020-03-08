@@ -1,13 +1,21 @@
 ﻿#include "AbstractScrollArea.h"
 #include "GUIManager.h"
 
-AbstractScrollArea::AbstractScrollArea() :
-	m_scrollBars{0, 1}
+AbstractScrollArea::AbstractScrollArea(bool horizontalScroll, bool verticalScroll) :
+	m_scrollBars{0, 1},
+	m_areaLayout(!horizontalScroll, !verticalScroll)
 {
+	m_scrollBars[0].SetEnabled(horizontalScroll);
+	m_scrollBars[1].SetEnabled(verticalScroll);
+
 	m_gridLayout.Add(&m_areaLayout, 0, 0);
-	m_gridLayout.Add(&m_scrollBars[0], 1, 0);
-	m_gridLayout.Add(&m_scrollBars[1], 0, 1);
-	m_gridLayout.Add(&m_cornerWidget, 1, 1);
+	if (horizontalScroll)
+		m_gridLayout.Add(&m_scrollBars[0], 1, 0);
+	if (verticalScroll)
+		m_gridLayout.Add(&m_scrollBars[1], 0, 1);
+	if (horizontalScroll && verticalScroll)
+		m_gridLayout.Add(&m_cornerWidget, 1, 1);
+
 	m_gridLayout.SetRowStretch(0, 1.0f);
 	m_gridLayout.SetColumnStretch(0, 1.0f);
 	m_gridLayout.SetRowStretch(1, 0.0f);
@@ -93,8 +101,9 @@ void AbstractScrollArea::OnUpdate(float timeDelta)
 	OnMoveCursor();
 }
 
-SubRegionLayout::SubRegionLayout() :
+SubRegionLayout::SubRegionLayout(bool horizontalStretch, bool verticalStretch) :
 	m_renderTarget(1920, 1080),
+	m_axisStretch{horizontalStretch, verticalStretch},
 	m_backgroundColor(GUIConfig::color_background)
 {
 	m_renderTarget.CreateColorAttachment(0);
@@ -138,6 +147,17 @@ void SubRegionLayout::CalcSizes()
 {
 	m_minSize = Vector2f(DEFAULT_MIN_SIZE);
 	m_maxSize = Vector2f(DEFAULT_MAX_SIZE);
+	if (m_widget)
+	{
+		for (uint32 axis = 0; axis < 2; axis++)
+		{
+			if (m_axisStretch[axis])
+			{
+				m_minSize[axis] = m_widget->GetMinSize()[axis];
+				m_maxSize[axis] = m_widget->GetMaxSize()[axis];
+			}
+		}
+	}
 }
 
 void SubRegionLayout::Update(float timeDelta)
@@ -147,7 +167,11 @@ void SubRegionLayout::Update(float timeDelta)
 		Vector2f minSize = m_widget->GetMinSize();
 		Rect2f widgetRect = GetBounds();
 		widgetRect.position -= m_offset;
-		widgetRect.size.y = minSize.y;
+		for (uint32 axis = 0; axis < 2; axis++)
+		{
+			if (!m_axisStretch[axis])
+				widgetRect.size[axis] = minSize[axis];
+		}
 		m_widget->SetBounds(widgetRect);
 		m_widget->Update(timeDelta);
 	}

@@ -25,7 +25,7 @@ void RelatedWordList::SetLabel(const AccentedText & text)
 
 RelatedWordWidget* RelatedWordList::AddWord(const AccentedText& text)
 {
-	RelatedWordWidget* widget = new RelatedWordWidget(text);
+	RelatedWordWidget* widget = AllocateObject<RelatedWordWidget>(text);
 	widget->m_label.SetFont(m_font);
 	m_layoutWords.Add(widget);
 	return widget;

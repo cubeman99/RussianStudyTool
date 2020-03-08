@@ -48,9 +48,11 @@ void ApplicationStateStack::Pop(uint32 count)
 
 	for (uint32 i = 0; i < count && !m_states.empty(); i++)
 	{
-		if (IsActive())
-			m_states.back()->End();
+		ApplicationState* lastState = m_states.back();
 		m_states.pop_back();
+		if (IsActive())
+			lastState->End();
+		delete lastState;
 		if (IsActive())
 		{
 			DeleteInactiveStates();
@@ -132,23 +134,17 @@ void ApplicationStateStack::OnRender(AppGraphics& g, float timeDelta)
 
 void ApplicationStateStack::DeleteInactiveStates()
 {
-	uint32 count = m_states.size();
-
-	// Chop off any hanging states
 	for (uint32 i = 0; i < m_states.size(); i++)
 	{
-		if (!m_states[i]->IsActive() && i < count) {
-			count = i;
-			break;
+		ApplicationState* state = m_states[i];
+		if (!state->IsActive())
+		{
+			m_states.erase(m_states.begin() + i);
+			state->End();
+			delete state;  // FIXME: this is a bit nasty
+			i--;
 		}
 	}
-
-	for (uint32 i = count; i < m_states.size(); i++) {
-		m_states[i]->End();
-		m_states.erase(m_states.begin() + i);
-		i--;
-	}
-
-	if (count <= 0)
+	if (m_states.empty())
 		End();
 }

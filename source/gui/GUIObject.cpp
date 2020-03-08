@@ -1,6 +1,8 @@
 ﻿#include "GUIObject.h"
 #include "GUIManager.h"
 
+int32 GUIObject::s_globalAllocationCount = 0;
+
 GUIObject::GUIObject()
 {
 }
@@ -11,13 +13,28 @@ GUIObject::~GUIObject()
 	SetParent(nullptr);
 
 	// Disconnect from children
+	auto children = GetArrayOfChildren();
+	for (GUIObject* child : children)
+		child->SetParent(nullptr);
+
+	// Deallocate all objects
+	Array<GUIObject*> allocatedObjects = m_allocatedObjects;
+	for (GUIObject* object : allocatedObjects)
+		DeallocateObject(object);
+	m_allocatedObjects.clear();
+}
+
+Array<GUIObject*> GUIObject::GetArrayOfChildren()
+{
 	uint32 numChildren = GetNumChildren();
+	Array<GUIObject*> children;
 	for (uint32 i = 0; i < numChildren; i++)
 	{
-		GUIObject* child = GetChild(i);
-		if (child)
-			child->SetParent(nullptr);
+		GUIObject* childObject = GetChild(i);
+		if (childObject)
+			children.push_back(childObject);
 	}
+	return children;
 }
 
 uint32 GUIObject::GetNumChildren() const
@@ -31,20 +48,49 @@ GUIObject* GUIObject::GetChild(uint32 index)
 	return nullptr;
 }
 
+void GUIObject::Initialize(GUIManager* guiManager)
+{
+	CMG_ASSERT(guiManager != nullptr);
+	m_guiManager = guiManager;
+
+	// Initialize the object and all its children
+	auto children = GetArrayOfChildren();
+	for (GUIObject* childObject : children)
+		childObject->Initialize(guiManager);
+
+	OnInitialize();
+
+	m_guiManager->OnObjectInitialized(this);
+}
+
+void GUIObject::Uninitialize()
+{
+	// Uninitialize all children
+	auto children = GetArrayOfChildren();
+	for (GUIObject* childObject : children)
+		childObject->Uninitialize();
+
+	OnUninitialize();
+
+	m_guiManager->OnObjectUninitialized(this);
+	m_parent = nullptr;
+	m_guiManager = nullptr;
+}
+
 void GUIObject::SetParent(GUIObject* parent)
 {
 	if (parent)
 	{
 		// Added to a GUI manager
 		m_parent = parent;
-		if (parent->m_guiManager)
-			parent->m_guiManager->InitializeObjects(this);
+		if (m_guiManager != parent->m_guiManager)
+			Initialize(parent->m_guiManager);
 	}
-	else
+	else if (m_parent)
 	{
 		// Removed from a GUI manager
 		if (m_guiManager)
-			m_guiManager->UninitializeObjects(this);
+			Uninitialize();
 		m_parent = nullptr;
 	}
 }
@@ -52,6 +98,27 @@ void GUIObject::SetParent(GUIObject* parent)
 void GUIObject::SetBounds(const Rect2f& bounds)
 {
 	m_bounds = bounds;
+}
+
+void GUIObject::AllocateObject(GUIObject* object)
+{
+	if (!cmg::container::Contains(m_allocatedObjects, object))
+	{
+		//CMG_LOG_DEBUG() << "Allocating object.";
+		m_allocatedObjects.push_back(object);
+		s_globalAllocationCount++;
+	}
+}
+
+void GUIObject::DeallocateObject(GUIObject* object)
+{
+	if (cmg::container::EraseIfFound(m_allocatedObjects, object))
+	{
+		//CMG_LOG_DEBUG() << "Deallocating object.";
+		object->SetParent(nullptr);
+		delete object;
+		s_globalAllocationCount--;
+	}
 }
 
 GUIObjectIterator GUIObject::objects_begin()

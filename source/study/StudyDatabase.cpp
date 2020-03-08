@@ -122,33 +122,30 @@ void StudyDatabase::MarkCard(Card::sptr card, bool knewIt)
 {
 	std::lock_guard<std::recursive_mutex> guard(m_mutexStudyData);
 	auto& studyData = GetCardStudyData(card);
-	studyData.m_lastEncounterTime = GetAppTimestamp();
-	studyData.m_history.insert(studyData.m_history.begin(), knewIt);
-	if (studyData.m_history.size() > Config::k_maxCardHistorySize)
-		studyData.m_history.resize(Config::k_maxCardHistorySize);
+	studyData.AddToHistory(knewIt, GetAppTimestamp());
 
 	// Update proficiencly level
-	if (studyData.m_proficiencyLevel == ProficiencyLevel::k_new)
+	if (studyData.GetProficiencyLevel() == ProficiencyLevel::k_new)
 	{
-		studyData.m_proficiencyLevel = (knewIt ?
+		studyData.SetProficiencyLevel(knewIt ?
 			ProficiencyLevel::k_easy : ProficiencyLevel::k_hard);
 		OnCardStudyDataChanged(card);
 	}
 	else if (knewIt)
 	{
-		if (studyData.m_proficiencyLevel != ProficiencyLevel::k_learned)
+		if (studyData.GetProficiencyLevel() != ProficiencyLevel::k_learned)
 		{
-			studyData.m_proficiencyLevel = (ProficiencyLevel)
-				((uint32) studyData.m_proficiencyLevel + 1);
+			studyData.SetProficiencyLevel((ProficiencyLevel)
+				((uint32) studyData.GetProficiencyLevel() + 1));
 			OnCardStudyDataChanged(card);
 		}
 	}
 	else
 	{
-		if (studyData.m_proficiencyLevel != ProficiencyLevel::k_hard)
+		if (studyData.GetProficiencyLevel() != ProficiencyLevel::k_hard)
 		{
-			studyData.m_proficiencyLevel = (ProficiencyLevel)
-				((uint32) studyData.m_proficiencyLevel - 1);
+			studyData.SetProficiencyLevel((ProficiencyLevel)
+				((uint32) studyData.GetProficiencyLevel() - 1));
 			OnCardStudyDataChanged(card);
 		}
 	}
@@ -176,9 +173,9 @@ Error StudyDatabase::LoadStudyData(const Path& path)
 	// Open the json file
 	m_path = path;
 	rapidjson::Document document;
-	Error loadError = json::LoadDocumentFromFile(path, document);
-	if (loadError.Failed())
-		return loadError.Uncheck();
+	Error error = json::LoadDocumentFromFile(path, document);
+	if (error.Failed())
+		return error.Uncheck();
 
 	// Gather all card data
 	rapidjson::Value& cardDataList = document["cards"];
@@ -186,7 +183,9 @@ Error StudyDatabase::LoadStudyData(const Path& path)
 	{
 		CardRuKey key;
 		CardStudyData studyData;
-		DeserializeCardStudyData(*it, key, studyData);
+		error = studyData.Deserialize(*it, key);
+		if (error.Failed())
+			return error.Uncheck();
 		m_cardStudyData[key] = studyData;
 	}
 
@@ -212,7 +211,6 @@ Error StudyDatabase::SaveStudyData(const Path& path)
 	// Save the list of card study data
 	rapidjson::Value studyDataList(rapidjson::kArrayType);
 	document.AddMember("save_time", GetAppTimestamp(), allocator);
-	Array<char> historyString;
 	uint32_t savedCardCount = 0;
 	for (auto it : m_cardStudyData)
 	{
@@ -220,21 +218,8 @@ Error StudyDatabase::SaveStudyData(const Path& path)
 		const CardStudyData& studyData = it.second;
 		if (it.second.IsEncountered())
 		{
-			historyString.resize(studyData.m_history.size() + 1);
-			for (uint32 i = 0; i < studyData.m_history.size(); i++)
-				historyString[i] = studyData.m_history[i] ? 'T' : 'F';
-			historyString[studyData.m_history.size()] = '\0';
-
-			rapidjson::Value jsonStudyData(rapidjson::kArrayType);
-			String keyType = EnumToString(key.type);
-			String keyRussian = ConvertToUTF8(key.russian);
-			jsonStudyData.PushBack(rapidjson::Value(keyType.c_str(), allocator).Move(), allocator);
-			jsonStudyData.PushBack(rapidjson::Value(keyRussian.c_str(), allocator).Move(), allocator);
-			jsonStudyData.PushBack((int32_t) studyData.m_proficiencyLevel, allocator);
-			jsonStudyData.PushBack(studyData.m_lastEncounterTime, allocator);
-			jsonStudyData.PushBack(rapidjson::Value(
-				historyString.data(), allocator).Move(), allocator);
-
+			rapidjson::Value jsonStudyData(rapidjson::kObjectType);
+			studyData.Serialize(jsonStudyData, allocator, key);
 			studyDataList.PushBack(jsonStudyData.Move(), allocator);
 			savedCardCount++;
 		}
@@ -262,25 +247,6 @@ Error StudyDatabase::SaveChanges()
 		return SaveStudyData();
 	}
 
-	return CMG_ERROR_SUCCESS;
-}
-
-Error StudyDatabase::DeserializeCardStudyData(rapidjson::Value& data,
-	CardRuKey& outKey, CardStudyData& outCardStudyData)
-{
-	TryStringToEnum(data[0].GetString(), outKey.type, false);
-	outKey.russian = ConvertFromUTF8(data[1].GetString());
-	outCardStudyData.m_proficiencyLevel = (ProficiencyLevel) data[2].GetInt();
-	outCardStudyData.m_lastEncounterTime = data[3].IsNull() ? -1.0 :
-		static_cast<AppTimestamp>(data[3].GetDouble());
-	outCardStudyData.m_history.clear();
-	auto historyString = data[4].GetString();
-	for (uint32 i = 0; i < Config::k_maxCardHistorySize &&
-		historyString[i] != '\0'; i++)
-	{
-		bool knewIt = (historyString[i] == 'T');
-		outCardStudyData.m_history.push_back(knewIt);
-	}
 	return CMG_ERROR_SUCCESS;
 }
 

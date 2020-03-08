@@ -13,7 +13,6 @@ public:
 	ApplicationState* GetTopState();
 
 	void Push(ApplicationState* state);
-	void Pop(uint32 count = 1);
 	void Clear();
 
 	virtual void OnBegin() override;
@@ -26,6 +25,7 @@ public:
 	virtual void OnRender(AppGraphics& g, float timeDelta) override;
 
 protected:
+	void Pop(uint32 count = 1);
 	void DeleteInactiveStates();
 
 	Array<ApplicationState*> m_states;

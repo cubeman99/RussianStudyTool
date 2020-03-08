@@ -40,6 +40,11 @@ CardEnKey Card::GetEnKey() const
 	return CardEnKey(m_type, m_text.english, m_tags);
 }
 
+bool Card::HasRelatedCards(Card::sptr card) const
+{
+	return cmg::container::Contains(m_relatedCards, card);
+}
+
 Set<Card::sptr>& Card::GetRelatedCards()
 {
 	return m_relatedCards;

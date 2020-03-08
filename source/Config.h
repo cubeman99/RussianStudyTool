@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Types.h"
+#include "AccentedText.h"
 #include <cmgGraphics/cmg_graphics.h>
 
 class GUIConfig
@@ -36,7 +37,7 @@ public:
 	static Color k_colorEditedDuplicate;
 	static Color k_colorEditedMatched;
 	static constexpr uint32 k_maxCardHistorySize = 100;
-	static constexpr uint32 k_minRepeatInterval = 4;
+	static constexpr uint32 k_minRepeatInterval = 8;
 	static constexpr uint32 k_newCardInterval = 4;
 	static Map<ProficiencyLevel, float> k_proficiencyLevelScoreMultipliers;
 	static Map<ProficiencyLevel, uint32> k_proficiencyLevelIntervals;
@@ -45,6 +46,8 @@ public:
 
 	static const Color& GetCardTagColor(CardTags tag);
 	static const Color& GetProficiencyLevelColor(ProficiencyLevel level);
+	static Color GetHistoryScoreColor(float score);
+	static AccentedText GetCardTagShortDisplayName(CardTags tag);
 
 private:
 	static Map<CardTags, Color> k_mapCardTagColors;

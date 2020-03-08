@@ -41,24 +41,25 @@ StudyState::StudyState(IStudySet* studySet, CardSet::sptr cardSet, const StudyPa
 	m_anchorLayout.Add(&m_widgetUnrevealed);
 	m_anchorLayout.Add(&m_widgetRevealed);
 
-	m_anchorLayout.Add(&m_labelHistoryScore)
-		.Pin(0.5f, 0.0f, TextAlign::CENTERED)
-		.Offset(0.0f, 0.0f, 0.0f, barHeight);
-	m_anchorLayout.Add(&m_labelEncounterTime)
-		.Pin(1.0f, 0.0f, TextAlign::MIDDLE_RIGHT)
-		.Offset(0.0f, 0.0f, 0.0f, barHeight);
-	m_anchorLayout.Add(&m_labelWordType)
-		.Pin(0.5f, 0.2f, TextAlign::CENTERED);
-	m_layoutUnrevealed.Add(&m_widgetTagsShown)
-		.Pin(0.5f, 0.5f, TextAlign::BOTTOM_CENTER).Offset(0, -80);
-	m_layoutRevealed.Add(&m_widgetTagsRevealed)
-		.Pin(0.5f, 0.5f, TextAlign::BOTTOM_CENTER).Offset(0, -80);
 	m_anchorLayout.Add(&m_proficiencyBarTop)
 		.Pin(0.0f, 0.0f, 1.0f, 0.0f)
 		.Offset(0.0f, 0.0f, 0.0f, barHeight);
 	m_anchorLayout.Add(&m_proficiencyBarBottom)
 		.Pin(0.0f, 1.0f, 1.0f, 1.0f)
 		.Offset(0.0f, -barHeight, 0.0f, 0.0f);
+	m_anchorLayout.Add(&m_studyHistoryTimeline)
+		.Pin(0.0f, 0.0f, 0.3f, 0.0f)
+		.Offset(0.0f, 0.0f, 0.0f, barHeight);
+	m_anchorLayout.Add(&m_labelWordType)
+		.Pin(0.5f, 0.0f, TextAlign::CENTERED)
+		.Offset(0.0f, 0.0f, 0.0f, barHeight);
+	m_anchorLayout.Add(&m_labelEncounterTime)
+		.Pin(1.0f, 0.0f, TextAlign::MIDDLE_RIGHT)
+		.Offset(0.0f, 0.0f, 0.0f, barHeight);
+	m_layoutUnrevealed.Add(&m_widgetTagsShown)
+		.Pin(0.5f, 0.5f, TextAlign::BOTTOM_CENTER).Offset(0, -80);
+	m_layoutRevealed.Add(&m_widgetTagsRevealed)
+		.Pin(0.5f, 0.5f, TextAlign::BOTTOM_CENTER).Offset(0, -80);
 	m_layoutRevealed.Add(&m_layoutDefinitions)
 		.Pin(0.0f, 1.0f, TextAlign::BOTTOM_LEFT)
 		.Offset(8.0f, -barHeight - 16);
@@ -113,21 +114,16 @@ StudyState::StudyState(IStudySet* studySet, CardSet::sptr cardSet, const StudyPa
 
 	SetBackgroundColor(GUIConfig::color_background);
 
+	m_labelWordType.SetAlign(TextAlign::CENTERED);
+	m_labelEncounterTime.SetAlign(TextAlign::MIDDLE_RIGHT);
 	m_labelCardTextShown.SetAlign(TextAlign::BOTTOM_CENTER);
-	m_labelWordType.SetAlign(TextAlign::TOP_CENTER);
-	m_labelHistoryScore.SetAlign(TextAlign::TOP_CENTER);
-	m_labelEncounterTime.SetAlign(TextAlign::TOP_CENTER);
 	m_labelCardTextRevealed.SetAlign(TextAlign::TOP_CENTER);
-	m_labelCardTextShown.SetColor(Color::WHITE);
-	m_labelCardTextRevealed.SetColor(Color::WHITE);
-	m_labelWordType.SetColor(Color::WHITE);
-	m_labelEncounterTime.SetColor(Color::WHITE);
-	m_labelHistoryScore.SetColor(Color::WHITE);
 
 	// Connect signals
 	AddKeyShortcut("e", [this]() { OpenCardEditView(m_card); return true; });
 	AddKeyShortcut("r", [this]() { OpenRelatedCardsView(m_card); return true; });
 	AddKeyShortcut("s", [this]() { OpenAddCardToSetView(m_card); return true; });
+	AddKeyShortcut("o", [this]() { ReshowCard(); return true; });
 	AddKeyShortcut("enter", [this]() { MarkGoodAndNext(); return true; });
 	AddKeyShortcut("backspace", [this]() { RevealOrMarkBadAndNext(); return true; });
 	//AddKeyShortcut("escape", [this]() { ShowPauseMenu(); return true; });
@@ -223,11 +219,17 @@ void StudyState::NextCard()
 	ShowCard(card, shownSide);
 }
 
+void StudyState::ReshowCard()
+{
+	ShowCard(m_card, m_shownSide);
+}
+
 void StudyState::ShowCard(Card::sptr card, Language shownSide)
 {
 	auto app = (RussianStudyToolApp*) GetApp();
 	auto& cardDatabase = app->GetCardDatabase();
 	auto& exampleDatabase = app->GetExampleDatabase();
+	auto& wordDatabase = app->GetWordDatabase();
 	m_card = card;
 	m_term = nullptr;
 	m_wikiWord = nullptr;
@@ -236,38 +238,16 @@ void StudyState::ShowCard(Card::sptr card, Language shownSide)
 	m_revealedSide = (shownSide == Language::k_english ?
 		Language::k_russian : Language::k_english);
 	m_isRevealed = false;
+	m_widgetRevealed.SetVisible(false);
+	m_widgetUnrevealed.SetVisible(true);
 	CMG_LOG_INFO() << "Showing card: " << m_card->GetText(m_shownSide);
-	
-	Font::sptr fontSmall = GetApp()->GetResourceManager()->Get<Font>(Res::FONT_SMALL);
 
-	// Wiktionary word
-	Array<unistr> wordNames;
-	for (const unistr& pattern : m_card->GetWordPatterns())
-		wordNames.push_back(pattern);
-	for (const unistr& pattern : m_card->GetWordNames())
-		wordNames.push_back(pattern);
-	if (!wordNames.empty())
-	{
-		for (uint32 i = 0; i < wordNames.size() && !m_term; i++)
-		{
-			m_term = app->GetWiktionary().GetTerm(wordNames[i]);
-			if (!m_term)
-				m_term = app->GetWiktionary().DownloadTerm(wordNames[i]);
-		}
-		if (m_term)
-		{
-			m_wikiWord = m_term->GetWord(m_card->GetWordType());
-			if (!m_wikiWord)
-			{
-				for (WordType wordType : EnumValues<WordType>())
-				{
-					m_wikiWord = m_term->GetWord(wordType);
-					if (m_wikiWord)
-						break;
-				}
-			}
-		}
-	}
+	// Get wiktionary word
+	m_term = nullptr;
+	m_wikiWord = nullptr;
+	wordDatabase.GetWordFromCard(m_card, m_term, m_wikiWord);
+
+	Font::sptr fontSmall = GetApp()->GetResourceManager()->Get<Font>(Res::FONT_SMALL);
 
 	m_layoutDefinitions.Clear();
 	m_widgetNounInfo.SetVisible(false);
@@ -296,11 +276,11 @@ void StudyState::ShowCard(Card::sptr card, Language shownSide)
 	for (uint32 i = 0; i < exampleCount; i++)
 	{
 		SentenceMatch& match = exampleMatches[i];
-		ExampleTextWidget* exampleLabel = new ExampleTextWidget(match);
+		ExampleTextWidget* exampleLabel = AllocateObject<ExampleTextWidget>(match);
 		exampleLabel->SetFont(fontSmall);
 		m_layoutExamples.Add(exampleLabel);
 	}
-	Label* exampleCountLabel = new Label(
+	Label* exampleCountLabel = AllocateObject<Label>(
 		std::to_string(exampleMatches.size()) + " total examples");
 	exampleCountLabel->SetFont(fontSmall);
 	exampleCountLabel->SetColor(GUIConfig::color_text_box_background_text);
@@ -361,28 +341,8 @@ void StudyState::ShowCard(Card::sptr card, Language shownSide)
 			m_layoutDefinitions.Add(&m_listAntonyms);
 
 		// Add definitions
-		m_layoutDefinitions.Add(new Label(
-			m_wikiWord->GetText() + AccentedText(" (" +
-				EnumToString(m_wikiWord->GetWordType()) + "):"), fontSmall));
-		uint32 number = 1;
-		const auto& wordDefinitions = m_wikiWord->GetDefinitions();
-		for (auto definition : wordDefinitions)
-		{
-			std::stringstream ss;
-			ss << number << ". ";
-			AccentedText text = ss.str() + definition.GetDefinition();
-			m_layoutDefinitions.Add(new Label(text, fontSmall));
-			number++;
-			if (number > 10)
-			{
-				Label* label = new Label(
-					"(+ " + std::to_string(wordDefinitions.size() - number + 1) +
-					" others)", fontSmall);
-				label->SetBackgroundColor(GUIConfig::color_text_box_background_text);
-				m_layoutDefinitions.Add(label);
-				break;
-			}
-		}
+		m_wordDefinitionWidget.SetWord(m_wikiWord);
+		m_layoutDefinitions.Add(&m_wordDefinitionWidget);
 	}
 
 	// Card tag boxes
@@ -396,12 +356,12 @@ void StudyState::ShowCard(Card::sptr card, Language shownSide)
 			CardTags tag = it.first;
 			if (IsKeyCardTag(tag))
 			{
-				tagLabel = new Label(EnumToString(tag));
+				tagLabel = AllocateObject<Label>(EnumToString(tag));
 				tagLabel->SetColor(Color::WHITE);
 				tagLabel->SetBackgroundColor(Config::GetCardTagColor(tag));
 				m_layoutTagsShown.Add(tagLabel);
 			}
-			tagLabel = new Label(EnumToString(tag));
+			tagLabel = AllocateObject<Label>(EnumToString(tag));
 			tagLabel->SetColor(Color::WHITE);
 			tagLabel->SetBackgroundColor(Config::GetCardTagColor(tag));
 			m_layoutTagsRevealed.Add(tagLabel);
@@ -411,18 +371,16 @@ void StudyState::ShowCard(Card::sptr card, Language shownSide)
 	// Card set list
 	m_layoutCardSets.Clear();
 	for (CardSet::sptr cardSet : cardDatabase.GetCardSetsWithCard(m_card))
-		m_layoutCardSets.Add(new Label(cardSet->GetName(), fontSmall));
+		m_layoutCardSets.Add(AllocateObject<Label>(cardSet->GetName(), fontSmall));
 
 	m_labelCardTextShown.SetText(m_card->GetText(m_shownSide));
 	m_labelCardTextRevealed.SetText(m_card->GetText(m_revealedSide));
-	m_widgetRevealed.SetVisible(false);
-	m_widgetUnrevealed.SetVisible(true);
 	m_labelWordType.SetText(EnumToString(m_card->GetWordType()));
+	m_studyHistoryTimeline.SetCardStudyData(m_cardStudyData);
+	m_studyHistoryTimeline.SetVisible(
+		m_cardStudyData.IsEncountered());
 
 	std::stringstream ss;
-	ss << m_cardStudyData.GetHistoryScore();
-	m_labelHistoryScore.SetText(ss.str());
-	ss.str("");
 
 	if (m_cardStudyData.IsEncountered())
 	{
@@ -533,15 +491,17 @@ void StudyState::Copy()
 
 void StudyState::OnCardDataChanged(Card::sptr card)
 {
-	if (card == m_card)
-		ShowCard(card, m_shownSide);
+	if (card == m_card || (m_card && m_card->HasRelatedCards(card)))
+	{
+		ReshowCard();
+	}
 }
 
 void StudyState::OnCardAddedOrRemovedFromSet(
 	Card::sptr card, CardSet::sptr cardSet)
 {
 	if (card == m_card)
-		ShowCard(card, m_shownSide);
+		ReshowCard();
 }
 
 bool StudyState::PopulateTermList(RelatedWordList& termList,
@@ -572,17 +532,17 @@ void StudyState::OnClickWordBox(RelatedWordWidget* widget)
 	MenuItemWidget* menuOption;
 	menu->AddCancelOption("Cancel");
 
-	menuOption = menu->AddMenuOption("Create as Card", true,
-		new CaptureMethodDelegate(this, widget, &StudyState::OnChooseCreateAsCard));
-	menuOption->SetEnabled(card == nullptr);
+	if (card != nullptr)
+		menuOption = menu->AddMenuOption("Edit Card", true,
+			new CaptureMethodDelegate(this, card, &StudyState::OpenCardEditView));
+	else
+		menuOption = menu->AddMenuOption("Create as Card", true,
+			new CaptureMethodDelegate(this, widget, &StudyState::OnChooseCreateAsCard));
 
 	menuOption = menu->AddMenuOption("Open in Wiktionary", true,
 		new CaptureMethodDelegate<StudyState, const AccentedText&, void>(
 			this, widget->GetText(), &StudyState::OpenInWebBrowser));
 
-	menuOption = menu->AddMenuOption("Edit Card", true,
-		new CaptureMethodDelegate(this, card, &StudyState::OpenCardEditView));
-	menuOption->SetEnabled(card != nullptr);
 
 	if (!card || !m_cardSet || !m_cardSet->HasCard(card))
 		menuOption = menu->AddMenuOption("Add to Card Set", true,
@@ -605,8 +565,25 @@ void StudyState::OnClickWordBox(RelatedWordWidget* widget)
 
 void StudyState::OnChooseCreateAsCard(RelatedWordWidget* widget)
 {
+	// Create card data
+	CardData cardData;
+	cardData.text.russian = widget->GetText();
+	unistr termText = widget->GetText().GetString();
+	ru::ToLowerIP(termText);
+	ru::TryPredictWordType(termText, cardData.type);
+
+	// Get the wiki term
 	wiki::Term::sptr term = widget->GetWiktionaryTerm();
-	//GetApp()->PushState(new CardEditWidget(card));
+	if (!term)
+	{
+		auto& wiktionary = GetApp()->GetWiktionary();
+		term = wiktionary.GetTerm(termText);
+		if (!term)
+			term = wiktionary.DownloadTerm(termText);
+	}
+
+	// Open the card editor
+	GetApp()->PushState(new CardEditWidget(cardData));
 }
 
 void StudyState::OnChooseAddToRelatedCards(Card::sptr card)

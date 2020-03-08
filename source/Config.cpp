@@ -65,3 +65,36 @@ const Color& Config::GetProficiencyLevelColor(ProficiencyLevel level)
 {
 	return k_proficiencyLevelColors[level];
 }
+
+Color Config::GetHistoryScoreColor(float score)
+{
+	return Color::Lerp(GetProficiencyLevelColor(ProficiencyLevel::k_hard),
+		GetProficiencyLevelColor(ProficiencyLevel::k_learned), score);
+}
+
+AccentedText Config::GetCardTagShortDisplayName(CardTags tag)
+{
+	switch (tag)
+	{
+	case CardTags::k_verb_suffix_ai:   return AccentedText(u"-ай");
+	case CardTags::k_verb_suffix_ei:   return AccentedText(u"-ей");
+	case CardTags::k_verb_suffix_ova:  return AccentedText(u"-ова");
+	case CardTags::k_verb_suffix_nu:   return AccentedText(u"-ну");
+	case CardTags::k_verb_suffix_nu2:  return AccentedText(u"-(ну)");
+	case CardTags::k_verb_suffix_a1:   return AccentedText(u"-а");
+	case CardTags::k_verb_suffix_a2:   return AccentedText(u"-а");
+	case CardTags::k_verb_suffix_a3:   return AccentedText(u"-а");
+	case CardTags::k_verb_suffix_avai: return AccentedText(u"-авай");
+	case CardTags::k_verb_suffix_o:    return AccentedText(u"-о");
+	case CardTags::k_verb_suffix_i:    return AccentedText(u"-и");
+	case CardTags::k_verb_suffix_e:    return AccentedText(u"-е");
+	case CardTags::k_verb_suffix_zha:  return AccentedText(u"-жа");
+	case CardTags::k_obstruent_stem:   return AccentedText(u"Obstr");
+	case CardTags::k_resonant_stem:    return AccentedText(u"Reson");
+	case CardTags::k_masculine:        return AccentedText(u"M");
+	case CardTags::k_neuter:           return AccentedText(u"N");
+	case CardTags::k_feminine:         return AccentedText(u"F");
+	default:
+		return EnumToShortString(tag);
+	}
+}

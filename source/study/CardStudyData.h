@@ -1,28 +1,35 @@
 ﻿#pragma once
 
 #include "cards/Card.h"
+#include "core/JsonUtility.h"
 
 
 class CardStudyData
 {
 public:
-	friend class StudyDatabase;
+	CardStudyData();
 
-	CardStudyData() {}
+	ProficiencyLevel GetProficiencyLevel() const;
+	AppTimestamp GetLastEncounterTime() const;
+	bool IsEncountered() const;
+	float GetHistoryScore() const;
+	bool GetHistoryKnewIt(uint32 index) const;
+	AppTimestamp GetHistoryTimestamp(uint32 index) const;
+	uint32 GetHistorySize() const;
 
-	ProficiencyLevel GetProficiencyLevel() const { return m_proficiencyLevel; }
-	AppTimestamp GetLastEncounterTime() const { return m_lastEncounterTime; }
-	bool IsEncountered() const { return (m_lastEncounterTime > 0.0); }
+	void SetProficiencyLevel(ProficiencyLevel proficiencyLevel);
+	void AddToHistory(bool knewIt, AppTimestamp timestamp);
 
-	float GetHistoryScore() const
-	{
-		return CalcHistoryScore(m_history);
-	}
+	void Serialize(rapidjson::Value& value,
+		rapidjson::Document::AllocatorType& allocator, const CardRuKey& key) const;
+	Error Deserialize(rapidjson::Value& data, CardRuKey& outKey);
 
 	static float CalcHistoryScore(const Array<bool>& history);
 
 private:
+	// First = most recent
 	Array<bool> m_history;
+	Array<AppTimestamp> m_historyTimestamps;
 	AppTimestamp m_lastEncounterTime = -1.0;
 	ProficiencyLevel m_proficiencyLevel = ProficiencyLevel::k_new;
 };
