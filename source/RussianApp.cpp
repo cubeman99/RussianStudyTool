@@ -5,6 +5,7 @@
 #include "widgets/TestWidget.h"
 #include "widgets/CardSetEditWidget.h"
 #include "widgets/CardSetBrowserWidget.h"
+#include "widgets/CardEditWidget.h"
 #include "widgets/CardListView.h"
 #include "examples/ExampleDatabase.h"
 
@@ -91,9 +92,11 @@ void RussianStudyToolApp::OnInitialize()
 
 #ifdef USE_TEST_DATA
 	CardSet::sptr cardSet = m_cardDatabase.GetCardSet(CardSetKey(u"conversation"));
+	Card::sptr card = m_cardDatabase.GetCard(CardRuKey(WordType::k_noun, unistr(u"стол")));
 #else
 	//CardSet::sptr cardSet = m_cardDatabase.GetCardSet(CardSetKey(u"common words"));
 	CardSet::sptr cardSet = m_cardDatabase.GetCardSet(CardSetKey(u"important phrases"));
+	Card::sptr card = m_cardDatabase.GetCard(CardRuKey(WordType::k_noun, unistr(u"стол")));
 #endif
 
 	m_mainMenuWidget = new MainMenuWidget(m_cardDatabase.GetRootPackage());
@@ -101,6 +104,7 @@ void RussianStudyToolApp::OnInitialize()
 	//PushState(new Widget());
 	//PushState(new CardSearchWidget());
 	//PushState(new CardSetEditWidget(cardSet));
+	//PushState(new CardEditWidget(card));
 	//PushState(new StudyState(cardSet.get(), cardSet));
 	//PushState(new CardListView(cardSet.get()));
 
@@ -188,12 +192,12 @@ void RussianStudyToolApp::OnRender()
 	
 	m_stateStack.Render(g, 0.0f);
 
-//#ifdef _DEBUG
+#ifdef _DEBUG
 	String str;
 	str = "Allocs: " + std::to_string(GUIObject::s_globalAllocationCount);
 	str += ",  Connections: " + std::to_string(EventSignalBase::s_globalSignalConnectionCount);
 	g.DrawString(m_font.get(), str, Vector2f(10, 10), Color::RED);
-//#endif
+#endif
 
 	/*
 	if (m_joystick)

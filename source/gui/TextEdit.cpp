@@ -31,6 +31,8 @@ TextEdit::TextEdit(const unistr& text, Font::sptr font) :
 	SetFocusable(true);
 	m_cursorPosition = text.length();
 
+	LostFocus().Connect(this, &TextEdit::OnLoseFocus);
+
 	SetBackgroundColor(GUIConfig::color_text_box_background);
 }
 
@@ -127,6 +129,11 @@ void TextEdit::Cut()
 	}
 }
 
+void TextEdit::OnLoseFocus()
+{
+	Deselect();
+}
+
 void TextEdit::CalcSizes()
 {
 	if (!m_font)
@@ -176,7 +183,11 @@ bool TextEdit::OnKeyDown(Keys key, uint32 mods)
 		if (hasSelection)
 			DeleteSelection();
 		else if (m_cursorPosition < m_text.length())
-			m_text.erase(m_cursorPosition, 1);
+		{
+			uint32 nextPos = GetNextCursorPosition(true, ctrl);
+			if (nextPos > m_cursorPosition)
+				m_text.erase(m_cursorPosition, nextPos - m_cursorPosition);
+		}
 		m_cursorTimer = 0.0f;
 	}
 	else if (key == Keys::backspace)
@@ -185,9 +196,13 @@ bool TextEdit::OnKeyDown(Keys key, uint32 mods)
 			DeleteSelection();
 		else if (m_cursorPosition > 0)
 		{
-			m_text.erase(m_cursorPosition - 1, 1);
-			if (m_cursorPosition > 0)
-				m_cursorPosition--;
+			uint32 nextPos = GetNextCursorPosition(false, ctrl);
+			if (nextPos < m_cursorPosition)
+			{
+				uint32 eraseCount = m_cursorPosition - nextPos;
+				m_cursorPosition = nextPos;
+				m_text.erase(m_cursorPosition, eraseCount);
+			}
 		}
 		m_cursorTimer = 0.0f;
 	}
@@ -197,8 +212,7 @@ bool TextEdit::OnKeyDown(Keys key, uint32 mods)
 			BeginSelection();
 		else
 			Deselect();
-		if (m_cursorPosition < m_text.length())
-			m_cursorPosition++;
+		m_cursorPosition = GetNextCursorPosition(true, ctrl);
 		m_cursorTimer = 0.0f;
 	}
 	else if (key == Keys::left)
@@ -207,8 +221,7 @@ bool TextEdit::OnKeyDown(Keys key, uint32 mods)
 			BeginSelection();
 		else
 			Deselect();
-		if (m_cursorPosition > 0)
-			m_cursorPosition--;
+		m_cursorPosition = GetNextCursorPosition(false, ctrl);
 		m_cursorTimer = 0.0f;
 	}
 	else if (key == Keys::home)
@@ -324,4 +337,35 @@ void TextEdit::OnRender(AppGraphics& g, float timeDelta)
 		g.DrawLine(Vector2f(cursorX, startY),
 			Vector2f(cursorX, endY), GUIConfig::color_text, 2.0f);
 	}
+}
+
+uint32 TextEdit::GetNextCursorPosition(bool right, bool wordBoundary) const
+{
+	uint32 index;
+	if (right)
+		index = Math::Min(m_cursorPosition + 1, m_text.length());
+	else
+		index = (m_cursorPosition > 0 ? m_cursorPosition - 1 : 0);
+	if (wordBoundary)
+	{
+		if (right)
+		{
+			while (index < m_text.length())
+			{
+				if (index > 0 && m_text[index - 1] == u' ' && m_text[index] != u' ')
+					break;
+				index++;
+			}
+		}
+		else
+		{
+			while (index > 0)
+			{
+				if (m_text[index - 1] == u' ' && m_text[index] != u' ')
+					break;
+				index--;
+			}
+		}
+	}
+	return index;
 }

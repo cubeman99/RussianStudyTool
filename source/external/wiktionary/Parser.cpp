@@ -143,6 +143,23 @@ Word::sptr ParseWord(PageSection* wordSection,
 				ParseNounDeclension(declensionSection);
 			noun->SetDeclension(nounDeclension);
 		}
+
+		if (infoNode)
+		{
+			// Parse gender
+			if (infoNode.FindFirst(".//*[@title='masculine gender']"))
+				noun->GetDeclension().SetGender(Gender::k_masculine);
+			else if (infoNode.FindFirst(".//*[@title='feminine gender']"))
+				noun->GetDeclension().SetGender(Gender::k_feminine);
+			else if (infoNode.FindFirst(".//*[@title='neuter gender']"))
+				noun->GetDeclension().SetGender(Gender::k_neuter);
+
+			// Parse animacy
+			if (infoNode.FindFirst(".//*[@title='inanimate']"))
+				noun->GetDeclension().SetAnimacy(Animacy::k_inanimate);
+			else if (infoNode.FindFirst(".//*[@title='animate']"))
+				noun->GetDeclension().SetAnimacy(Animacy::k_animate);
+		}
 	}
 	else if (wordType == WordType::k_adjective)
 	{

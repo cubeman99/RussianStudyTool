@@ -55,6 +55,7 @@ public:
 	void SetText(const AccentedText& text) { m_text = text; }
 	void SetEtymology(const AccentedText& etymology) { m_etymology = etymology; }
 
+	virtual EnumFlags<CardTags> GetTags() const;
 	virtual void GetAllForms(Set<AccentedText>& outForms) const;
 	virtual void Serialize(rapidjson::Value& value,
 		rapidjson::Document::AllocatorType& allocator);
@@ -81,9 +82,11 @@ public:
 	Noun();
 	
 	const ru::NounDeclension& GetDeclension() const { return m_declension; }
+	ru::NounDeclension& GetDeclension() { return m_declension; }
 
 	void SetDeclension(const ru::NounDeclension& declension) { m_declension = declension; }
 
+	virtual EnumFlags<CardTags> GetTags() const override;
 	virtual void GetAllForms(Set<AccentedText>& outForms) const;
 	void Serialize(rapidjson::Value& value,
 		rapidjson::Document::AllocatorType& allocator) override;
@@ -130,6 +133,7 @@ public:
 
 	void SetConjugation(const ru::VerbConjugation& conjugation) { m_conjugation = conjugation; }
 
+	virtual EnumFlags<CardTags> GetTags() const override;
 	virtual void GetAllForms(Set<AccentedText>& outForms) const;
 	void Serialize(rapidjson::Value& value,
 		rapidjson::Document::AllocatorType& allocator) override;
@@ -156,6 +160,7 @@ public:
 	Word::sptr GetWord(WordType wordType);
 	const Word::sptr GetWord(WordType wordType) const;
 	void GetAllForms(Set<AccentedText>& outForms) const;
+	Map<WordType, Word::sptr>& GetWords();
 
 	void Serialize(rapidjson::Value& value,
 		rapidjson::Document::AllocatorType& allocator);

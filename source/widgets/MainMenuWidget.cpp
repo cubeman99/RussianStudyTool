@@ -7,8 +7,10 @@
 #include "widgets/CardEditWidget.h"
 
 
-MainMenuItemWidget::MainMenuItemWidget(const AccentedText& name, IStudySet* studySet) :
-	m_studySet(studySet)
+MainMenuItemWidget::MainMenuItemWidget(const AccentedText& name,
+	IStudySet* studySet, CardSet::sptr cardSet) :
+	m_studySet(studySet),
+	m_cardSet(cardSet)
 {
 	SetFocusable(true);
 
@@ -16,7 +18,12 @@ MainMenuItemWidget::MainMenuItemWidget(const AccentedText& name, IStudySet* stud
 	m_labelName.SetAlign(TextAlign::MIDDLE_LEFT);
 	m_labelName.SetColor(GUIConfig::color_text);
 
+	m_labelType.SetColor(GUIConfig::color_text_box_background_text);
+	if (m_cardSet)
+		m_labelType.SetText(EnumToShortString(m_cardSet->GetCardSetType()));
+
 	m_layout.Add(&m_labelName, 1.0f);
+	m_layout.Add(&m_labelType, 0.3f);
 	if (m_studySet)
 		m_layout.Add(&m_proficiencyBar, 1.0f);
 	SetLayout(&m_layout);
@@ -116,7 +123,7 @@ void MainMenuWidget::SetPackage(CardSetPackage::sptr package,
 	// Card Sets
 	for (auto cardSet : m_package->GetCardSets())
 	{
-		button = AddMenuOption(cardSet->GetName(), cardSet.get());
+		button = AddMenuOption(cardSet->GetName(), cardSet.get(), cardSet);
 		button->Clicked().Connect(
 			this, cardSet, &MainMenuWidget::OpenCardSet);
 		m_cardSetItems[cardSet] = button;
@@ -215,10 +222,10 @@ void MainMenuWidget::GoBack()
 }
 
 MainMenuItemWidget::sptr MainMenuWidget::AddMenuOption(
-	const AccentedText& name, IStudySet* studySet)
+	const AccentedText& name, IStudySet* studySet, CardSet::sptr cardSet)
 {
 	MainMenuItemWidget::sptr option = cmg::make_shared<MainMenuItemWidget>(
-		name, studySet);
+		name, studySet, cardSet);
 	m_menuItems.push_back(option);
 	m_optionLayout.Add(option.get());
 	return option;

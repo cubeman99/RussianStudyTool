@@ -51,6 +51,7 @@ RelatedWordWidget::RelatedWordWidget(const AccentedText& text) :
 void RelatedWordWidget::OnInitialize()
 {
 	auto& cardDatabase = GetApp()->GetCardDatabase();
+	auto& studyDatabase = GetApp()->GetStudyDatabase();
 	auto& wiktionary = GetApp()->GetWiktionary();
 
 	m_card = nullptr;
@@ -70,7 +71,9 @@ void RelatedWordWidget::OnInitialize()
 
 	if (m_card)
 	{
-		m_label.SetBackgroundColor(Color::DARK_GREEN);
+		const CardStudyData& studyData = studyDatabase.GetCardStudyData(m_card);
+		m_label.SetBackgroundColor(
+			Config::GetHistoryScoreColor(studyData.GetHistoryScore()));
 	}
 	else if (m_term)
 	{

@@ -11,21 +11,49 @@ CardListView::CardListView(IStudySet* studySet) :
 	m_studySet(studySet),
 	m_buttonRefreshList("Refresh")
 {
-	m_layoutTitle.Add(&m_labelName);
-	m_layoutTitle.Add(&m_buttonRefreshList);
-	m_layoutTitle.Add(&m_labelCount);
-	m_layoutTitle.Add(&m_topProficiencyBar);
-	m_titleWidget.SetBackgroundColor(GUIConfig::color_background_light);
-	m_titleWidget.SetLayout(&m_layoutTitle);
+	// Title
+	m_layoutTitleBar.Add(&m_labelName);
+	m_layoutTitleBar.Add(&m_buttonRefreshList);
+	m_layoutTitleBar.Add(&m_labelCount);
+	m_layoutTitleBar.Add(&m_topProficiencyBar);
 
+	// Nvaigation
 	m_layoutPageNavigation.Add(&m_buttonPrevPage);
 	m_layoutPageNavigation.Add(&m_labelPage);
 	m_layoutPageNavigation.Add(&m_buttonNextPage);
 	m_labelPage.SetAlign(TextAlign::CENTERED);
 
+	// Table header
+	m_layoutTableHeader.Add(&m_labelHeaderNumber, 0.5f);
+	m_layoutTableHeader.Add(&m_labelHeaderWordType, 0.8f);
+	m_layoutTableHeader.Add(&m_labelHeaderRussian, 4.0f);
+	m_layoutTableHeader.Add(&m_labelHeaderEnglish, 4.0f);
+	m_layoutTableHeader.Add(&m_labelHeaderTags, 1.0f);
+	m_layoutTableHeader.Add(&m_labelHeaderScore, 0.5f);
+	m_headerLabelMap[SortKey::kNumber] = &m_labelHeaderNumber;
+	m_headerLabelMap[SortKey::kWordType] = &m_labelHeaderWordType;
+	m_headerLabelMap[SortKey::kRussian] = &m_labelHeaderRussian;
+	m_headerLabelMap[SortKey::kEnglish] = &m_labelHeaderEnglish;
+	m_headerLabelMap[SortKey::kTags] = &m_labelHeaderTags;
+	m_headerLabelMap[SortKey::kScore] = &m_labelHeaderScore;
+	m_headerNameMap[SortKey::kNumber] = "#";
+	m_headerNameMap[SortKey::kWordType] = "Type";
+	m_headerNameMap[SortKey::kRussian] = "Russian";
+	m_headerNameMap[SortKey::kEnglish] = "English";
+	m_headerNameMap[SortKey::kTags] = "Tags";
+	m_headerNameMap[SortKey::kScore] = "Score";
+
+	// Card list
 	m_layoutCardList.SetItemBackgroundColors(true);
 	m_widgetCardList.SetLayout(&m_layoutCardList);
 	m_scrollArea.SetWidget(&m_widgetCardList);
+
+	// Title panel
+	m_layoutTitle.Add(&m_layoutTitleBar);
+	m_layoutTitle.Add(&m_layoutPageNavigation);
+	m_layoutTitle.Add(&m_layoutTableHeader);
+	m_titleWidget.SetBackgroundColor(GUIConfig::color_background_light);
+	m_titleWidget.SetLayout(&m_layoutTitle);
 
 	// Create layouts
 	m_mainLayout.SetSpacing(0.0f);
@@ -39,6 +67,11 @@ CardListView::CardListView(IStudySet* studySet) :
 	m_buttonPrevPage.Clicked().Connect(this, &CardListView::GoToPrevPage);
 	m_buttonNextPage.Clicked().Connect(this, &CardListView::GoToNextPage);
 	m_buttonRefreshList.Clicked().Connect(this, &CardListView::OnClickRefresh);
+	AddKeyShortcut("1", [this]{ ApplySortKey(SortKey::kWordType); return true; });
+	AddKeyShortcut("2", [this]{ ApplySortKey(SortKey::kRussian); return true; });
+	AddKeyShortcut("3", [this]{ ApplySortKey(SortKey::kEnglish); return true; });
+	AddKeyShortcut("4", [this]{ ApplySortKey(SortKey::kScore); return true; });
+	AddKeyShortcut("f5", [this]{ OnClickRefresh(); return true; });
 }
 
 void CardListView::SetCards(IStudySet* studySet)
@@ -54,9 +87,7 @@ void CardListView::SetPage(uint32 pageIndex, bool changeFocus)
 	m_pageIndex = pageIndex;
 	Widget* itemToSelect = nullptr;
 	m_layoutCardList.Clear();
-
-	m_layoutCardList.Add(&m_layoutPageNavigation);
-
+	
 	// Page navigation
 	m_buttonPrevPage.SetEnabled(m_pageIndex > 0);
 	m_buttonNextPage.SetEnabled(m_pageIndex + 1 < m_pageCount);
@@ -186,9 +217,10 @@ void CardListView::OnCardAddedOrRemovedFromSet(Card::sptr card, CardSet::sptr ca
 
 void CardListView::RefreshRow(Row::sptr row)
 {
-	int index = cmg::container::GetIndex(m_rows, row);
+	int index = cmg::container::GetIndex(m_cards, row->m_card);
 
 	auto& studyDatabase = GetApp()->GetStudyDatabase();
+	auto& wordDatabase = GetApp()->GetWordDatabase();
 	const auto& studyData = studyDatabase.GetCardStudyData(row->m_card);
 
 	bool isInStudySet = cmg::container::Contains(
@@ -199,11 +231,21 @@ void CardListView::RefreshRow(Row::sptr row)
 		numberText += " (!)";
 	row->m_labelNumber.SetText(numberText);
 
+	// Get the wiki word
+	wiki::Term::sptr term = nullptr;
+	wiki::Word::sptr word = nullptr;
+	wordDatabase.GetWordFromCard(row->m_card, term, word, false);
+
+	// Get card tags from the wiki word, if relevant
+	EnumFlags<CardTags> cardTags = row->m_card->GetTags();
+	if (word && word->GetWordType() == row->m_card->GetWordType())
+		cardTags = (cardTags | word->GetTags());
+
 	row->m_labelType.SetText(EnumToShortString(row->m_card->GetWordType()));
 	row->m_labelRussian.SetText(row->m_card->GetRussian());
 	row->m_labelEnglish.SetText(row->m_card->GetEnglish());
 	row->m_layoutTags.Clear();
-	for (auto it : row->m_card->GetTags())
+	for (auto it : cardTags)
 	{
 		if (it.second)
 		{
@@ -267,6 +309,16 @@ void CardListView::OnClickRefresh()
 
 void CardListView::RepopulateCardList(bool forceRefresh, bool changeFocus)
 {
+	// Update header labels
+	for (auto it : m_headerLabelMap)
+	{
+		AccentedText name = m_headerNameMap[it.first];
+		if (m_sortKey == it.first)
+			name += unistr(m_sortAscending ? u" (v)" : u" (^)");
+		it.second->SetColor(GUIConfig::color_text_box_background_text);
+		it.second->SetText(name);
+	}
+
 	// Get sorted list of cards
 	Array<Card::sptr> newCards;
 	bool changed = GetSortedCardList(newCards);
@@ -295,23 +347,91 @@ void CardListView::RepopulateCardList(bool forceRefresh, bool changeFocus)
 
 bool CardListView::GetSortedCardList(Array<Card::sptr>& outCardList)
 {
+	StudyDatabase& studyDatabase = GetApp()->GetStudyDatabase();
+
 	// Sort cards
 	struct RowComparator
 	{
+		bool sortAscending;
+		CardListView::SortKey sortKey;
+		StudyDatabase& studyDatabase;
+
+		RowComparator(StudyDatabase& studyDatabase,
+			CardListView::SortKey sortKey, bool sortAscending) :
+			studyDatabase(studyDatabase),
+			sortKey(sortKey),
+			sortAscending(sortAscending)
+		{
+		}
+
 		inline bool operator()(Card::sptr cardA, Card::sptr cardB)
 		{
-			CardRuKey keyA = cardA->GetRuKey();
-			CardRuKey keyB = cardB->GetRuKey();
-			auto tupleA = std::tuple<unistr, uint32>(
-				keyA.russian, (uint32) keyA.type);
-			auto tupleB = std::tuple<unistr, uint32>(
-				keyB.russian, (uint32) keyB.type);
-			return tupleA < tupleB;
+			if (sortKey == CardListView::SortKey::kRussian)
+			{
+				CardRuKey keyA = cardA->GetRuKey();
+				CardRuKey keyB = cardB->GetRuKey();
+				auto tupleA = std::tuple<unistr, String>(
+					keyA.russian, EnumToShortString(keyA.type));
+				auto tupleB = std::tuple<unistr, String>(
+					keyB.russian, EnumToShortString(keyB.type));
+				return (sortAscending ? tupleA < tupleB : tupleA > tupleB);
+			}
+			else if (sortKey == CardListView::SortKey::kEnglish)
+			{
+				CardEnKey keyA = cardA->GetEnKey();
+				CardEnKey keyB = cardB->GetEnKey();
+				auto tupleA = std::tuple<unistr, String>(
+					keyA.english, EnumToShortString(keyA.type));
+				auto tupleB = std::tuple<unistr, String>(
+					keyB.english, EnumToShortString(keyB.type));
+				return (sortAscending ? tupleA < tupleB : tupleA > tupleB);
+			}
+			else if (sortKey == CardListView::SortKey::kWordType)
+			{
+				CardRuKey keyA = cardA->GetRuKey();
+				CardRuKey keyB = cardB->GetRuKey();
+				auto tupleA = std::tuple<String, unistr>(
+					EnumToShortString(keyA.type), keyA.russian);
+				auto tupleB = std::tuple<String, unistr>(
+					EnumToShortString(keyB.type), keyB.russian);
+				return (sortAscending ? tupleA < tupleB : tupleA > tupleB);
+			}
+			else if (sortKey == CardListView::SortKey::kScore)
+			{
+				CardRuKey keyA = cardA->GetRuKey();
+				CardRuKey keyB = cardB->GetRuKey();
+				const auto& studyA = studyDatabase.GetCardStudyData(cardA);
+				const auto& studyB = studyDatabase.GetCardStudyData(cardB);
+				auto scoreA = (studyA.IsEncountered() ? studyA.GetHistoryScore() : -1.0f);
+				auto scoreB = (studyB.IsEncountered() ? studyB.GetHistoryScore() : -1.0f);
+				auto tupleA = std::tuple<float, unistr>(
+					scoreA, keyA.russian);
+				auto tupleB = std::tuple<float, unistr>(
+					scoreB, keyB.russian);
+				return (sortAscending ? tupleA < tupleB : tupleA > tupleB);
+			}
+			return false;
 		}
 	};
+
 	outCardList = m_studySet->GetCards();
-	std::sort(outCardList.begin(), outCardList.end(), RowComparator());
+	std::sort(outCardList.begin(), outCardList.end(),
+		RowComparator(studyDatabase, m_sortKey, m_sortAscending));
 	return (m_cards != outCardList);
+}
+
+void CardListView::ApplySortKey(SortKey sortKey)
+{
+	if (sortKey == m_sortKey)
+	{
+		m_sortAscending = !m_sortAscending;
+	}
+	else
+	{
+		m_sortKey = sortKey;
+		m_sortAscending = true;
+	}
+	RepopulateCardList(true, true);
 }
 
 CardListView::Row::Row(Card::sptr card) :

@@ -12,6 +12,16 @@
 class CardListView : public AppWidget
 {
 public:
+	enum class SortKey
+	{
+		kNumber = 0,
+		kWordType,
+		kRussian,
+		kEnglish,
+		kTags,
+		kScore,
+	};
+
 	CardListView(IStudySet* studySet);
 
 	void SetCards(IStudySet* studySet);
@@ -56,6 +66,7 @@ private:
 	void OnClickRefresh();
 	void RepopulateCardList(bool forceRefresh, bool changeFocus);
 	bool GetSortedCardList(Array<Card::sptr>& outCardList);
+	void ApplySortKey(SortKey sortKey);
 
 	IStudySet* m_studySet;
 	Array<Card::sptr> m_cards;
@@ -65,9 +76,14 @@ private:
 	uint32 m_pageIndex = 0;
 	uint32 m_pageCount = 0;
 
+	SortKey m_sortKey = SortKey::kRussian;
+	bool m_sortAscending = true;
+
 	VBoxLayout m_mainLayout;
-	HBoxLayout m_layoutTitle;
+	VBoxLayout m_layoutTitle;
+	HBoxLayout m_layoutTitleBar;
 	HBoxLayout m_layoutPageNavigation;
+	HBoxLayout m_layoutTableHeader;
 	Widget m_titleWidget;
 	StudyProficiencyBar m_topProficiencyBar;
 	Label m_labelName;
@@ -76,6 +92,14 @@ private:
 	Button m_buttonNextPage;
 	Button m_buttonPrevPage;
 	Button m_buttonRefreshList;
+	Label m_labelHeaderNumber;
+	Label m_labelHeaderWordType;
+	Label m_labelHeaderRussian;
+	Label m_labelHeaderEnglish;
+	Label m_labelHeaderTags;
+	Label m_labelHeaderScore;
+	Map<SortKey, Label*> m_headerLabelMap;
+	Map<SortKey, AccentedText> m_headerNameMap;
 
 	AbstractScrollArea m_scrollArea;
 	Widget m_widgetCardList;

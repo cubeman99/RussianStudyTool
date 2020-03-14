@@ -41,6 +41,7 @@ public:
 	static constexpr uint32 k_newCardInterval = 4;
 	static Map<ProficiencyLevel, float> k_proficiencyLevelScoreMultipliers;
 	static Map<ProficiencyLevel, uint32> k_proficiencyLevelIntervals;
+	static constexpr uint32 k_studyScoreHistogramBinCount = 10;
 
 	static void Initialize();
 

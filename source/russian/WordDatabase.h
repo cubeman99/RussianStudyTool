@@ -17,7 +17,8 @@ public:
 	~WordDatabase();
 
 	wiki::Wiktionary& GetWiktionary();
-	bool GetWordFromCard(Card::sptr card, wiki::Term::sptr& outTerm, wiki::Word::sptr& outWord);
+	bool GetWordFromCard(Card::sptr card, wiki::Term::sptr& outTerm,
+		wiki::Word::sptr& outWord, bool download = true);
 
 private:
 	WordDatabase(const WordDatabase& copy) = delete;

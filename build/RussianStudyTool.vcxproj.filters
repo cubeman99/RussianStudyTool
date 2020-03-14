@@ -243,9 +243,6 @@
     <ClCompile Include="..\source\russian\WordDatabase.cpp">
       <Filter>Source Files\russian</Filter>
     </ClCompile>
-    <ClCompile Include="..\source\widgets\CardListView.cpp">
-      <Filter>Source Files\widgets</Filter>
-    </ClCompile>
     <ClCompile Include="..\source\widgets\StudyHistoryTimeline.cpp">
       <Filter>Source Files\widgets</Filter>
     </ClCompile>
@@ -259,6 +256,9 @@
       <Filter>Source Files\russian</Filter>
     </ClCompile>
     <ClCompile Include="..\source\widgets\CardSearchWidget.cpp">
+      <Filter>Source Files\widgets\editors</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\widgets\CardListView.cpp">
       <Filter>Source Files\widgets\editors</Filter>
     </ClCompile>
   </ItemGroup>
@@ -467,9 +467,6 @@
     <ClInclude Include="..\source\russian\WordDatabase.h">
       <Filter>Source Files\russian</Filter>
     </ClInclude>
-    <ClInclude Include="..\source\widgets\CardListView.h">
-      <Filter>Source Files\widgets</Filter>
-    </ClInclude>
     <ClInclude Include="..\source\widgets\StudyHistoryTimeline.h">
       <Filter>Source Files\widgets</Filter>
     </ClInclude>
@@ -483,6 +480,9 @@
       <Filter>Source Files\russian</Filter>
     </ClInclude>
     <ClInclude Include="..\source\widgets\CardSearchWidget.h">
+      <Filter>Source Files\widgets\editors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\CardListView.h">
       <Filter>Source Files\widgets\editors</Filter>
     </ClInclude>
   </ItemGroup>

@@ -126,7 +126,7 @@ void AddCardToSetWidget::ApplyChanges()
 {
 	auto& cardDatabase = GetApp()->GetCardDatabase();
 	Set<CardSet::sptr> oldCardSets = cardDatabase.GetCardSetsWithCard(m_card);
-	Set<CardSet::sptr> newCardSets = cardDatabase.GetCardSetsWithCard(m_card);
+	Set<CardSet::sptr> newCardSets;
 	for (CardSet::sptr cardSet : m_table.GetItems())
 		newCardSets.insert(cardSet);
 	if (oldCardSets != newCardSets)

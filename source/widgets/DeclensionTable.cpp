@@ -1,6 +1,21 @@
 ﻿#include "DeclensionTable.h"
 #include "RussianApp.h"
 
+static const auto kGenderList = {
+	Gender::k_masculine,
+	Gender::k_feminine,
+	Gender::k_neuter,
+	Gender::k_plural,
+};
+static const auto kCaseList = {
+	Case::k_nominative,
+	Case::k_accusative,
+	Case::k_genitive,
+	Case::k_dative,
+	Case::k_instrumental,
+	Case::k_prepositional,
+};
+
 DeclensionTable::DeclensionTable()
 {
 	m_font = GetApp()->GetResourceManager()->Get<Font>(Res::FONT_SMALL);
@@ -18,17 +33,17 @@ void DeclensionTable::Clear()
 void DeclensionTable::InitNoun(const ru::NounDeclension& declension)
 {
 	Clear();
-
+	
 	// Create table header
-	for (Plurality plurality : EnumValues<Plurality>())
+	for (Plurality plurality : {Plurality::k_singular, Plurality::k_plural})
 		SetHeader(EnumToShortString(plurality) + ".", 0, 1 + (uint32) plurality);
-	for (Case adjectiveCase : EnumValues<Case>())
+	for (Case adjectiveCase : kCaseList)
 		SetHeader(EnumToShortString(adjectiveCase) + ".", 1 + (uint32) adjectiveCase, 0);
 
 	// Fill table body
-	for (Plurality plurality : EnumValues<Plurality>())
+	for (Plurality plurality : {Plurality::k_singular, Plurality::k_plural})
 	{
-		for (Case adjectiveCase : EnumValues<Case>())
+		for (Case adjectiveCase : kCaseList)
 		{
 			SetText(declension.GetDeclension(adjectiveCase, plurality),
 				1 + (uint32) adjectiveCase, 1 + (uint32) plurality);
@@ -39,18 +54,18 @@ void DeclensionTable::InitNoun(const ru::NounDeclension& declension)
 void DeclensionTable::InitAdjective(const ru::AdjectiveDeclension& declension)
 {
 	Clear();
-
+	
 	// Create table header
-	for (Gender gender : EnumValues<Gender>())
+	for (Gender gender : kGenderList)
 		SetHeader(EnumToShortString(gender) + ".", 0, 1 + (uint32) gender);
-	for (Case nounCase : EnumValues<Case>())
+	for (Case nounCase : kCaseList)
 		SetHeader(EnumToShortString(nounCase) + ".", 1 + (uint32) nounCase, 0);
 	SetHeader(u"short", 1 + (uint32) Case::k_count, 0);
 
 	// Fill table body
-	for (Gender gender : EnumValues<Gender>())
+	for (Gender gender : kGenderList)
 	{
-		for (Case nounCase : EnumValues<Case>())
+		for (Case nounCase : kCaseList)
 		{
 			SetText(declension.GetDeclension(nounCase, gender),
 				1 + (uint32) nounCase, 1 + (uint32) gender);

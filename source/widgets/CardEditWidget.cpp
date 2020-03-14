@@ -80,7 +80,7 @@ void CardEditWidget::OnInitialize()
 	if (m_card)
 	{
 		auto& wordDatabase = GetApp()->GetWordDatabase();
-		wordDatabase.GetWordFromCard(m_card, m_term, m_wikiWord);
+		wordDatabase.GetWordFromCard(m_card, m_term, m_wikiWord, true);
 		m_wordDefinitionWidget.SetWord(m_wikiWord);
 	}
 }

@@ -65,17 +65,13 @@ StudySetMetrics StudyDatabase::GetStudySetMetrics(const IStudySet* studySet)
 {
 	std::lock_guard<std::recursive_mutex> guard(m_mutexStudyData);
 	StudySetMetrics metrics;
-	metrics.m_historyScore = 0.0f;
 	uint32 totalCount = 0;
 	for (Card::sptr card : studySet->GetCards())
 	{
 		auto& cardStudyData = GetCardStudyData(card);
-		metrics.m_historyScore += cardStudyData.GetHistoryScore();
-		metrics.AddCount(cardStudyData.GetProficiencyLevel(), 1);
+		metrics.Add(cardStudyData);
 		totalCount++;
 	}
-	if (totalCount > 0)
-		metrics.m_historyScore /= totalCount;
 	return metrics;
 }
 

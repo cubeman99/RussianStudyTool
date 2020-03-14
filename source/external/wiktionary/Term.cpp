@@ -61,6 +61,12 @@ Word::Word(WordType wordType) :
 {
 }
 
+EnumFlags<CardTags> Word::GetTags() const
+{
+	EnumFlags<CardTags> tags;
+	return tags;
+}
+
 void Word::GetAllForms(Set<AccentedText>& outForms) const
 {
 	outForms.insert(m_text);
@@ -218,6 +224,11 @@ void Term::GetAllForms(Set<AccentedText>& outForms) const
 		it.second->GetAllForms(outForms);
 }
 
+Map<WordType, Word::sptr>& Term::GetWords()
+{
+	return m_words;
+}
+
 void Term::Serialize(rapidjson::Value& value,
 	rapidjson::Document::AllocatorType& allocator)
 {
@@ -291,6 +302,27 @@ Noun::Noun() :
 {
 }
 
+EnumFlags<CardTags> Noun::GetTags() const
+{
+	EnumFlags<CardTags> tags;
+
+	// Gender
+	if (m_declension.GetGender() == Gender::k_masculine)
+		tags.Set(CardTags::k_masculine, true);
+	else if (m_declension.GetGender() == Gender::k_feminine)
+		tags.Set(CardTags::k_feminine, true);
+	else if (m_declension.GetGender() == Gender::k_neuter)
+		tags.Set(CardTags::k_neuter, true);
+	
+	// Animacy
+	if (m_declension.GetAnimacy() == Animacy::k_animate)
+		tags.Set(CardTags::k_animate, true);
+	else if (m_declension.GetAnimacy() == Animacy::k_inanimate)
+		tags.Set(CardTags::k_inanimate, true);
+
+	return tags;
+}
+
 void Noun::GetAllForms(Set<AccentedText>& outForms) const
 {
 	m_declension.GetAllForms(outForms);
@@ -355,6 +387,17 @@ Error Adjective::Deserialize(rapidjson::Value& data)
 Verb::Verb() :
 	Word(WordType::k_verb)
 {
+}
+
+EnumFlags<CardTags> Verb::GetTags() const
+{
+	EnumFlags<CardTags> tags;
+	if (m_conjugation.GetAspect() == Aspect::k_perfective)
+		tags.Set(CardTags::k_perfective, true);
+	else if (m_conjugation.GetAspect() == Aspect::k_imperfective)
+		tags.Set(CardTags::k_imperfective, true);
+	// TODO: transitive, reflexive, stem
+	return tags;
 }
 
 void Verb::GetAllForms(Set<AccentedText>& outForms) const

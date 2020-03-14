@@ -204,6 +204,8 @@ void GUIManager::OnKeyDown(Window::KeyDownEvent* e)
 		mods |= KeyMods::k_control;
 	if (keyboard->IsKeyDown(Keys::left_alt) || keyboard->IsKeyDown(Keys::right_alt))
 		mods |= KeyMods::k_alt;
+	bool ctrl = mods & KeyMods::k_control;
+	bool shift = mods & KeyMods::k_shift;
 
 	GUIObject* startObject = m_focusedWidget ? m_focusedWidget : m_rootWidget;
 	for (GUIObject* object = startObject; object != nullptr;
@@ -225,8 +227,15 @@ void GUIManager::OnKeyDown(Window::KeyDownEvent* e)
 		}
 	}
 
-	if (e->key == Keys::escape && m_rootWidget)
+	// General GUI navigation keys
+	if (!ctrl && !shift && e->key == Keys::tab)
+		CycleFocus(false);
+	else if (!ctrl && shift && e->key == Keys::tab)
+		CycleFocus(true);
+	else if (e->key == Keys::escape && m_rootWidget)
 		m_rootWidget->Close();
+	else if (e->key == Keys::enter && m_focusedWidget)
+		m_focusedWidget->OnPress();
 }
 
 void GUIManager::OnKeyTyped(Window::KeyTypedEvent* e)
@@ -299,25 +308,10 @@ void GUIManager::Update(float timeDelta)
 	const PedalInput& leftPedal = app->GetLeftPedalInput();
 	const PedalInput& rightPedal = app->GetRightPedalInput();
 	const PedalInput& middlePedal = app->GetMiddlePedalInput();
-	bool ctrl = keyboard->IsKeyDown(Keys::left_control) ||
-		keyboard->IsKeyDown(Keys::right_control);
-	bool shift = keyboard->IsKeyDown(Keys::left_shift) ||
-		keyboard->IsKeyDown(Keys::right_shift);
-	bool tab = keyboard->IsKeyPressed(Keys::tab);
-
-	// Focus cycle
-	if (ctrl && tab)
-		CycleFocus(false);
-	else if (ctrl && shift && tab)
-		CycleFocus(true);
 
 	// Widget press event
-	if (keyboard->IsKeyPressed(Keys::enter) ||
-		middlePedal.IsPressed())
-	{
-		if (m_focusedWidget)
-			m_focusedWidget->OnPress();
-	}
+	if (middlePedal.IsPressed() && m_focusedWidget)
+		m_focusedWidget->OnPress();
 
 	// Cursor movement
 	if (!m_focusedWidget)

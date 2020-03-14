@@ -2,11 +2,26 @@
 
 namespace ru {
 
+static const auto kGenderList = {
+	Gender::k_masculine,
+	Gender::k_feminine,
+	Gender::k_neuter,
+	Gender::k_plural,
+};
+static const auto kCaseList = {
+	Case::k_nominative,
+	Case::k_accusative,
+	Case::k_genitive,
+	Case::k_dative,
+	Case::k_instrumental,
+	Case::k_prepositional,
+};
+
 AdjectiveDeclension::AdjectiveDeclension()
 {
-	for (Gender gender : EnumValues<Gender>())
+	for (Gender gender : kGenderList)
 	{
-		for (Case nounCase : EnumValues<Case>())
+		for (Case nounCase : kCaseList)
 			SetDeclension(nounCase, gender, AccentedText());
 		SetShortForm(gender, AccentedText());
 	}
@@ -48,12 +63,12 @@ void AdjectiveDeclension::SetShortForm(Gender gender, const AccentedText& text)
 void AdjectiveDeclension::Serialize(rapidjson::Value& value,
 	rapidjson::Document::AllocatorType& allocator)
 {
-	for (Gender gender : EnumValues<Gender>())
+	for (Gender gender : kGenderList)
 	{
 		String genderName = EnumToShortString(gender);
 		rapidjson::Value genderData(rapidjson::kObjectType);
 
-		for (Case nounCase : EnumValues<Case>())
+		for (Case nounCase : kCaseList)
 		{
 			String caseName = EnumToShortString(nounCase);
 			String text = ConvertToUTF8(GetDeclension(
@@ -76,12 +91,12 @@ void AdjectiveDeclension::Serialize(rapidjson::Value& value,
 
 Error AdjectiveDeclension::Deserialize(rapidjson::Value& data)
 {
-	for (Gender gender : EnumValues<Gender>())
+	for (Gender gender : kGenderList)
 	{
 		String genderName = EnumToShortString(gender);
 		rapidjson::Value& genderData = data[genderName.c_str()];
 
-		for (Case nounCase : EnumValues<Case>())
+		for (Case nounCase : kCaseList)
 		{
 			String caseName = EnumToShortString(nounCase);
 			AccentedText text = genderData[caseName.c_str()].GetString();

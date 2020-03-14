@@ -28,6 +28,8 @@ public:
 	void Paste();
 	void Cut();
 
+	virtual void OnLoseFocus();
+
 	virtual void CalcSizes() override;
 	virtual bool OnKeyDown(Keys key, uint32 mods) override;
 	virtual bool OnKeyTyped(unichar charCode, Keys key, uint32 mods) override;
@@ -38,6 +40,8 @@ public:
 	EventSignal<>& ReturnPressed() { return m_returnPressed; }
 
 private:
+	uint32 GetNextCursorPosition(bool right, bool wordBoundary) const;
+
 	unistr m_text;
 	unistr m_backgroundText;
 	Font::sptr m_font;

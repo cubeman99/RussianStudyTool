@@ -79,9 +79,7 @@ Set<unistr> ExampleDatabase::GetWordForms(const unistr& word)
 	Set<unistr> forms;
 	forms.insert(word);
 
-	wiki::Term::sptr term = m_wiktionary.GetTerm(word);
-	if (!term)
-		term = m_wiktionary.DownloadTerm(word);
+	wiki::Term::sptr term = m_wiktionary.GetTerm(word, true);
 	if (term)
 	{
 		Set<AccentedText> accentedForms;

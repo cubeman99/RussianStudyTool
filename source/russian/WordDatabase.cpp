@@ -15,7 +15,8 @@ wiki::Wiktionary& WordDatabase::GetWiktionary()
 }
 
 bool WordDatabase::GetWordFromCard(Card::sptr card,
-	wiki::Term::sptr& outTerm, wiki::Word::sptr& outWord)
+	wiki::Term::sptr& outTerm, wiki::Word::sptr& outWord,
+	bool download)
 {
 	outTerm = nullptr;
 	outWord = nullptr;
@@ -30,11 +31,7 @@ bool WordDatabase::GetWordFromCard(Card::sptr card,
 
 	// Find the term
 	for (uint32 i = 0; i < wordNames.size() && !outTerm; i++)
-	{
-		outTerm = m_wiktionary.GetTerm(wordNames[i]);
-		if (!outTerm)
-			outTerm = m_wiktionary.DownloadTerm(wordNames[i]);
-	}
+		outTerm = m_wiktionary.GetTerm(wordNames[i], download);
 	if (!outTerm)
 		return false;
 

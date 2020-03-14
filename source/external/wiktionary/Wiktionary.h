@@ -22,7 +22,7 @@ public:
 	~Wiktionary();
 
 	const Path& GetDataPath() const;
-	Term::sptr GetTerm(const unistr& text);
+	Term::sptr GetTerm(const unistr& text, bool download = false);
 	Term::sptr DownloadTerm(const unistr& text);
 
 	void SetDataPath(const Path& path);
@@ -34,6 +34,8 @@ public:
 	static unistr GetTermURL(Term::sptr term, bool russianSection);
 
 private:
+	bool TermNeedsReDownload(wiki::Term::sptr term);
+
 	Wiktionary(const Wiktionary& copy) = delete;
 	Wiktionary& operator=(const Wiktionary& copy) = delete;
 

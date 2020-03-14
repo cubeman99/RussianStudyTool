@@ -231,6 +231,7 @@ void StudyState::ShowCard(Card::sptr card, Language shownSide)
 	auto& exampleDatabase = app->GetExampleDatabase();
 	auto& wordDatabase = app->GetWordDatabase();
 	m_card = card;
+	m_cardTags = card->GetTags();
 	m_term = nullptr;
 	m_wikiWord = nullptr;
 	m_cardStudyData = app->GetStudyDatabase().GetCardStudyData(m_card);
@@ -245,7 +246,7 @@ void StudyState::ShowCard(Card::sptr card, Language shownSide)
 	// Get wiktionary word
 	m_term = nullptr;
 	m_wikiWord = nullptr;
-	wordDatabase.GetWordFromCard(m_card, m_term, m_wikiWord);
+	wordDatabase.GetWordFromCard(m_card, m_term, m_wikiWord, true);
 
 	Font::sptr fontSmall = GetApp()->GetResourceManager()->Get<Font>(Res::FONT_SMALL);
 
@@ -288,6 +289,11 @@ void StudyState::ShowCard(Card::sptr card, Language shownSide)
 
 	if (m_wikiWord)
 	{
+		// Get card tags from the wiki word, if relevant
+		if (m_wikiWord->GetWordType() == m_card->GetWordType())
+			m_cardTags = (m_cardTags | m_wikiWord->GetTags());
+
+		// Word-specific info and declensions
 		if (m_wikiWord->GetWordType() == WordType::k_noun)
 		{
 			wiki::Noun::sptr noun =
@@ -349,7 +355,7 @@ void StudyState::ShowCard(Card::sptr card, Language shownSide)
 	m_layoutTagsShown.Clear();
 	m_layoutTagsRevealed.Clear();
 	Label* tagLabel = nullptr;
-	for (auto it : m_card->GetTags())
+	for (auto it : m_cardTags)
 	{
 		if (it.second)
 		{
@@ -577,9 +583,7 @@ void StudyState::OnChooseCreateAsCard(RelatedWordWidget* widget)
 	if (!term)
 	{
 		auto& wiktionary = GetApp()->GetWiktionary();
-		term = wiktionary.GetTerm(termText);
-		if (!term)
-			term = wiktionary.DownloadTerm(termText);
+		term = wiktionary.GetTerm(termText, true);
 	}
 
 	// Open the card editor

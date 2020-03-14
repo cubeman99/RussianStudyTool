@@ -57,6 +57,7 @@ private:
 	CardStudyData m_cardStudyData;
 	wiki::Term::sptr m_term;
 	wiki::Word::sptr m_wikiWord;
+	EnumFlags<CardTags> m_cardTags;
 
 	StudyParams m_studyParams;
 	IStudySet* m_studySet = nullptr;

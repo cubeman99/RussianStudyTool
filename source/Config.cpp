@@ -66,10 +66,41 @@ const Color& Config::GetProficiencyLevelColor(ProficiencyLevel level)
 	return k_proficiencyLevelColors[level];
 }
 
+template <typename X, typename Y>
+Y PolyLerp(X x, std::initializer_list<std::pair<X, Y>> points)
+{
+	CMG_ASSERT(points.size() > 0);
+	uint32 i = 0;
+	std::pair<X, Y> pointPrev;
+	for (const std::pair<X, Y>& point : points)
+	{
+		if (x <= point.first)
+		{
+			if (i == 0)
+			{
+				return point.second;
+			}
+			else
+			{
+				X t = (x - pointPrev.first) / (point.first - pointPrev.first);
+				return (pointPrev.second + (t * (point.second - pointPrev.second)));
+			}
+		}
+		pointPrev = point;
+		i++;
+	}
+	return pointPrev.second;
+}
+
 Color Config::GetHistoryScoreColor(float score)
 {
-	return Color::Lerp(GetProficiencyLevelColor(ProficiencyLevel::k_hard),
-		GetProficiencyLevelColor(ProficiencyLevel::k_learned), score);
+	return Color(PolyLerp<float, Vector3f>(score, {
+		{0.0f, GetProficiencyLevelColor(ProficiencyLevel::k_hard).ToVector3f()},
+		{0.5f, GetProficiencyLevelColor(ProficiencyLevel::k_easy).ToVector3f()},
+		{1.0f, GetProficiencyLevelColor(ProficiencyLevel::k_learned).ToVector3f()},
+	}));
+	//return Color::Lerp(GetProficiencyLevelColor(ProficiencyLevel::k_hard),
+	//	GetProficiencyLevelColor(ProficiencyLevel::k_learned), score);
 }
 
 AccentedText Config::GetCardTagShortDisplayName(CardTags tag)

@@ -37,7 +37,8 @@ DECLARE_ENUM_WITH_COUNT(WordType, ENUM_MACRO_WORD_TYPE)
 	_ex(_context, masculine, , m) \
 	_ex(_context, feminine, , f) \
 	_ex(_context, neuter, , n) \
-	_ex(_context, plural, , pl)
+	_ex(_context, plural, , pl) \
+	_ex(_context, unknown, , unknown)
 DECLARE_ENUM_WITH_COUNT(Gender, ENUM_MACRO_GENDER)
 
 #define ENUM_MACRO_PLURALITY(_context, _ex) \
@@ -79,7 +80,8 @@ DECLARE_ENUM_WITH_COUNT(Tense, ENUM_MACRO_TENSE)
 
 #define ENUM_MACRO_ANIMACY(_context, _ex) \
 	_ex(_context, animate, , anim) \
-	_ex(_context, inanimate, , inanim)
+	_ex(_context, inanimate, , inanim) \
+	_ex(_context, unknown, , unknown)
 DECLARE_ENUM_WITH_COUNT(Animacy, ENUM_MACRO_ANIMACY)
 
 #define ENUM_MACRO_CARD_SET_TYPE(_context, _ex) \

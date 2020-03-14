@@ -18,13 +18,25 @@ const Path& Wiktionary::GetDataPath() const
 	return m_savePath;
 }
 
-Term::sptr Wiktionary::GetTerm(const unistr& text)
+Term::sptr Wiktionary::GetTerm(const unistr& text, bool download)
 {
 	std::lock_guard<std::recursive_mutex> guard(m_mutex);
 	auto it = m_terms.find(text);
+	Term::sptr term = nullptr;
+	bool redownload = false;
 	if (it != m_terms.end())
-		return it->second;
-	return nullptr;
+	{
+		redownload = TermNeedsReDownload(it->second);
+		if (!redownload)
+			term = it->second;
+	}
+	if (!term && download)
+	{
+		if (redownload)
+			CMG_LOG_DEBUG() << "Re-downloading wiki term: " << text;
+		term = DownloadTerm(text);
+	}
+	return term;
 }
 
 Term::sptr Wiktionary::DownloadTerm(const unistr& text)
@@ -167,6 +179,24 @@ Error Wiktionary::Save(const Path& path)
 unistr Wiktionary::GetTermURL(Term::sptr term, bool russianSection)
 {
 	return Parser::GetTermURL(term->GetText().GetString(), russianSection);
+}
+
+bool Wiktionary::TermNeedsReDownload(wiki::Term::sptr term)
+{
+	for (auto it : term->GetWords())
+	{
+		WordType wordType = it.first;
+		Word::sptr word = it.second;
+
+		if (wordType == WordType::k_noun)
+		{
+			Noun::sptr noun = std::dynamic_pointer_cast<Noun>(word);
+			if (noun->GetDeclension().GetGender() == Gender::k_unknown ||
+				noun->GetDeclension().GetAnimacy() == Animacy::k_unknown)
+				return true;
+		}
+	}
+	return false;
 }
 
 

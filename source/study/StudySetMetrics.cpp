@@ -1,7 +1,9 @@
 ﻿#include "StudySetMetrics.h"
 
+
 StudySetMetrics::StudySetMetrics()
 {
+	memset(m_scoreCounts, 0, sizeof(m_scoreCounts));
 }
 
 float StudySetMetrics::GetHistoryScore() const
@@ -25,25 +27,35 @@ uint32 StudySetMetrics::GetCount(ProficiencyLevel level) const
 	return 0;
 }
 
-StudySetMetrics& StudySetMetrics::operator+=(const StudySetMetrics& other)
+uint32 StudySetMetrics::GetCountForScoreBin(uint32 bin) const
 {
-	uint32 myTotal = GetTotalCount();
-	uint32 otherTotal = other.GetTotalCount();
-	if (otherTotal > 0)
-	{
-		m_historyScore = ((m_historyScore * myTotal) +
-			(other.m_historyScore * otherTotal)) / (myTotal + otherTotal);
-		for (auto it : other.m_proficiencyCounts)
-			AddCount(it.first, it.second);
-	}
-	return *this;
+	return m_scoreCounts[bin];
 }
 
-void StudySetMetrics::AddCount(ProficiencyLevel level, uint32 amount)
+uint32 StudySetMetrics::GetNumScoreBins() const
 {
+	return Config::k_studyScoreHistogramBinCount;
+}
+
+void StudySetMetrics::Add(const CardStudyData& cardStudyData)
+{
+	auto score = cardStudyData.GetHistoryScore();
+	m_cardCount++;
+	m_historyScoreSum += score;
+	m_historyScore = m_historyScoreSum / m_cardCount;
+
+	ProficiencyLevel level = cardStudyData.GetProficiencyLevel();
 	auto it = m_proficiencyCounts.find(level);
 	if (it == m_proficiencyCounts.end())
-		m_proficiencyCounts[level] = amount;
+		m_proficiencyCounts[level] = 1;
 	else
-		m_proficiencyCounts[level] += amount;
+		m_proficiencyCounts[level]++;
+
+	if (cardStudyData.IsEncountered())
+	{
+		uint32 bin = Math::Min(
+			(uint32) (score * Config::k_studyScoreHistogramBinCount),
+			Config::k_studyScoreHistogramBinCount - 1);
+		m_scoreCounts[bin]++;
+	}
 }

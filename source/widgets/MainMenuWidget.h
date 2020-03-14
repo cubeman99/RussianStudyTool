@@ -17,7 +17,7 @@ class MainMenuItemWidget : public AppWidget
 public:
 	DECLARE_GUI_OBJECT(MainMenuItemWidget);
 
-	MainMenuItemWidget(const AccentedText& name, IStudySet* studySet);
+	MainMenuItemWidget(const AccentedText& name, IStudySet* studySet, CardSet::sptr cardSet);
 
 	EventSignal<>& Clicked() { return m_clicked; }
 
@@ -26,9 +26,11 @@ public:
 	virtual void OnPress() override { m_clicked.Emit(); }
 
 private:
+	CardSet::sptr m_cardSet;
 	IStudySet* m_studySet;
 	HBoxLayout m_layout;
 	Label m_labelName;
+	Label m_labelType;
 	StudyProficiencyBar m_proficiencyBar;
 	EventSignal<> m_clicked;
 };
@@ -48,7 +50,7 @@ public:
 	void OpenCardPackage(CardSetPackage::sptr package);
 	void OpenCardEditor();
 	MainMenuItemWidget::sptr AddMenuOption(const AccentedText& name,
-		IStudySet* studySet = nullptr);
+		IStudySet* studySet = nullptr, CardSet::sptr cardSet = nullptr);
 
 	void NavigateIntoCardPackage(CardSetPackage::sptr package);
 	void GoBack();

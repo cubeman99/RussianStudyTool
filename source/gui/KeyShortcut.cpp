@@ -84,7 +84,13 @@ void KeyShortcut::InitializeMaps()
 	{
 		char c = '0' + index;
 		char name[2] = {c, '\0'};
-		s_keyNames[name] = (Keys) ((uint32) Keys::n0 + index);
+		s_keyNames[std::to_string(index)] = (Keys) ((uint32) Keys::n0 + index);
+	}
+	// Function keys
+	for (uint8 index = 0; index < 24; index++)
+	{
+		String name = "f" + std::to_string(index + 1);
+		s_keyNames[name] = (Keys) ((uint32) Keys::f1 + index);
 	}
 
 	s_mapsInitialized = true;

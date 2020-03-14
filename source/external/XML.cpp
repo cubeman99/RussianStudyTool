@@ -139,7 +139,7 @@ Node Node::FindFirst(const String& expression)
 	xmlXPathObjectPtr nodes = xmlXPathNodeEval(m_node,
 		(const xmlChar*) expression.c_str(), m_document->m_xpathContext);
 	xmlNodePtr result = nullptr;
-	if (nodes->nodesetval->nodeNr != 0)
+	if (nodes && nodes->nodesetval && nodes->nodesetval->nodeNr != 0)
 		result = nodes->nodesetval->nodeTab[0];
 	xmlXPathFreeObject(nodes);
 	return Node(m_document, result);
@@ -157,8 +157,11 @@ void Node::FindAll(const String & expression, Array<Node>& outNodes)
 	xmlXPathObjectPtr nodes = xmlXPathNodeEval(m_node,
 		(const xmlChar*) expression.c_str(), m_document->m_xpathContext);
 	xmlNodePtr result = nullptr;
-	for (int i = 0; i < nodes->nodesetval->nodeNr; i++)
-		outNodes.push_back(Node(m_document, nodes->nodesetval->nodeTab[i]));
+	if (nodes && nodes->nodesetval)
+	{
+		for (int i = 0; i < nodes->nodesetval->nodeNr; i++)
+			outNodes.push_back(Node(m_document, nodes->nodesetval->nodeTab[i]));
+	}
 	xmlXPathFreeObject(nodes);
 }
 

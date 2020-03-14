@@ -5,9 +5,16 @@ namespace ru {
 VerbConjugation::VerbConjugation() :
 	m_aspect(Aspect::k_imperfective)
 {
+	auto genderList = {
+		Gender::k_masculine,
+		Gender::k_feminine,
+		Gender::k_neuter,
+		Gender::k_plural,
+	};
+
 	for (uint32 index = 0; index < 6; index++)
 		SetNonPast(index, AccentedText());
-	for (Gender gender : EnumValues<Gender>())
+	for (Gender gender : genderList)
 		SetPast(gender, AccentedText());
 	SetImperative(Plurality::k_singular, AccentedText());
 	SetImperative(Plurality::k_plural, AccentedText());
@@ -129,6 +136,13 @@ void VerbConjugation::Serialize(rapidjson::Value& value,
 {
 	String form;
 
+	auto genderList = {
+		Gender::k_masculine,
+		Gender::k_feminine,
+		Gender::k_neuter,
+		Gender::k_plural,
+	};
+
 	// Infinitive
 	form = ConvertToUTF8(m_infinitive.ToMarkedString());
 	value.AddMember("infinitive", rapidjson::Value(
@@ -151,7 +165,7 @@ void VerbConjugation::Serialize(rapidjson::Value& value,
 
 	// Past tense
 	rapidjson::Value pastData(rapidjson::kObjectType);
-	for (Gender gender : EnumValues<Gender>())
+	for (Gender gender : genderList)
 	{
 		String genderName = EnumToShortString(gender);
 		form = ConvertToUTF8(GetPast(gender).ToMarkedString());
@@ -163,7 +177,7 @@ void VerbConjugation::Serialize(rapidjson::Value& value,
 
 	// Imperative
 	rapidjson::Value imperativeData(rapidjson::kObjectType);
-	for (Plurality plurality : EnumValues<Plurality>())
+	for (Plurality plurality : {Plurality::k_singular, Plurality::k_plural})
 	{
 		String pluralityName = EnumToShortString(plurality);
 		form = ConvertToUTF8(GetImperative(plurality).ToMarkedString());
@@ -198,6 +212,13 @@ void VerbConjugation::Serialize(rapidjson::Value& value,
 
 Error VerbConjugation::Deserialize(rapidjson::Value& data)
 {
+	auto genderList = {
+		Gender::k_masculine,
+		Gender::k_feminine,
+		Gender::k_neuter,
+		Gender::k_plural,
+	};
+
 	// Infinitive
 	m_infinitive = data["infinitive"].GetString();
 
@@ -215,7 +236,7 @@ Error VerbConjugation::Deserialize(rapidjson::Value& data)
 
 	// Past
 	rapidjson::Value& pastData = data["past"];
-	for (Gender gender : EnumValues<Gender>())
+	for (Gender gender : genderList)
 	{
 		String genderName = EnumToShortString(gender);
 		SetPast(gender, pastData[genderName.c_str()].GetString());
@@ -223,7 +244,7 @@ Error VerbConjugation::Deserialize(rapidjson::Value& data)
 
 	// Imperative
 	rapidjson::Value& imperativeData = data["imperative"];
-	for (Plurality plurality : EnumValues<Plurality>())
+	for (Plurality plurality : {Plurality::k_singular, Plurality::k_plural})
 	{
 		String pluralityName = EnumToShortString(plurality);
 		SetImperative(plurality, imperativeData[pluralityName.c_str()].GetString());
