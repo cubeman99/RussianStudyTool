@@ -28,13 +28,13 @@ RelatedCardsWidget::RelatedCardsWidget(Card::sptr card) :
 	m_searchWidget.SetFilter(new MethodDelegate(
 		this, &RelatedCardsWidget::SearchFilter));
 
-	SelectCard(card);
-
 	// Connect signals
 	m_searchWidget.ItemClicked().Connect(this, &RelatedCardsWidget::OnClickAdd);
 	m_table.RowCreated().Connect(this, &RelatedCardsWidget::OnRowCreated);
 	m_buttonDone.Clicked().Connect((Widget*) this, &Widget::Close);
 	Closed().Connect(this, &RelatedCardsWidget::ApplyChanges);
+
+	SelectCard(card);
 }
 
 void RelatedCardsWidget::OnInitialize()

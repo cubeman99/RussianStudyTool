@@ -22,9 +22,11 @@ public:
 	~Wiktionary();
 
 	const Path& GetDataPath() const;
+	void GetTerm(const unistr& text, Term::sptr& outTerm, bool& needsDownload);
 	Term::sptr GetTerm(const unistr& text, bool download = false);
-	Term::sptr DownloadTerm(const unistr& text);
+	EventSignal<Term::sptr>& TermDownloaded() { return m_termDownloaded; }
 
+	Term::sptr DownloadTerm(const unistr& text);
 	void SetDataPath(const Path& path);
 	Error Load();
 	Error Load(const Path& path);
@@ -40,14 +42,16 @@ private:
 	Wiktionary& operator=(const Wiktionary& copy) = delete;
 
 private:
+	Parser m_parser;
+
 	Path m_savePath;
 	Path m_soundsDir;
 	Map<unistr, Term::sptr> m_terms;
-	Parser m_parser;
-
 	Set<unistr> m_errorTerms;
 	Set<unistr> m_404Terms;
 	Set<unistr> m_noWordTerms;
+
+	EventSignal<Term::sptr> m_termDownloaded;
 
 	std::recursive_mutex m_mutex;
 };

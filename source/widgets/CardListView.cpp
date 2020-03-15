@@ -122,9 +122,11 @@ void CardListView::OnInitialize()
 
 	// Connect signals
 	auto& cardDatabase = GetApp()->GetCardDatabase();
+	auto& wordDatabase = GetApp()->GetWordDatabase();
 	cardDatabase.CardDataChanged().Connect(this, &CardListView::OnCardDataChanged);
 	cardDatabase.CardAddedToSet().Connect(this, &CardListView::OnCardAddedOrRemovedFromSet);
 	cardDatabase.CardRemovedFromSet().Connect(this, &CardListView::OnCardAddedOrRemovedFromSet);
+	wordDatabase.TermDownloaded().Connect(this, &CardListView::OnTermDownloaded);
 }
 
 void CardListView::OnUpdate(float timeDelta)
@@ -134,6 +136,14 @@ void CardListView::OnUpdate(float timeDelta)
 
 	m_topProficiencyBar.SetMetrics(
 		studyDatabase.GetStudySetMetrics(m_studySet));
+}
+
+CardListView::Row::sptr CardListView::GetRow(Card::sptr card)
+{
+	auto it = m_cardToRowMap.find(card);
+	if (it != m_cardToRowMap.end())
+		return it->second;
+	return nullptr;
 }
 
 CardListView::Row::sptr CardListView::AddRow(Card::sptr card)
@@ -146,6 +156,7 @@ CardListView::Row::sptr CardListView::AddRow(Card::sptr card)
 	row->AddKeyShortcut("e", [this, card]() { OpenCardEditView(card); return true; });
 	row->AddKeyShortcut("r", [this, card]() { OpenRelatedCardsView(card); return true; });
 	row->AddKeyShortcut("s", [this, card]() { OpenAddCardToSetView(card); return true; });
+	row->AddKeyShortcut("i", [this, card]() { OpenCardInWebBrowser(card); return true; });
 
 	m_layoutCardList.Add(row.get());
 	m_rows.push_back(row);
@@ -155,7 +166,13 @@ CardListView::Row::sptr CardListView::AddRow(Card::sptr card)
 
 void CardListView::OpenPauseMenu(Card::sptr card)
 {
+	Row::sptr row = GetRow(card);
+	wiki::Term::sptr wikiTerm = (row ? row->m_wikiTerm : nullptr);
+	unistr termName = card->GetRuKey().russian;
+	if (wikiTerm)
+		termName = wikiTerm->GetText().GetString();
 	AccentedText title = card->GetRussian() + " - " + card->GetEnglish();
+
 	MenuWidget* menu = new MenuWidget(title);
 	menu->AddCancelOption("Cancel");
 	menu->AddMenuOption("Edit Card", true,
@@ -164,8 +181,12 @@ void CardListView::OpenPauseMenu(Card::sptr card)
 		new CaptureMethodDelegate(this, card, &CardListView::OpenRelatedCardsView));
 	menu->AddMenuOption("Add to Card Sets", true,
 		new CaptureMethodDelegate(this, card, &CardListView::OpenAddCardToSetView));
+	auto option = menu->AddMenuOption(u"Open in Wiktionary: " + termName, true,
+		new CaptureMethodDelegate(this, card, &CardListView::OpenCardInWebBrowser));
+	option->SetEnabled(wikiTerm != nullptr);
 	menu->AddMenuOption("Main Menu", true,
 		new MethodDelegate((Widget*) this, &Widget::Close));
+
 	GetApp()->PushState(menu);
 }
 
@@ -184,14 +205,25 @@ void CardListView::OpenAddCardToSetView(Card::sptr card)
 	GetApp()->PushState(new AddCardToSetWidget(card));
 }
 
+void CardListView::OpenCardInWebBrowser(Card::sptr card)
+{
+	Row::sptr row = GetRow(card);
+	if (row && row->m_wikiTerm)
+		OpenInWebBrowser(row->m_wikiTerm->GetText().GetString());
+}
+
+void CardListView::OpenInWebBrowser(const unistr& text)
+{
+	unistr url = wiki::Parser::GetTermURL(text, true);
+	CMG_LOG_DEBUG() << "Opening web page: " << url;
+	cmg::os::OpenInWebBrowser(url);
+}
+
 void CardListView::OnCardDataChanged(Card::sptr card)
 {
-	auto it = m_cardToRowMap.find(card);
-	if (it != m_cardToRowMap.end())
-	{
-		Row::sptr row = m_cardToRowMap[card];
+	Row::sptr row = GetRow(card);
+	if (row)
 		RefreshRow(row);
-	}
 }
 
 void CardListView::OnCardAddedOrRemovedFromSet(Card::sptr card, CardSet::sptr cardSet)
@@ -202,9 +234,10 @@ void CardListView::OnCardAddedOrRemovedFromSet(Card::sptr card, CardSet::sptr ca
 	bool newInStudySet = cmg::container::Contains(m_studySet->GetCards(), card);
 	if (newInStudySet != oldInStudySet)
 	{
-		if (oldInStudySet && m_cardToRowMap.find(card) != m_cardToRowMap.end())
+		Row::sptr row = GetRow(card);
+		if (oldInStudySet && row)
 		{
-			RefreshRow(m_cardToRowMap[card]);
+			RefreshRow(row);
 		}
 		if (!m_isStudySetChanged)
 		{
@@ -215,31 +248,58 @@ void CardListView::OnCardAddedOrRemovedFromSet(Card::sptr card, CardSet::sptr ca
 	}
 }
 
+void CardListView::OnTermDownloaded(const CardWordMatch& wordMatch)
+{
+	Row::sptr row = GetRow(wordMatch.card);
+	if (row)
+		RefreshRow(row, wordMatch);
+}
+
 void CardListView::RefreshRow(Row::sptr row)
+{
+	auto& wordDatabase = GetApp()->GetWordDatabase();
+	CardWordMatch wordMatch = wordDatabase.GetWordFromCard(row->m_card, true, true);
+	RefreshRow(row, wordMatch);
+}
+
+void CardListView::RefreshRow(Row::sptr row, const CardWordMatch& wordMatch)
 {
 	int index = cmg::container::GetIndex(m_cards, row->m_card);
 
 	auto& studyDatabase = GetApp()->GetStudyDatabase();
-	auto& wordDatabase = GetApp()->GetWordDatabase();
 	const auto& studyData = studyDatabase.GetCardStudyData(row->m_card);
 
 	bool isInStudySet = cmg::container::Contains(
 		m_studySet->GetCards(), row->m_card);
 
+	// Get the wiki word
+	row->m_wikiTerm = wordMatch.GetTerm();
+	row->m_wikiWord = wordMatch.GetWord();
+
+	// Number, colorize by word source
 	String numberText = std::to_string(index + 1);
 	if (!isInStudySet)
 		numberText += " (!)";
 	row->m_labelNumber.SetText(numberText);
-
-	// Get the wiki word
-	wiki::Term::sptr term = nullptr;
-	wiki::Word::sptr word = nullptr;
-	wordDatabase.GetWordFromCard(row->m_card, term, word, false);
+	Color labelColor = GUIConfig::color_text_box_background_text;
+	auto part = wordMatch.GetPart();
+	if (part && wordMatch.GetPart()->isLoaded)
+	{
+		if (!part->word)
+			labelColor = Config::GetProficiencyLevelColor(ProficiencyLevel::k_hard);
+		else if (part->isMatchingType)
+			labelColor = Config::GetProficiencyLevelColor(ProficiencyLevel::k_learned);
+		else
+			labelColor = Config::GetProficiencyLevelColor(ProficiencyLevel::k_easy);
+	}
+	else if (!part)
+		labelColor = Config::GetProficiencyLevelColor(ProficiencyLevel::k_hard);
+	row->m_labelNumber.SetColor(labelColor);
 
 	// Get card tags from the wiki word, if relevant
 	EnumFlags<CardTags> cardTags = row->m_card->GetTags();
-	if (word && word->GetWordType() == row->m_card->GetWordType())
-		cardTags = (cardTags | word->GetTags());
+	if (part && part->word && part->isMatchingType)
+		cardTags = (cardTags | part->word->GetTags());
 
 	row->m_labelType.SetText(EnumToShortString(row->m_card->GetWordType()));
 	row->m_labelRussian.SetText(row->m_card->GetRussian());

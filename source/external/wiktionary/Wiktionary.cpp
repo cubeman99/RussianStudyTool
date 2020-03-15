@@ -18,6 +18,22 @@ const Path& Wiktionary::GetDataPath() const
 	return m_savePath;
 }
 
+void Wiktionary::GetTerm(const unistr& text, Term::sptr& outTerm, bool& needsDownload)
+{
+	std::lock_guard<std::recursive_mutex> guard(m_mutex);
+	auto it = m_terms.find(text);
+	if (it != m_terms.end())
+	{
+		needsDownload = TermNeedsReDownload(it->second);
+		outTerm = it->second;
+	}
+	else
+	{
+		outTerm = nullptr;
+		needsDownload = !cmg::container::Contains(m_404Terms, text);
+	}
+}
+
 Term::sptr Wiktionary::GetTerm(const unistr& text, bool download)
 {
 	std::lock_guard<std::recursive_mutex> guard(m_mutex);

@@ -4,6 +4,7 @@
 #include "widgets/LanguageTextEdit.h"
 #include "widgets/WordDefinitionWidget.h"
 #include "cards/CardSet.h"
+#include "russian/CardWordMatch.h"
 
 
 class CardRow : public EventSignalListener
@@ -37,12 +38,13 @@ public:
 	CardSet::sptr m_cardSet;
 
 	EnumFlags<CardTags> m_cardTags;
-	RussianTextEdit* m_inputRussian = nullptr;
-	EnglishTextEdit* m_inputEnglish = nullptr;
-	EnglishTextEdit* m_inputType = nullptr;
-	EnglishTextEdit* m_inputCardTags = nullptr;
-	Button* m_buttonEdit = nullptr;
-	Button* m_buttonRemove = nullptr;
+	Label m_labelNumber;
+	RussianTextEdit m_inputRussian;
+	EnglishTextEdit m_inputEnglish;
+	EnglishTextEdit m_inputType;
+	EnglishTextEdit m_inputCardTags;
+	Button m_buttonEdit;
+	Button m_buttonRemove;
 	EventSignal<> typeModified;
 	EventSignal<> russianModified;
 	EventSignal<> englishModified;
@@ -53,6 +55,7 @@ public:
 	TranslationPair m_text;
 	CardRuKey m_ruKey;
 	CardEnKey m_enKey;
+	CardWordMatch m_wordMatch;
 	bool m_isModified = false;
 	bool m_validType = false;
 	bool m_validRussian = false;
@@ -82,8 +85,9 @@ private:
 	bool IsRussianKeyUnique(Card::sptr card, const CardRuKey& key);
 	void AddRow(CardRow::sptr row, int32 index = -1);
 	void RemoveRow(CardRow::sptr row);
-	void OnCardEnglishModified(CardRow::sptr row);
+	void OnCardWordTypeModified(CardRow::sptr row);
 	void OnCardRussianModified(CardRow::sptr row);
+	void OnCardEnglishModified(CardRow::sptr row);
 	void OnCardEdited(CardRow::sptr row);
 	void OnRowGainedFocus(CardRow::sptr row);
 	void OnPressEnterRussian(CardRow::sptr row);
@@ -96,7 +100,9 @@ private:
 	CardRow::sptr AutoCompleteRow(CardRow::sptr row);
 	CardRow::sptr SetCardForRow(CardRow::sptr row, Card::sptr card);
 	bool SearchFilter(Card::sptr card);
-
+	void LoadRowWordMatch(CardRow::sptr row, bool download);
+	void RefreshRowWordMatch(CardRow::sptr row, const CardWordMatch& wordMatch);
+	void OnWordMatchLoaded(const CardWordMatch& wordMatch);
 
 private:
 	CardSet::sptr m_cardSet;

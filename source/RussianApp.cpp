@@ -91,11 +91,12 @@ void RussianStudyToolApp::OnInitialize()
 		m_wiktionary.Load();
 
 #ifdef USE_TEST_DATA
-	CardSet::sptr cardSet = m_cardDatabase.GetCardSet(CardSetKey(u"conversation"));
+	CardSet::sptr cardSet = m_cardDatabase.GetCardSet(CardSetKey(u"common words"));
 	Card::sptr card = m_cardDatabase.GetCard(CardRuKey(WordType::k_noun, unistr(u"стол")));
 #else
 	//CardSet::sptr cardSet = m_cardDatabase.GetCardSet(CardSetKey(u"common words"));
-	CardSet::sptr cardSet = m_cardDatabase.GetCardSet(CardSetKey(u"important phrases"));
+	//CardSet::sptr cardSet = m_cardDatabase.GetCardSet(CardSetKey(u"important phrases"));
+	CardSet::sptr cardSet = m_cardDatabase.GetCardSet(CardSetKey(u"new 03"));
 	Card::sptr card = m_cardDatabase.GetCard(CardRuKey(WordType::k_noun, unistr(u"стол")));
 #endif
 
@@ -103,7 +104,7 @@ void RussianStudyToolApp::OnInitialize()
 	PushState(m_mainMenuWidget);
 	//PushState(new Widget());
 	//PushState(new CardSearchWidget());
-	//PushState(new CardSetEditWidget(cardSet));
+	PushState(new CardSetEditWidget(cardSet));
 	//PushState(new CardEditWidget(card));
 	//PushState(new StudyState(cardSet.get(), cardSet));
 	//PushState(new CardListView(cardSet.get()));
@@ -148,6 +149,8 @@ void RussianStudyToolApp::OnUpdate(float timeDelta)
 	// F4: Toggle Fullscreen Mode
 	if (keyboard->IsKeyPressed(Keys::f4))
 		GetWindow()->SetFullscreen(!GetWindow()->IsFullscreen());
+	
+	m_wordDatabase.ProcessEvents();
 
 	m_stateStack.Update(timeDelta);
 

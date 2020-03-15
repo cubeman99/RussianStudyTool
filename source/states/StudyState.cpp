@@ -246,7 +246,9 @@ void StudyState::ShowCard(Card::sptr card, Language shownSide)
 	// Get wiktionary word
 	m_term = nullptr;
 	m_wikiWord = nullptr;
-	wordDatabase.GetWordFromCard(m_card, m_term, m_wikiWord, true);
+	CardWordMatch wordMatch = wordDatabase.GetWordFromCard(m_card, true, false);
+	m_term = wordMatch.GetTerm();
+	m_wikiWord = wordMatch.GetWord();
 
 	Font::sptr fontSmall = GetApp()->GetResourceManager()->Get<Font>(Res::FONT_SMALL);
 

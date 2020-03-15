@@ -50,9 +50,9 @@ void ProficiencyBarBoxWidget::OnRender(AppGraphics& g, float timeDelta)
 
 	// Histogram of history score values
 	float offset = 0.0f;
-	for (uint32 bin = 0; bin < numBins; bin++)
+	for (int32 bin = numBins - 1; bin >= 0; bin--)
 	{
-		uint32 binCount = m_metrics.GetCountForScoreBin(bin);
+		uint32 binCount = m_metrics.GetCountForScoreBin((uint32) bin);
 		if (binCount == 0)
 			continue;
 		float percent = (float) binCount / (float) totalCount;

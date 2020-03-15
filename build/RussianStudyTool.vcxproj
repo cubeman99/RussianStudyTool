@@ -47,6 +47,7 @@
     <ClCompile Include="..\source\Graphics.cpp" />
     <ClCompile Include="..\source\main.cpp" />
     <ClCompile Include="..\source\russian\Adjective.cpp" />
+    <ClCompile Include="..\source\russian\CardWordMatch.cpp" />
     <ClCompile Include="..\source\russian\Noun.cpp" />
     <ClCompile Include="..\source\russian\Russian.cpp" />
     <ClCompile Include="..\source\russian\Verb.cpp" />
@@ -122,6 +123,7 @@
     <ClInclude Include="..\source\Macros.h" />
     <ClInclude Include="..\source\Resources.h" />
     <ClInclude Include="..\source\russian\Adjective.h" />
+    <ClInclude Include="..\source\russian\CardWordMatch.h" />
     <ClInclude Include="..\source\russian\Noun.h" />
     <ClInclude Include="..\source\russian\Russian.h" />
     <ClInclude Include="..\source\russian\Verb.h" />

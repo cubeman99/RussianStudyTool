@@ -1,6 +1,7 @@
 ﻿#include "ExampleDatabase.h"
 #include "Config.h"
 #include "core/JsonUtility.h"
+#include "external/XML.h"
 #include <fstream>
 
 ExampleDatabase::ExampleDatabase(wiki::Wiktionary& wiktionary) :
@@ -192,11 +193,18 @@ Error ExampleDatabase::LoadExamplesInDir(const PathU16& path)
 		else if (p.is_regular_file())
 		{
 			unistr extension = p.path().extension().u16string();
+
+			// Load the story
+			error = CMG_ERROR_SUCCESS;
 			if (extension == u".story")
-			{
 				error = LoadStory(subPath, story);
-				if (error.Failed())
-					return error.Uncheck();
+			else if (extension == u".html")
+				error = LoadStoryHTML(subPath, story);
+
+			if (error.Failed())
+			{
+				CMG_LOG_ERROR() << "Failed to load story: " << subPath;
+				return error.Uncheck();
 			}
 		}
 	}
@@ -208,7 +216,6 @@ Error ExampleDatabase::LoadStory(const PathU16& path, Story::sptr& outStory)
 {
 	outStory = cmg::make_shared<Story>();
 	outStory->m_title = path.GetNameWithoutExtension();
-	CMG_LOG_DEBUG() << "Loading story: " << path.GetNameWithoutExtension();
 
 	File file;
 	file.Open(path, FileAccess::READ, FileType::TEXT);
@@ -257,6 +264,42 @@ Error ExampleDatabase::LoadStory(const PathU16& path, Story::sptr& outStory)
 
 	if (!chapter)
 		return CMG_ERROR_FAILURE;
+	m_stories.push_back(outStory);
+	return CMG_ERROR_SUCCESS;
+}
+
+Error ExampleDatabase::LoadStoryHTML(const PathU16& path, Story::sptr& outStory)
+{
+	outStory = cmg::make_shared<Story>();
+	outStory->m_title = path.GetNameWithoutExtension();
+
+	std::ifstream file((const wchar_t*) path.c_str());
+	std::string html((std::istreambuf_iterator<char>(file)),
+		std::istreambuf_iterator<char>());
+
+	// Parse error with some html with <br> tag
+	cmg::string::ReplaceAll(html, "</br>", "");
+	cmg::string::ReplaceAll(html, "<br>", "");
+
+	xml::Document document(html);
+	Error error = document.GetParseError();
+	if (error.Failed())
+		return error.Uncheck();
+	xml::Node root = document.GetRootNode();
+
+	// Get title
+	auto title = root.FindFirst(".//title");
+	if (title)
+		outStory->m_title = title.Text();
+
+	// Get all paragraphs
+	Chapter::sptr chapter = outStory->AddChapter("Chapter");
+	for (auto node : root.FindAll(".//p"))
+	{
+		AccentedText text = node.Text();
+		auto paragraph = chapter->AddParagraph(text);
+	}
+
 	m_stories.push_back(outStory);
 	return CMG_ERROR_SUCCESS;
 }

@@ -35,6 +35,7 @@ public:
 
 	Error LoadExamples(const PathU16& path);
 	Error LoadStory(const PathU16& path, Story::sptr& outStory);
+	Error LoadStoryHTML(const PathU16& path, Story::sptr& outStory);
 
 private:
 	Error LoadExamplesInDir(const PathU16& path);

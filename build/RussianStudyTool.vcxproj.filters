@@ -261,6 +261,9 @@
     <ClCompile Include="..\source\widgets\CardListView.cpp">
       <Filter>Source Files\widgets\editors</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\russian\CardWordMatch.cpp">
+      <Filter>Source Files\russian</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\Graphics.h">
@@ -484,6 +487,9 @@
     </ClInclude>
     <ClInclude Include="..\source\widgets\CardListView.h">
       <Filter>Source Files\widgets\editors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\russian\CardWordMatch.h">
+      <Filter>Source Files\russian</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

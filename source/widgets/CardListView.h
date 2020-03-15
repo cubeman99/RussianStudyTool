@@ -7,6 +7,7 @@
 #include "widgets/AppWidget.h"
 #include "widgets/MenuWidget.h"
 #include "widgets/GenericTableWidget.h"
+#include "russian/WordDatabase.h"
 
 
 class CardListView : public AppWidget
@@ -45,6 +46,8 @@ private:
 		EventSignal<> m_clicked;
 
 		Card::sptr m_card;
+		wiki::Term::sptr m_wikiTerm;
+		wiki::Word::sptr m_wikiWord;
 		Label m_labelNumber;
 		Label m_labelType;
 		Label m_labelRussian;
@@ -53,14 +56,19 @@ private:
 		Label m_labelScore;
 	};
 
+	Row::sptr GetRow(Card::sptr card);
 	Row::sptr AddRow(Card::sptr card);
 	void OpenPauseMenu(Card::sptr card);
 	void OpenCardEditView(Card::sptr card);
 	void OpenRelatedCardsView(Card::sptr card);
 	void OpenAddCardToSetView(Card::sptr card);
+	void OpenCardInWebBrowser(Card::sptr card);
+	void OpenInWebBrowser(const unistr& text);
 	void OnCardDataChanged(Card::sptr card);
 	void OnCardAddedOrRemovedFromSet(Card::sptr card, CardSet::sptr cardSet);
+	void OnTermDownloaded(const CardWordMatch& wordMatch);
 	void RefreshRow(Row::sptr row);
+	void RefreshRow(Row::sptr row, const CardWordMatch& wordMatch);
 	void GoToNextPage();
 	void GoToPrevPage();
 	void OnClickRefresh();

@@ -1,6 +1,7 @@
 ﻿#include "CardSetEditWidget.h"
 #include "RussianApp.h"
 
+
 CardSetEditWidget::CardSetEditWidget(CardSet::sptr cardSet) :
 	m_cardSet(cardSet),
 	m_scrollAreaWordInfo(true, false)
@@ -32,6 +33,7 @@ CardSetEditWidget::CardSetEditWidget(CardSet::sptr cardSet) :
 	SetLayout(&m_mainLayout);
 
 	// Create table
+	m_table.AddColumn("#", 0.5f);
 	m_table.AddColumn("Type", 1.0f);
 	m_table.AddColumn("Russian", 5.0f);
 	m_table.AddColumn("English", 5.0f);
@@ -72,7 +74,7 @@ void CardSetEditWidget::SelectCardSet(CardSet::sptr cardSet)
 		AddCard(card);
 	AddEmptyRow();
 	if (!m_table.GetItems().empty())
-		m_table.GetItems().front()->m_inputRussian->Focus();
+		m_table.GetItems().front()->m_inputRussian.Focus();
 
 	m_buttonSave.SetEnabled(false);
 }
@@ -94,7 +96,7 @@ CardRow::sptr CardSetEditWidget::AddEmptyRow(int32 index)
 	row->m_card = cmg::make_shared<Card>();
 	row->m_isNewCard = true;
 	AddRow(row, index);
-	row->m_inputType->SetText("");
+	row->m_inputType.SetText("");
 	row->m_isNewToSet = true;
 	Refresh();
 	return row;
@@ -179,98 +181,108 @@ void CardSetEditWidget::Refresh()
 
 void CardSetEditWidget::OnInitialize()
 {
+
 	if (!m_table.GetItems().empty())
-		m_table.GetItems().front()->m_inputRussian->Focus();
+		m_table.GetItems().front()->m_inputRussian.Focus();
+
+	// Connect signals
+	auto& wordDatabase = GetApp()->GetWordDatabase();
+	wordDatabase.TermDownloaded().Connect(this, &CardSetEditWidget::OnWordMatchLoaded);
 }
 
 void CardSetEditWidget::OnRowCreated(GenericTableWidget<CardRow::sptr>::Row& rowItem)
 {
 	auto row = rowItem.item;
 	auto card = row->m_card;
+	uint32 index = m_table.GetIndex(row);
+	
+	row->m_labelNumber.SetText(std::to_string(index + 1));
+	LoadRowWordMatch(row, true);
 
-	row->m_inputType = AllocateObject<EnglishTextEdit>(
-			EnumToShortString(card->GetWordType()));
-	row->m_inputRussian = AllocateObject<RussianTextEdit>(
-		card->GetRussian().ToMarkedString());
-	row->m_inputEnglish = AllocateObject<EnglishTextEdit>(
-		card->GetEnglish().ToMarkedString());
-	row->m_inputCardTags = AllocateObject<EnglishTextEdit>("");
+	row->m_inputType.SetText(EnumToShortString(card->GetWordType()));
+	row->m_inputRussian.SetText(card->GetRussian().ToMarkedString());
+	row->m_inputEnglish.SetText(card->GetEnglish().ToMarkedString());
+	row->m_inputCardTags.SetText("");
 	row->m_cardTags = row->m_card->GetTags();
-	row->m_buttonEdit = AllocateObject<Button>("E");
-	row->m_buttonRemove = AllocateObject<Button>("X");
+	row->m_buttonEdit.SetText("E");
+	row->m_buttonRemove.SetText("X");
 
-	rowItem.widgets.push_back(row->m_inputType);
-	rowItem.widgets.push_back(row->m_inputRussian);
-	rowItem.widgets.push_back(row->m_inputEnglish);
-	rowItem.widgets.push_back(row->m_inputCardTags);
-	rowItem.widgets.push_back(row->m_buttonEdit);
-	rowItem.widgets.push_back(row->m_buttonRemove);
+	rowItem.widgets.push_back(&row->m_labelNumber);
+	rowItem.widgets.push_back(&row->m_inputType);
+	rowItem.widgets.push_back(&row->m_inputRussian);
+	rowItem.widgets.push_back(&row->m_inputEnglish);
+	rowItem.widgets.push_back(&row->m_inputCardTags);
+	rowItem.widgets.push_back(&row->m_buttonEdit);
+	rowItem.widgets.push_back(&row->m_buttonRemove);
 
-	row->m_buttonEdit->Clicked().Connect(
+	// Connect signals
+	row->m_buttonEdit.Clicked().Connect(
 		this, row, &CardSetEditWidget::OnClickEditCard);
-	row->m_buttonRemove->Clicked().Connect(
+	row->m_buttonRemove.Clicked().Connect(
 		this, row, &CardSetEditWidget::RemoveRow);
-	row->m_inputType->ReturnPressed().Connect(
+	row->m_inputType.ReturnPressed().Connect(
 		this, row, &CardSetEditWidget::OnPressEnterType);
-	row->m_inputRussian->ReturnPressed().Connect(
+	row->m_inputRussian.ReturnPressed().Connect(
 		this, row, &CardSetEditWidget::OnPressEnterRussian);
-	row->m_inputEnglish->ReturnPressed().Connect(
+	row->m_inputEnglish.ReturnPressed().Connect(
 		this, row, &CardSetEditWidget::OnPressEnterEnglish);
 	row->modified.Connect(
 		this, row, &CardSetEditWidget::OnCardEdited);
+	row->typeModified.Connect(
+		this, row, &CardSetEditWidget::OnCardWordTypeModified);
 	row->englishModified.Connect(
 		this, row, &CardSetEditWidget::OnCardEnglishModified);
 	row->russianModified.Connect(
 		this, row, &CardSetEditWidget::OnCardRussianModified);
-	row->m_inputType->GainedFocus().Connect(
+	row->m_inputType.GainedFocus().Connect(
 		this, row, &CardSetEditWidget::OnRowGainedFocus);
-	row->m_inputRussian->GainedFocus().Connect(
+	row->m_inputRussian.GainedFocus().Connect(
 		this, row, &CardSetEditWidget::OnRowGainedFocus);
-	row->m_inputEnglish->GainedFocus().Connect(
+	row->m_inputEnglish.GainedFocus().Connect(
 		this, row, &CardSetEditWidget::OnRowGainedFocus);
-	row->m_inputCardTags->GainedFocus().Connect(
+	row->m_inputCardTags.GainedFocus().Connect(
 		this, row, &CardSetEditWidget::OnRowGainedFocus);
 
-	row->m_inputRussian->AddKeyShortcut("Ctrl+Space", [this, row]() {
+	row->m_inputRussian.AddKeyShortcut("Ctrl+Space", [this, row]() {
 		auto newRow = AutoCompleteRow(row);
 		if (newRow != row)
 		{
-			newRow->m_inputRussian->Focus();
+			newRow->m_inputRussian.Focus();
 			m_lastSelectedRow = newRow;
 		}
 		return true;
 	});
-	row->m_inputEnglish->AddKeyShortcut("Ctrl+Space", [this, row]() {
+	row->m_inputEnglish.AddKeyShortcut("Ctrl+Space", [this, row]() {
 		auto newRow = AutoCompleteRow(row);
 		if (newRow != row)
 		{
-			newRow->m_inputEnglish->Focus();
+			newRow->m_inputEnglish.Focus();
 			m_lastSelectedRow = newRow;
 		}
 		return true;
 	});
-	row->m_inputEnglish->AddKeyShortcut("Ctrl+P", [this, row]() {
+	row->m_inputEnglish.AddKeyShortcut("Ctrl+P", [this, row]() {
 		row->m_cardTags.Toggle(CardTags::k_perfective);
 		if (row->m_cardTags[CardTags::k_perfective])
 			row->m_cardTags.Set(CardTags::k_imperfective, false);
 		Refresh();
 		return true;
 	});
-	row->m_inputEnglish->AddKeyShortcut("Ctrl+I", [this, row]() {
+	row->m_inputEnglish.AddKeyShortcut("Ctrl+I", [this, row]() {
 		row->m_cardTags.Toggle(CardTags::k_imperfective);
 		if (row->m_cardTags[CardTags::k_imperfective])
 			row->m_cardTags.Set(CardTags::k_perfective, false);
 		Refresh();
 		return true;
 	});
-	row->m_inputEnglish->AddKeyShortcut("Ctrl+U", [this, row]() {
+	row->m_inputEnglish.AddKeyShortcut("Ctrl+U", [this, row]() {
 		row->m_cardTags.Toggle(CardTags::k_unidirectional);
 		if (row->m_cardTags[CardTags::k_unidirectional])
 			row->m_cardTags.Set(CardTags::k_multidirectional, false);
 		Refresh();
 		return true;
 	});
-	row->m_inputEnglish->AddKeyShortcut("Ctrl+M", [this, row]() {
+	row->m_inputEnglish.AddKeyShortcut("Ctrl+M", [this, row]() {
 		row->m_cardTags.Toggle(CardTags::k_multidirectional);
 		if (row->m_cardTags[CardTags::k_multidirectional])
 			row->m_cardTags.Set(CardTags::k_unidirectional, false);
@@ -347,20 +359,14 @@ void CardSetEditWidget::RemoveRow(CardRow::sptr row)
 	OnCardEdited(row);
 }
 
-void CardSetEditWidget::OnCardEnglishModified(CardRow::sptr row)
+void CardSetEditWidget::OnCardWordTypeModified(CardRow::sptr row)
 {
-	if (row->m_inputEnglish->IsFocused())
-	{
-		m_lastSelectedRow = row;
-		auto str = row->GetEnglish().GetString();
-		if (!str.empty())
-			m_searchWidget.SetSearchText(str);
-	}
+	m_lastSelectedRow = row;
 }
 
 void CardSetEditWidget::OnCardRussianModified(CardRow::sptr row)
 {
-	if (row->m_inputRussian->IsFocused())
+	if (row->m_inputRussian.IsFocused())
 	{
 		m_lastSelectedRow = row;
 		auto str = row->GetRussian().GetString();
@@ -369,48 +375,61 @@ void CardSetEditWidget::OnCardRussianModified(CardRow::sptr row)
 	}
 }
 
+void CardSetEditWidget::OnCardEnglishModified(CardRow::sptr row)
+{
+	if (row->m_inputEnglish.IsFocused())
+	{
+		m_lastSelectedRow = row;
+		auto str = row->GetEnglish().GetString();
+		if (!str.empty())
+			m_searchWidget.SetSearchText(str);
+	}
+}
+
 void CardSetEditWidget::OnCardEdited(CardRow::sptr row)
 {
 	Refresh();
+
+	// Update word match, but do not download new words yet
+	LoadRowWordMatch(row, false);
 }
 
 void CardSetEditWidget::OnRowGainedFocus(CardRow::sptr row)
 {
-	wiki::Term::sptr wikiTterm;
-	wiki::Word::sptr wikiWord;
-	if (row->m_card)
-	{
-		auto& wordDatabase = GetApp()->GetWordDatabase();
-		wordDatabase.GetWordFromCard(row->m_card, wikiTterm, wikiWord);
-	}
-	m_wordDefinitionWidget.SetWord(wikiWord);
+	m_wordDefinitionWidget.SetWord(row->m_wordMatch.GetWord());
 }
 
 void CardSetEditWidget::OnPressEnterType(CardRow::sptr row)
 {
-	GetOrCreateAdjacentRow(row, false)->m_inputType->Focus();
+	// Download any new words
+	LoadRowWordMatch(row, true);
+	GetOrCreateAdjacentRow(row, false)->m_inputType.Focus();
 }
 
 void CardSetEditWidget::OnPressEnterRussian(CardRow::sptr row)
 {
 	// Predict the word type from the russian ending
-	if (row->m_inputType->GetText().length() == 0)
+	if (row->m_inputType.GetText().length() == 0)
 	{
 		row->UpdateState();
 		WordType predictedWordType;
 		if (ru::TryPredictWordType(row->m_ruKey.russian, predictedWordType))
 		{
 			unistr typeName = ConvertFromUTF8(EnumToShortString(predictedWordType));
-			row->m_inputType->SetText(typeName);
+			row->m_inputType.SetText(typeName);
+			row->UpdateState();
 		}
 	}
 
-	GetOrCreateAdjacentRow(row, false)->m_inputRussian->Focus();
+	// Download any new words
+	LoadRowWordMatch(row, true);
+
+	GetOrCreateAdjacentRow(row, false)->m_inputRussian.Focus();
 }
 
 void CardSetEditWidget::OnPressEnterEnglish(CardRow::sptr row)
 {
-	GetOrCreateAdjacentRow(row, false)->m_inputEnglish->Focus();
+	GetOrCreateAdjacentRow(row, false)->m_inputEnglish.Focus();
 }
 
 void CardSetEditWidget::OnClickEditCard(CardRow::sptr row)
@@ -425,7 +444,7 @@ void CardSetEditWidget::OnClickSearchedCard(Card::sptr card)
 		auto newRow = SetCardForRow(m_lastSelectedRow, card);
 		if (newRow)
 		{
-			newRow->m_inputRussian->Focus();
+			newRow->m_inputRussian.Focus();
 			m_lastSelectedRow = newRow;
 		}
 	}
@@ -480,6 +499,58 @@ bool CardSetEditWidget::SearchFilter(Card::sptr card)
 	return !cmg::container::Contains(m_allCards, card);
 }
 
+void CardSetEditWidget::LoadRowWordMatch(CardRow::sptr row, bool download)
+{
+	auto& wordDatabase = GetApp()->GetWordDatabase();
+	CardWordMatch wordMatch = wordDatabase.GetWordFromCard(
+		row->m_ruKey, download, true);
+	RefreshRowWordMatch(row, wordMatch);
+}
+
+void CardSetEditWidget::RefreshRowWordMatch(CardRow::sptr row,
+	const CardWordMatch& wordMatch)
+{
+	row->m_wordMatch = wordMatch;
+	Color labelColor = GUIConfig::color_text_box_background_text;
+	auto part = wordMatch.GetPart();
+	if (part && wordMatch.GetPart()->isLoaded)
+	{
+		if (!part->word)
+			labelColor = Config::GetProficiencyLevelColor(ProficiencyLevel::k_hard);
+		else if (part->isMatchingType && part->isMatchingText)
+			labelColor = Config::GetProficiencyLevelColor(ProficiencyLevel::k_learned);
+		else
+			labelColor = Config::GetProficiencyLevelColor(ProficiencyLevel::k_easy);
+	}
+	else if (!part)
+		labelColor = Config::GetProficiencyLevelColor(ProficiencyLevel::k_hard);
+	row->m_labelNumber.SetColor(labelColor);
+
+	if (row == m_lastSelectedRow)
+		m_wordDefinitionWidget.SetWord(wordMatch.GetWord());
+}
+
+void CardSetEditWidget::OnWordMatchLoaded(const CardWordMatch& wordMatch)
+{
+	// Find the row for this card key
+	auto cardIter = m_russianToCards.find(wordMatch.key);
+	if (cardIter == m_russianToCards.end())
+		return;
+	Card::sptr card = cardIter->second;
+	CardRow::sptr row;
+	for (auto rowIter : m_table.GetItems())
+	{
+		if (rowIter->m_card == card)
+		{
+			row = rowIter;
+			break;
+		}
+	}
+
+	if (row)
+		RefreshRowWordMatch(row, wordMatch);
+}
+
 bool CardRow::IsEmpty() const
 {
 	return m_isEmpty;
@@ -508,7 +579,7 @@ bool CardRow::IsValid() const
 
 WordType CardRow::GetWordType() const
 {
-	String text = ConvertToUTF8(m_inputType->GetText());
+	String text = ConvertToUTF8(m_inputType.GetText());
 	WordType wordType = WordType::k_other;
 	TryStringToEnum(text, wordType, true);
 	return wordType;
@@ -516,19 +587,19 @@ WordType CardRow::GetWordType() const
 
 AccentedText CardRow::GetRussian() const
 {
-	return AccentedText(m_inputRussian->GetText());
+	return AccentedText(m_inputRussian.GetText());
 }
 
 AccentedText CardRow::GetEnglish() const
 {
-	return AccentedText(m_inputEnglish->GetText());
+	return AccentedText(m_inputEnglish.GetText());
 }
 
 void CardRow::Initialize()
 {
-	m_inputRussian->TextEdited().Connect(this, &CardRow::OnRussianModified);
-	m_inputEnglish->TextEdited().Connect(this, &CardRow::OnEnglishModified);
-	m_inputType->TextEdited().Connect(this, &CardRow::OnTypeModified);
+	m_inputRussian.TextEdited().Connect(this, &CardRow::OnRussianModified);
+	m_inputEnglish.TextEdited().Connect(this, &CardRow::OnEnglishModified);
+	m_inputType.TextEdited().Connect(this, &CardRow::OnTypeModified);
 }
 
 void CardRow::UpdateState()
@@ -536,11 +607,11 @@ void CardRow::UpdateState()
 	auto& cardDatabase = m_app->GetCardDatabase();
 	
 	// Get and validate card info
-	String typeText = ConvertToUTF8(m_inputType->GetText());
+	String typeText = ConvertToUTF8(m_inputType.GetText());
 	m_wordType = WordType::k_other;
 	m_validType = TryStringToEnum(typeText, m_wordType, true);
-	m_text.russian = AccentedText(m_inputRussian->GetText());
-	m_text.english = AccentedText(m_inputEnglish->GetText());
+	m_text.russian = AccentedText(m_inputRussian.GetText());
+	m_text.english = AccentedText(m_inputEnglish.GetText());
 	m_ruKey = CardRuKey(m_wordType, m_text.russian);
 	m_enKey = CardEnKey(m_wordType, m_text.english, m_cardTags);
 	m_isEmpty = (m_isNewCard && typeText.empty() && m_text.russian.empty() &&
@@ -555,61 +626,61 @@ void CardRow::Refresh()
 {
 	// WordType color
 	if (m_isEmpty)
-		m_inputType->SetBackgroundColor(GUIConfig::color_text_box_background);
+		m_inputType.SetBackgroundColor(GUIConfig::color_text_box_background);
 	else if (!m_validType)
-		m_inputType->SetBackgroundColor(Config::k_colorEditedInvalid);
+		m_inputType.SetBackgroundColor(Config::k_colorEditedInvalid);
 	else if (!m_isEnKeyUnique || !m_isRuKeyUnique)
-		m_inputType->SetBackgroundColor(Config::k_colorEditedDuplicate);
+		m_inputType.SetBackgroundColor(Config::k_colorEditedDuplicate);
 	else if (m_isNewCard)
-		m_inputType->SetBackgroundColor(Config::k_colorEditedNew);
+		m_inputType.SetBackgroundColor(Config::k_colorEditedNew);
 	else if (m_wordType != m_card->GetWordType())
-		m_inputType->SetBackgroundColor(Config::k_colorEditedModified);
+		m_inputType.SetBackgroundColor(Config::k_colorEditedModified);
 	else if (m_isNewToSet)
-		m_inputType->SetBackgroundColor(Config::k_colorEditedMatched);
+		m_inputType.SetBackgroundColor(Config::k_colorEditedMatched);
 	else
-		m_inputType->SetBackgroundColor(GUIConfig::color_text_box_background);
+		m_inputType.SetBackgroundColor(GUIConfig::color_text_box_background);
 
 	// Russian color
 	if (m_isEmpty)
-		m_inputRussian->SetBackgroundColor(GUIConfig::color_text_box_background);
+		m_inputRussian.SetBackgroundColor(GUIConfig::color_text_box_background);
 	else if (m_text.russian.empty())
-		m_inputRussian->SetBackgroundColor(Config::k_colorEditedInvalid);
+		m_inputRussian.SetBackgroundColor(Config::k_colorEditedInvalid);
 	else if (!m_isRuKeyUnique)
-		m_inputRussian->SetBackgroundColor(Config::k_colorEditedDuplicate);
+		m_inputRussian.SetBackgroundColor(Config::k_colorEditedDuplicate);
 	else if (m_isNewCard)
-		m_inputRussian->SetBackgroundColor(Config::k_colorEditedNew);
+		m_inputRussian.SetBackgroundColor(Config::k_colorEditedNew);
 	else if (m_text.russian != m_card->GetRussian())
-		m_inputRussian->SetBackgroundColor(Config::k_colorEditedModified);
+		m_inputRussian.SetBackgroundColor(Config::k_colorEditedModified);
 	else if (m_isNewToSet)
-		m_inputRussian->SetBackgroundColor(Config::k_colorEditedMatched);
+		m_inputRussian.SetBackgroundColor(Config::k_colorEditedMatched);
 	else
-		m_inputRussian->SetBackgroundColor(GUIConfig::color_text_box_background);
+		m_inputRussian.SetBackgroundColor(GUIConfig::color_text_box_background);
 
 	// English color
 	if (m_isEmpty)
-		m_inputEnglish->SetBackgroundColor(GUIConfig::color_text_box_background);
+		m_inputEnglish.SetBackgroundColor(GUIConfig::color_text_box_background);
 	else if (m_text.english.empty())
-		m_inputEnglish->SetBackgroundColor(Config::k_colorEditedInvalid);
+		m_inputEnglish.SetBackgroundColor(Config::k_colorEditedInvalid);
 	else if (!m_isEnKeyUnique)
-		m_inputEnglish->SetBackgroundColor(Config::k_colorEditedDuplicate);
+		m_inputEnglish.SetBackgroundColor(Config::k_colorEditedDuplicate);
 	else if (m_isNewCard)
-		m_inputEnglish->SetBackgroundColor(Config::k_colorEditedNew);
+		m_inputEnglish.SetBackgroundColor(Config::k_colorEditedNew);
 	else if (m_text.english != m_card->GetEnglish())
-		m_inputEnglish->SetBackgroundColor(Config::k_colorEditedModified);
+		m_inputEnglish.SetBackgroundColor(Config::k_colorEditedModified);
 	else if (m_isNewToSet)
-		m_inputEnglish->SetBackgroundColor(Config::k_colorEditedMatched);
+		m_inputEnglish.SetBackgroundColor(Config::k_colorEditedMatched);
 	else
-		m_inputEnglish->SetBackgroundColor(GUIConfig::color_text_box_background);
+		m_inputEnglish.SetBackgroundColor(GUIConfig::color_text_box_background);
 
 	// Card tags color
 	if (m_isEmpty)
-		m_inputCardTags->SetBackgroundColor(GUIConfig::color_text_box_background);
+		m_inputCardTags.SetBackgroundColor(GUIConfig::color_text_box_background);
 	else if (m_isNewCard)
-		m_inputCardTags->SetBackgroundColor(Config::k_colorEditedNew);
+		m_inputCardTags.SetBackgroundColor(Config::k_colorEditedNew);
 	else if (m_cardTags != m_card->GetTags())
-		m_inputCardTags->SetBackgroundColor(Config::k_colorEditedModified);
+		m_inputCardTags.SetBackgroundColor(Config::k_colorEditedModified);
 	else
-		m_inputCardTags->SetBackgroundColor(GUIConfig::color_text_box_background);
+		m_inputCardTags.SetBackgroundColor(GUIConfig::color_text_box_background);
 
 	String tagStr = "";
 	for (auto it : m_cardTags)
@@ -621,7 +692,7 @@ void CardRow::Refresh()
 			tagStr += EnumToShortString(it.first);
 		}
 	}
-	m_inputCardTags->SetText(tagStr);
+	m_inputCardTags.SetText(tagStr);
 }
 
 void CardRow::OnTypeModified()
@@ -639,13 +710,13 @@ void CardRow::OnEnglishModified()
 void CardRow::OnRussianModified()
 {
 	// Convert 'ээ' to an accent mark (for when typing in russian mode)
-	unistr russian = m_inputRussian->GetText();
+	unistr russian = m_inputRussian.GetText();
 	size_t pos = russian.find(u"ээ");
 	if (pos != std::string::npos)
 	{
 		russian.replace(pos, 2, u"'");
-		m_inputRussian->SetText(russian);
-		m_inputRussian->SetCursorPosition(pos + 1);
+		m_inputRussian.SetText(russian);
+		m_inputRussian.SetCursorPosition(pos + 1);
 	}
 
 	russianModified.Emit();
