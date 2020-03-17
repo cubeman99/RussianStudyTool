@@ -283,16 +283,16 @@ void CardListView::RefreshRow(Row::sptr row, const CardWordMatch& wordMatch)
 	row->m_labelNumber.SetText(numberText);
 	Color labelColor = GUIConfig::color_text_box_background_text;
 	auto part = wordMatch.GetPart();
-	if (part && wordMatch.GetPart()->isLoaded)
+	if (part && part->isLoaded)
 	{
 		if (!part->word)
 			labelColor = Config::GetProficiencyLevelColor(ProficiencyLevel::k_hard);
-		else if (part->isMatchingType)
+		else if (part->isMatchingType && part->isMatchingText)
 			labelColor = Config::GetProficiencyLevelColor(ProficiencyLevel::k_learned);
 		else
 			labelColor = Config::GetProficiencyLevelColor(ProficiencyLevel::k_easy);
 	}
-	else if (!part)
+	else if (wordMatch.Empty())
 		labelColor = Config::GetProficiencyLevelColor(ProficiencyLevel::k_hard);
 	row->m_labelNumber.SetColor(labelColor);
 

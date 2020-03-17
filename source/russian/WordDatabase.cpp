@@ -20,19 +20,25 @@ wiki::Wiktionary& WordDatabase::GetWiktionary()
 CardWordMatch WordDatabase::GetWordFromCard(Card::sptr card,
 	bool download, bool downloadInThread)
 {
-	CardWordMatch match = GetWordFromCard(
-		card->GetRuKey(), download, downloadInThread);
-	match.card = card;
-	return match;
+	return GetWordFromCard(
+		card->GetRuKey(), card, download, downloadInThread);
 }
 
 CardWordMatch WordDatabase::GetWordFromCard(const CardRuKey& key,
+	bool download, bool downloadInThread)
+{
+	return GetWordFromCard(key, nullptr, download, downloadInThread);
+}
+
+CardWordMatch WordDatabase::GetWordFromCard(
+	const CardRuKey& key, Card::sptr card,
 	bool download, bool downloadInThread)
 {
 	const unistr& str = key.russian;
 	uint32 length = str.length();
 	CardWordMatch match;
 	match.key = key;
+	match.card = card;
 	CardVariantWordMatch variant;
 	CardVariantWordMatchPart part;
 

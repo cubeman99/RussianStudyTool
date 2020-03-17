@@ -36,7 +36,7 @@ public:
 	static Color k_colorEditedInvalid;
 	static Color k_colorEditedDuplicate;
 	static Color k_colorEditedMatched;
-	static constexpr uint32 k_maxCardHistorySize = 100;
+	static constexpr uint32 k_maxCardHistorySize = 200;
 	static constexpr uint32 k_minRepeatInterval = 8;
 	static constexpr uint32 k_newCardInterval = 4;
 	static Map<ProficiencyLevel, float> k_proficiencyLevelScoreMultipliers;

@@ -29,6 +29,9 @@ public:
 	void ProcessEvents();
 
 private:
+	CardWordMatch GetWordFromCard(const CardRuKey& key, Card::sptr card,
+		bool download = true, bool downloadInThread = false);
+
 	WordDatabase(const WordDatabase& copy) = delete;
 	WordDatabase& operator=(const WordDatabase& copy) = delete;
 

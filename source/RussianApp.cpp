@@ -104,7 +104,7 @@ void RussianStudyToolApp::OnInitialize()
 	PushState(m_mainMenuWidget);
 	//PushState(new Widget());
 	//PushState(new CardSearchWidget());
-	PushState(new CardSetEditWidget(cardSet));
+	//PushState(new CardSetEditWidget(cardSet));
 	//PushState(new CardEditWidget(card));
 	//PushState(new StudyState(cardSet.get(), cardSet));
 	//PushState(new CardListView(cardSet.get()));
