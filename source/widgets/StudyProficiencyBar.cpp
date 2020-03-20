@@ -2,9 +2,6 @@
 
 StudyProficiencyBar::StudyProficiencyBar()
 {
-	//m_layout.Add(&m_labelScore, 0.15f);
-	//m_layout.Add(&m_bar, 1.0f);
-	//m_layout.Add(&m_labelCount, 0.15f);
 	m_layout.Add(&m_labelScore, 0.f);
 	m_layout.Add(&m_bar, 1.0f);
 	m_layout.Add(&m_labelCount, 0.2f);
@@ -46,7 +43,7 @@ void ProficiencyBarBoxWidget::OnRender(AppGraphics& g, float timeDelta)
 	Rect2f bounds = GetBounds();
 
 	// Background
-	g.FillRect(bounds, Config::GetProficiencyLevelColor(ProficiencyLevel::k_new));
+	g.FillRect(bounds, Config::k_colorGray);
 
 	// Histogram of history score values
 	float offset = 0.0f;
@@ -65,26 +62,4 @@ void ProficiencyBarBoxWidget::OnRender(AppGraphics& g, float timeDelta)
 		g.FillRect(levelRect, binColor);
 		offset += levelWidth;
 	}
-
-	/*
-	// Proficiency set
-	if (totalCount > 0)
-	{
-		for (int32 i = (int32) ProficiencyLevel::k_count - 1; i >= 0; i--)
-		{
-			ProficiencyLevel level = (ProficiencyLevel) i;
-			uint32 count = m_metrics.GetCount(level);
-			if (count > 0)
-			{
-				float levelWidth = GetBounds().GetWidth() *
-					((float) count / (float) totalCount);
-				Rect2f levelRect = bounds;
-				levelRect.position.x += offset;
-				levelRect.size.x = levelWidth;
-				g.FillRect(levelRect, Config::GetProficiencyLevelColor(level));
-				offset += levelWidth;
-			}
-		}
-	}
-	*/
 }

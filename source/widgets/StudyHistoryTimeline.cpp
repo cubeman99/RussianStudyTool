@@ -42,9 +42,6 @@ void StudyHistoryTimeline::OnRender(AppGraphics& g, float timeDelta)
 				(float) (elapsedSeconds / m_durationSeconds));
 			Vector2f tickEndPoint = tickStartPoint +
 				(knewIt ? -tickVector : tickVector);
-			// Color tickColor = (knewIt ?
-			// 	Config::GetProficiencyLevelColor(ProficiencyLevel::k_learned) :
-			// 	Config::GetProficiencyLevelColor(ProficiencyLevel::k_hard));
 			Color tickColor = GUIConfig::color_text;
 			g.DrawLine(tickStartPoint, tickEndPoint, tickColor, 2.0f);
 		}

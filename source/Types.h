@@ -91,15 +91,6 @@ DECLARE_ENUM_WITH_COUNT(Animacy, ENUM_MACRO_ANIMACY)
 	_ex(_context, media, , media)
 DECLARE_ENUM_WITH_COUNT(CardSetType, ENUM_MACRO_CARD_SET_TYPE)
 
-#define ENUM_MACRO_PROFICIENCY_LEVEL(_context, _ex) \
-	_ex(_context, new, , new) \
-	_ex(_context, hard, , hard) \
-	_ex(_context, medium, , medium) \
-	_ex(_context, easy, , easy) \
-	_ex(_context, learned, , learned)
-DECLARE_ENUM_WITH_COUNT(ProficiencyLevel, ENUM_MACRO_PROFICIENCY_LEVEL)
-
-
 // Values 0 to 31 are key tags, which differentiate
 // cards with the same english text and word type.
 #define ENUM_MACRO_CARD_TAG(_context, _ex) \

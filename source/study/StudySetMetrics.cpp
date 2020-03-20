@@ -13,18 +13,7 @@ float StudySetMetrics::GetHistoryScore() const
 
 uint32 StudySetMetrics::GetTotalCount() const
 {
-	uint32 total = 0;
-	for (auto it : m_proficiencyCounts)
-		total += it.second;
-	return total;
-}
-
-uint32 StudySetMetrics::GetCount(ProficiencyLevel level) const
-{
-	auto it = m_proficiencyCounts.find(level);
-	if (it != m_proficiencyCounts.end())
-		return it->second;
-	return 0;
+	return m_cardCount;
 }
 
 uint32 StudySetMetrics::GetCountForScoreBin(uint32 bin) const
@@ -43,13 +32,6 @@ void StudySetMetrics::Add(const CardStudyData& cardStudyData)
 	m_cardCount++;
 	m_historyScoreSum += score;
 	m_historyScore = m_historyScoreSum / m_cardCount;
-
-	ProficiencyLevel level = cardStudyData.GetProficiencyLevel();
-	auto it = m_proficiencyCounts.find(level);
-	if (it == m_proficiencyCounts.end())
-		m_proficiencyCounts[level] = 1;
-	else
-		m_proficiencyCounts[level]++;
 
 	if (cardStudyData.IsEncountered())
 	{

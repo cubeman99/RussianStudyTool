@@ -119,32 +119,7 @@ void StudyDatabase::MarkCard(Card::sptr card, bool knewIt)
 	std::lock_guard<std::recursive_mutex> guard(m_mutexStudyData);
 	auto& studyData = GetCardStudyData(card);
 	studyData.AddToHistory(knewIt, GetAppTimestamp());
-
-	// Update proficiencly level
-	if (studyData.GetProficiencyLevel() == ProficiencyLevel::k_new)
-	{
-		studyData.SetProficiencyLevel(knewIt ?
-			ProficiencyLevel::k_easy : ProficiencyLevel::k_hard);
-		OnCardStudyDataChanged(card);
-	}
-	else if (knewIt)
-	{
-		if (studyData.GetProficiencyLevel() != ProficiencyLevel::k_learned)
-		{
-			studyData.SetProficiencyLevel((ProficiencyLevel)
-				((uint32) studyData.GetProficiencyLevel() + 1));
-			OnCardStudyDataChanged(card);
-		}
-	}
-	else
-	{
-		if (studyData.GetProficiencyLevel() != ProficiencyLevel::k_hard)
-		{
-			studyData.SetProficiencyLevel((ProficiencyLevel)
-				((uint32) studyData.GetProficiencyLevel() - 1));
-			OnCardStudyDataChanged(card);
-		}
-	}
+	OnCardStudyDataChanged(card);
 }
 
 void StudyDatabase::SetStudyDataPath(const Path& path)

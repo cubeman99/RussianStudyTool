@@ -5,11 +5,6 @@ CardStudyData::CardStudyData()
 {
 }
 
-ProficiencyLevel CardStudyData::GetProficiencyLevel() const
-{
-	return m_proficiencyLevel;
-}
-
 AppTimestamp CardStudyData::GetLastEncounterTime() const
 {
 	return m_lastEncounterTime;
@@ -40,11 +35,6 @@ uint32 CardStudyData::GetHistorySize() const
 	return m_history.size();
 }
 
-void CardStudyData::SetProficiencyLevel(ProficiencyLevel proficiencyLevel)
-{
-	m_proficiencyLevel = proficiencyLevel;
-}
-
 void CardStudyData::AddToHistory(bool knewIt, AppTimestamp timestamp)
 {
 	m_lastEncounterTime = timestamp;
@@ -67,10 +57,7 @@ void CardStudyData::Serialize(rapidjson::Value& value,
 		keyType.c_str(), allocator).Move(), allocator);
 	value.AddMember("ru", rapidjson::Value(
 		keyRussian.c_str(), allocator).Move(), allocator);
-
-	// Proficiency
-	value.AddMember("level", (int32_t) m_proficiencyLevel, allocator);
-
+	
 	// History (round timestamps to the nearest second)
 	rapidjson::Value historyDataList(rapidjson::kArrayType);
 	AppTimestamp lastTimestamp = 0;
@@ -101,10 +88,7 @@ Error CardStudyData::Deserialize(rapidjson::Value& data, CardRuKey& outKey)
 	// Deserialize card key
 	TryStringToEnum(data["type"].GetString(), outKey.type, false);
 	outKey.russian = ConvertFromUTF8(data["ru"].GetString());
-
-	// Proficiency
-	m_proficiencyLevel = (ProficiencyLevel) data["level"].GetInt();
-
+	
 	// History
 	//   - Positive timestmap = knew it
 	//   - Negative timestamp = didn't know it.

@@ -36,21 +36,21 @@ public:
 	static Color k_colorEditedInvalid;
 	static Color k_colorEditedDuplicate;
 	static Color k_colorEditedMatched;
+	static Color k_colorGray;
+	static Color k_colorGreen;
+	static Color k_colorRed;
+	static Color k_colorYellow;
 	static constexpr uint32 k_maxCardHistorySize = 200;
 	static constexpr uint32 k_minRepeatInterval = 8;
 	static constexpr uint32 k_newCardInterval = 4;
-	static Map<ProficiencyLevel, float> k_proficiencyLevelScoreMultipliers;
-	static Map<ProficiencyLevel, uint32> k_proficiencyLevelIntervals;
 	static constexpr uint32 k_studyScoreHistogramBinCount = 10;
 
 	static void Initialize();
 
 	static const Color& GetCardTagColor(CardTags tag);
-	static const Color& GetProficiencyLevelColor(ProficiencyLevel level);
 	static Color GetHistoryScoreColor(float score);
 	static AccentedText GetCardTagShortDisplayName(CardTags tag);
 
 private:
 	static Map<CardTags, Color> k_mapCardTagColors;
-	static Map<ProficiencyLevel, Color> k_proficiencyLevelColors;
 };

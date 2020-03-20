@@ -516,14 +516,14 @@ void CardSetEditWidget::RefreshRowWordMatch(CardRow::sptr row,
 	if (part && wordMatch.GetPart()->isLoaded)
 	{
 		if (!part->word)
-			labelColor = Config::GetProficiencyLevelColor(ProficiencyLevel::k_hard);
+			labelColor = Config::k_colorRed;
 		else if (part->isMatchingType && part->isMatchingText)
-			labelColor = Config::GetProficiencyLevelColor(ProficiencyLevel::k_learned);
+			labelColor = Config::k_colorGreen;
 		else
-			labelColor = Config::GetProficiencyLevelColor(ProficiencyLevel::k_easy);
+			labelColor = Config::k_colorYellow;
 	}
 	else if (!part)
-		labelColor = Config::GetProficiencyLevelColor(ProficiencyLevel::k_hard);
+		labelColor = Config::k_colorRed;
 	row->m_labelNumber.SetColor(labelColor);
 
 	if (row == m_lastSelectedRow)

@@ -286,14 +286,14 @@ void CardListView::RefreshRow(Row::sptr row, const CardWordMatch& wordMatch)
 	if (part && part->isLoaded)
 	{
 		if (!part->word)
-			labelColor = Config::GetProficiencyLevelColor(ProficiencyLevel::k_hard);
+			labelColor = Config::k_colorRed;
 		else if (part->isMatchingType && part->isMatchingText)
-			labelColor = Config::GetProficiencyLevelColor(ProficiencyLevel::k_learned);
+			labelColor = Config::k_colorGreen;
 		else
-			labelColor = Config::GetProficiencyLevelColor(ProficiencyLevel::k_easy);
+			labelColor = Config::k_colorYellow;
 	}
 	else if (wordMatch.Empty())
-		labelColor = Config::GetProficiencyLevelColor(ProficiencyLevel::k_hard);
+		labelColor = Config::k_colorRed;
 	row->m_labelNumber.SetColor(labelColor);
 
 	// Get card tags from the wiki word, if relevant
@@ -319,8 +319,8 @@ void CardListView::RefreshRow(Row::sptr row, const CardWordMatch& wordMatch)
 	}
 	row->m_layoutTags.AddStretch();
 
-	// History score & proficiency level
-	if (studyData.GetProficiencyLevel() == ProficiencyLevel::k_new)
+	// Score
+	if (!studyData.IsEncountered())
 	{
 		row->m_labelScore.SetBackgroundColor(Color(0, 0, 0, 0));
 		row->m_labelScore.SetText("");

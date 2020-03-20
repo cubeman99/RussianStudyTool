@@ -20,15 +20,16 @@ Color GUIConfig::color_outline = Color(128, 128, 128);
 Color GUIConfig::color_outline_focused = Color(0, 255, 255);
 
 // App Config
+Color Config::k_colorGray = Color(100, 100, 100);
+Color Config::k_colorGreen = Color(0, 128, 0);
+Color Config::k_colorYellow = Color(100, 100, 0);
+Color Config::k_colorRed = Color(128, 0, 0);
 Color Config::k_colorEditedNew = Color(0, 128, 0);
 Color Config::k_colorEditedModified = Color(100, 100, 0);
 Color Config::k_colorEditedMatched = Color(20, 20, 100);
 Color Config::k_colorEditedInvalid = Color(128, 0, 0);
 Color Config::k_colorEditedDuplicate = Color(100, 50, 0);
 Map<CardTags, Color> Config::k_mapCardTagColors;
-Map<ProficiencyLevel, Color> Config::k_proficiencyLevelColors;
-Map<ProficiencyLevel, uint32> Config::k_proficiencyLevelIntervals;
-Map<ProficiencyLevel, float> Config::k_proficiencyLevelScoreMultipliers;
 
 void Config::Initialize()
 {
@@ -45,12 +46,6 @@ void Config::Initialize()
 	k_mapCardTagColors[CardTags::k_genitive] = Color(80, 15, 0);
 	k_mapCardTagColors[CardTags::k_prepositional] = Color(0, 100, 0);
 	k_mapCardTagColors[CardTags::k_instrumental] = Color(100, 100, 0);
-
-	k_proficiencyLevelColors[ProficiencyLevel::k_new] = Color(100, 100, 100);
-	k_proficiencyLevelColors[ProficiencyLevel::k_hard] = Color(128, 0, 0);
-	k_proficiencyLevelColors[ProficiencyLevel::k_medium] =  Color(128, 64, 0);
-	k_proficiencyLevelColors[ProficiencyLevel::k_easy] = Color(128, 128, 0);
-	k_proficiencyLevelColors[ProficiencyLevel::k_learned] = Color(0, 128, 0);
 }
 
 const Color& Config::GetCardTagColor(CardTags tag)
@@ -61,46 +56,13 @@ const Color& Config::GetCardTagColor(CardTags tag)
 	return Color::BLACK;
 }
 
-const Color& Config::GetProficiencyLevelColor(ProficiencyLevel level)
-{
-	return k_proficiencyLevelColors[level];
-}
-
-template <typename X, typename Y>
-Y PolyLerp(X x, std::initializer_list<std::pair<X, Y>> points)
-{
-	CMG_ASSERT(points.size() > 0);
-	uint32 i = 0;
-	std::pair<X, Y> pointPrev;
-	for (const std::pair<X, Y>& point : points)
-	{
-		if (x <= point.first)
-		{
-			if (i == 0)
-			{
-				return point.second;
-			}
-			else
-			{
-				X t = (x - pointPrev.first) / (point.first - pointPrev.first);
-				return (pointPrev.second + (t * (point.second - pointPrev.second)));
-			}
-		}
-		pointPrev = point;
-		i++;
-	}
-	return pointPrev.second;
-}
-
 Color Config::GetHistoryScoreColor(float score)
 {
-	return Color(PolyLerp<float, Vector3f>(score, {
-		{0.0f, GetProficiencyLevelColor(ProficiencyLevel::k_hard).ToVector3f()},
-		{0.5f, GetProficiencyLevelColor(ProficiencyLevel::k_easy).ToVector3f()},
-		{1.0f, GetProficiencyLevelColor(ProficiencyLevel::k_learned).ToVector3f()},
+	return Color(Math::PolyLerp<float, Vector3f>(score, {
+		{0.0f, Config::k_colorRed.ToVector3f()},
+		{0.5f, Config::k_colorYellow.ToVector3f()},
+		{1.0f, Config::k_colorGreen.ToVector3f()},
 	}));
-	//return Color::Lerp(GetProficiencyLevelColor(ProficiencyLevel::k_hard),
-	//	GetProficiencyLevelColor(ProficiencyLevel::k_learned), score);
 }
 
 AccentedText Config::GetCardTagShortDisplayName(CardTags tag)

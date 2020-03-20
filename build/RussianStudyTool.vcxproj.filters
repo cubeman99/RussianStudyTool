@@ -491,5 +491,8 @@
     <ClInclude Include="..\source\russian\CardWordMatch.h">
       <Filter>Source Files\russian</Filter>
     </ClInclude>
+    <ClInclude Include="..\source\study\SchedulerBase.h">
+      <Filter>Source Files\study</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

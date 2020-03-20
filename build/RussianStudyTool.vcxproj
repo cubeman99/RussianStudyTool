@@ -134,6 +134,7 @@
     <ClInclude Include="..\source\states\StudyState.h" />
     <ClInclude Include="..\source\study\CardStudyData.h" />
     <ClInclude Include="..\source\study\Scheduler.h" />
+    <ClInclude Include="..\source\study\SchedulerBase.h" />
     <ClInclude Include="..\source\study\StudyDatabase.h" />
     <ClInclude Include="..\source\study\StudySetMetrics.h" />
     <ClInclude Include="..\source\Types.h" />

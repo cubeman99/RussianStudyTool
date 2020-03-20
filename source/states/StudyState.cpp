@@ -146,8 +146,8 @@ void StudyState::OnInitialize()
 	cardDatabase.CardAddedToSet().Connect(this, &StudyState::OnCardAddedOrRemovedFromSet);
 	cardDatabase.CardRemovedFromSet().Connect(this, &StudyState::OnCardAddedOrRemovedFromSet);
 
-	m_scheduler = new Scheduler(
-		GetApp()->GetStudyDatabase(), m_studySet, m_studyParams);
+	m_scheduler = new Scheduler(GetApp()->GetStudyDatabase());
+	m_scheduler->Begin(m_studySet, m_studyParams);
 	NextCard();
 }
 
@@ -204,7 +204,7 @@ void StudyState::NextCard()
 	// Get the next card
 	Card::sptr card;
 	if (m_studySet)
-		card = m_scheduler->NextCard();
+		card = m_scheduler->NextItem();
 	if (!card)
 	{
 		Close();
@@ -422,8 +422,10 @@ void StudyState::ShowCard(Card::sptr card, Language shownSide)
 		m_labelEncounterTime.SetText("");
 	}
 
-	Color profColor = Config::GetProficiencyLevelColor(
-		m_cardStudyData.GetProficiencyLevel());
+	Color profColor = Config::k_colorGray;
+	if (m_cardStudyData.IsEncountered())
+		profColor = Config::GetHistoryScoreColor(
+			m_cardStudyData.GetHistoryScore());
 	profColor.a = 128;
 	m_proficiencyBarTop.SetBackgroundColor(profColor);
 	m_proficiencyBarBottom.SetBackgroundColor(profColor);

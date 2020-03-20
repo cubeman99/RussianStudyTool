@@ -9,7 +9,6 @@ class CardStudyData
 public:
 	CardStudyData();
 
-	ProficiencyLevel GetProficiencyLevel() const;
 	AppTimestamp GetLastEncounterTime() const;
 	bool IsEncountered() const;
 	float GetHistoryScore() const;
@@ -17,7 +16,6 @@ public:
 	AppTimestamp GetHistoryTimestamp(uint32 index) const;
 	uint32 GetHistorySize() const;
 
-	void SetProficiencyLevel(ProficiencyLevel proficiencyLevel);
 	void AddToHistory(bool knewIt, AppTimestamp timestamp);
 
 	void Serialize(rapidjson::Value& value,
@@ -31,5 +29,4 @@ private:
 	Array<bool> m_history;
 	Array<AppTimestamp> m_historyTimestamps;
 	AppTimestamp m_lastEncounterTime = -1.0;
-	ProficiencyLevel m_proficiencyLevel = ProficiencyLevel::k_new;
 };
