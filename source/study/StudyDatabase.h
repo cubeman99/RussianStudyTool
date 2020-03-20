@@ -29,9 +29,8 @@ public:
 	StudySetMetrics& CalcStudyMetrics(CardSetPackage::sptr package);
 
 	void Clear();
-	void MarkCard(Card::sptr card, bool knewIt);
-
-
+	void MarkCard(Card::sptr card, bool knewIt, Language shownSide);
+	
 	void SetStudyDataPath(const Path& path);
 	Error LoadStudyData();
 	Error LoadStudyData(const Path& path);

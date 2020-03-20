@@ -4,6 +4,15 @@
 #include "core/JsonUtility.h"
 
 
+struct CardStudyMark
+{
+public:
+	bool knewIt = false;
+	AppTimestamp timestamp = 0.0;
+	Language shownSide = Language::k_russian;
+};
+
+
 class CardStudyData
 {
 public:
@@ -16,17 +25,16 @@ public:
 	AppTimestamp GetHistoryTimestamp(uint32 index) const;
 	uint32 GetHistorySize() const;
 
-	void AddToHistory(bool knewIt, AppTimestamp timestamp);
+	void AddToHistory(bool knewIt, AppTimestamp timestamp, Language shownSide);
 
 	void Serialize(rapidjson::Value& value,
 		rapidjson::Document::AllocatorType& allocator, const CardRuKey& key) const;
 	Error Deserialize(rapidjson::Value& data, CardRuKey& outKey);
 
-	static float CalcHistoryScore(const Array<bool>& history);
+	static float CalcHistoryScore(const Array<CardStudyMark>& history);
 
 private:
 	// First = most recent
-	Array<bool> m_history;
-	Array<AppTimestamp> m_historyTimestamps;
+	Array<CardStudyMark> m_markings;
 	AppTimestamp m_lastEncounterTime = -1.0;
 };

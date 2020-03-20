@@ -40,7 +40,6 @@ public:
 	static Color k_colorGreen;
 	static Color k_colorRed;
 	static Color k_colorYellow;
-	static constexpr uint32 k_maxCardHistorySize = 200;
 	static constexpr uint32 k_minRepeatInterval = 8;
 	static constexpr uint32 k_newCardInterval = 4;
 	static constexpr uint32 k_studyScoreHistogramBinCount = 10;

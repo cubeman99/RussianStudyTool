@@ -15,7 +15,7 @@ public:
 	virtual int32 GetRepeatInterval(Card::sptr card) override;
 
 	void Begin(IStudySet* studySet, const StudyParams& params = StudyParams());
-	void MarkCard(Card::sptr card, bool knewIt);
+	void MarkCard(Card::sptr card, bool knewIt, Language shownSide);
 
 private:
 	StudyDatabase& m_studyDatabase;

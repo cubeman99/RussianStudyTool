@@ -114,11 +114,11 @@ void StudyDatabase::Clear()
 	m_packageMetrics.clear();
 }
 
-void StudyDatabase::MarkCard(Card::sptr card, bool knewIt)
+void StudyDatabase::MarkCard(Card::sptr card, bool knewIt, Language shownSide)
 {
 	std::lock_guard<std::recursive_mutex> guard(m_mutexStudyData);
 	auto& studyData = GetCardStudyData(card);
-	studyData.AddToHistory(knewIt, GetAppTimestamp());
+	studyData.AddToHistory(knewIt, GetAppTimestamp(), shownSide);
 	OnCardStudyDataChanged(card);
 }
 

@@ -11,9 +11,9 @@ void Scheduler::Begin(IStudySet * studySet, const StudyParams & params)
 	SchedulerBase::Begin(studySet, params);
 }
 
-void Scheduler::MarkCard(Card::sptr card, bool knewIt)
+void Scheduler::MarkCard(Card::sptr card, bool knewIt, Language shownSide)
 {
-	m_studyDatabase.MarkCard(card, knewIt);
+	m_studyDatabase.MarkCard(card, knewIt, shownSide);
 	MarkItem(card);
 }
 

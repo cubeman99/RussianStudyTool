@@ -59,9 +59,9 @@ const Color& Config::GetCardTagColor(CardTags tag)
 Color Config::GetHistoryScoreColor(float score)
 {
 	return Color(Math::PolyLerp<float, Vector3f>(score, {
-		{0.0f, Config::k_colorRed.ToVector3f()},
-		{0.5f, Config::k_colorYellow.ToVector3f()},
-		{1.0f, Config::k_colorGreen.ToVector3f()},
+		{0.0f, Color(170, 0, 0).ToVector3f()},
+		{0.5f, Color(160, 150, 0).ToVector3f()},
+		{1.0f, Color(20, 150, 0).ToVector3f()},
 	}));
 }
 

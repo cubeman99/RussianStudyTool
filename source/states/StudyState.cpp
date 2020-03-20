@@ -185,7 +185,7 @@ void StudyState::OnRender(AppGraphics& g, float timeDelta)
 void StudyState::MarkCard(bool knewIt)
 {
 	auto app = (RussianStudyToolApp*) GetApp();
-	m_scheduler->MarkCard(m_card, knewIt);
+	m_scheduler->MarkCard(m_card, knewIt, m_shownSide);
 	app->GetStudyDatabase().SaveStudyData();
 }
 

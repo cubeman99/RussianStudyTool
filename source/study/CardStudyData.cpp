@@ -17,34 +17,33 @@ bool CardStudyData::IsEncountered() const
 
 float CardStudyData::GetHistoryScore() const
 {
-	return CalcHistoryScore(m_history);
+	return CalcHistoryScore(m_markings);
 }
 
 bool CardStudyData::GetHistoryKnewIt(uint32 index) const
 {
-	return m_history[index];
+	return m_markings[index].knewIt;
 }
 
 AppTimestamp CardStudyData::GetHistoryTimestamp(uint32 index) const
 {
-	return m_historyTimestamps[index];
+	return m_markings[index].timestamp;
 }
 
 uint32 CardStudyData::GetHistorySize() const
 {
-	return m_history.size();
+	return m_markings.size();
 }
 
-void CardStudyData::AddToHistory(bool knewIt, AppTimestamp timestamp)
+void CardStudyData::AddToHistory(bool knewIt, AppTimestamp timestamp, Language shownSide)
 {
 	m_lastEncounterTime = timestamp;
-	m_history.insert(m_history.begin(), knewIt);
-	m_historyTimestamps.insert(m_historyTimestamps.begin(), timestamp);
-	if (m_history.size() > Config::k_maxCardHistorySize)
-	{
-		m_history.resize(Config::k_maxCardHistorySize);
-		m_historyTimestamps.resize(Config::k_maxCardHistorySize);
-	}
+
+	CardStudyMark mark;
+	mark.timestamp = timestamp;
+	mark.knewIt = knewIt;
+	mark.shownSide = shownSide;
+	m_markings.insert(m_markings.begin(), mark);
 }
 
 void CardStudyData::Serialize(rapidjson::Value& value,
@@ -58,27 +57,19 @@ void CardStudyData::Serialize(rapidjson::Value& value,
 	value.AddMember("ru", rapidjson::Value(
 		keyRussian.c_str(), allocator).Move(), allocator);
 	
-	// History (round timestamps to the nearest second)
+	// Markings (round timestamps to the nearest second)
 	rapidjson::Value historyDataList(rapidjson::kArrayType);
-	AppTimestamp lastTimestamp = 0;
-	for (uint32 i = 0; i < m_history.size(); i++)
+	for (uint32 i = 0; i < m_markings.size(); i++)
 	{
-		bool knewIt = m_history[i];
-		AppTimestamp timestamp = m_historyTimestamps[i];
-		if (i == 0)
-		{
-			int intTimestamp = (int) (timestamp + 0.5);
-			historyDataList.PushBack(
-				knewIt ? intTimestamp : -intTimestamp, allocator);
-		}
+		const auto& mark = m_markings[i];
+		rapidjson::Value markData(rapidjson::kObjectType);
+		if (mark.shownSide == Language::k_russian)
+			markData.AddMember("side", "target", allocator);
 		else
-		{
-			int elapsedSeconds = Math::Max(
-				1, (int) (lastTimestamp - timestamp + 0.5));
-			historyDataList.PushBack(
-				knewIt ? elapsedSeconds : -elapsedSeconds, allocator);
-		}
-		lastTimestamp = timestamp;
+			markData.AddMember("side", "source", allocator);
+		markData.AddMember("time", (int) mark.timestamp, allocator);
+		markData.AddMember("knew_it", mark.knewIt, allocator);
+		historyDataList.PushBack(markData, allocator);
 	}
 	value.AddMember("history", historyDataList, allocator);
 }
@@ -89,46 +80,36 @@ Error CardStudyData::Deserialize(rapidjson::Value& data, CardRuKey& outKey)
 	TryStringToEnum(data["type"].GetString(), outKey.type, false);
 	outKey.russian = ConvertFromUTF8(data["ru"].GetString());
 	
-	// History
-	//   - Positive timestmap = knew it
-	//   - Negative timestamp = didn't know it.
-	m_lastEncounterTime = -1;
+	// Markings
 	rapidjson::Value& historyDataList = data["history"];
-	AppTimestamp lastTimestamp = 0;
+	m_markings.clear();
 	for (auto it = historyDataList.Begin(); it != historyDataList.End(); it++)
 	{
-		int timestamp = it->GetInt();
-		if (timestamp == 0)
+		CardStudyMark mark;
+		mark.timestamp = static_cast<AppTimestamp>((*it)["time"].GetInt());
+		if (mark.timestamp <= 0)
 			return CMG_ERROR_FAILURE;
-		bool knewIt = (timestamp > 0);
-		timestamp = Math::Abs(timestamp);
-		if (m_lastEncounterTime < 0)
-		{
-			// First history entry is the absolute timestamp
-			m_lastEncounterTime = static_cast<AppTimestamp>(timestamp);
-			m_historyTimestamps.push_back(m_lastEncounterTime);
-		}
-		else
-		{
-			// Other history entries are elapsed seconds since last entry
-			m_historyTimestamps.push_back(lastTimestamp -
-				static_cast<AppTimestamp>(timestamp));
-		}
-		m_history.push_back(knewIt);
-		lastTimestamp = m_historyTimestamps.back();
+		mark.knewIt = (*it)["knew_it"].GetBool();
+		String sideName = (*it)["side"].GetString();
+		mark.shownSide = (sideName == "source" ? Language::k_english : Language::k_russian);
+		m_markings.push_back(mark);
 	}
+
+	m_lastEncounterTime = -1;
+	if (!m_markings.empty())
+		m_lastEncounterTime = m_markings[0].timestamp;
 
 	return CMG_ERROR_SUCCESS;
 }
 
-float CardStudyData::CalcHistoryScore(const Array<bool>& history)
+float CardStudyData::CalcHistoryScore(const Array<CardStudyMark>& history)
 {
 	if (history.empty())
 		return 0.0f;
 	float score = 1.0f;
 	for (uint32 i = 0; i < history.size(); i++)
 	{
-		if (!history[i])
+		if (!history[i].knewIt)
 			score -= 0.5f / (i + 2);
 	}
 	uint32 minLength = 6;
