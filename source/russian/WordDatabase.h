@@ -20,7 +20,7 @@ public:
 	wiki::Wiktionary& GetWiktionary();
 	CardWordMatch GetWordFromCard(Card::sptr card,
 		bool download = true, bool downloadInThread = false);
-	CardWordMatch GetWordFromCard(const CardRuKey& card,
+	CardWordMatch GetWordFromCard(WordType wordType, const unistr& russian,
 		bool download = true, bool downloadInThread = false);
 
 	EventSignal<const CardWordMatch&>& TermDownloaded() { return m_termDownloaded; }
@@ -29,8 +29,8 @@ public:
 	void ProcessEvents();
 
 private:
-	CardWordMatch GetWordFromCard(const CardRuKey& key, Card::sptr card,
-		bool download = true, bool downloadInThread = false);
+	CardWordMatch GetWordFromCard(WordType wordType, const unistr& russian,
+		Card::sptr card, bool download = true, bool downloadInThread = false);
 
 	WordDatabase(const WordDatabase& copy) = delete;
 	WordDatabase& operator=(const WordDatabase& copy) = delete;

@@ -20,31 +20,33 @@ wiki::Wiktionary& WordDatabase::GetWiktionary()
 CardWordMatch WordDatabase::GetWordFromCard(Card::sptr card,
 	bool download, bool downloadInThread)
 {
+	unistr text = card->GetRussian().GetString();
+	ru::ToLowerIP(text);
 	return GetWordFromCard(
-		card->GetRuKey(), card, download, downloadInThread);
+		card->GetWordType(), text, card, download, downloadInThread);
 }
 
-CardWordMatch WordDatabase::GetWordFromCard(const CardRuKey& key,
+CardWordMatch WordDatabase::GetWordFromCard(WordType wordType, const unistr& russian,
 	bool download, bool downloadInThread)
 {
-	return GetWordFromCard(key, nullptr, download, downloadInThread);
+	return GetWordFromCard(wordType, russian, nullptr, download, downloadInThread);
 }
 
 CardWordMatch WordDatabase::GetWordFromCard(
-	const CardRuKey& key, Card::sptr card,
+	WordType wordType, const unistr& text, Card::sptr card,
 	bool download, bool downloadInThread)
 {
-	const unistr& str = key.russian;
-	uint32 length = str.length();
+	uint32 length = text.length();
 	CardWordMatch match;
-	match.key = key;
+	match.wordType = wordType;
+	match.text = text;
 	match.card = card;
 	CardVariantWordMatch variant;
 	CardVariantWordMatchPart part;
 
 	for (uint32 i = 0; i <= length; i++)
 	{
-		unichar c = (i < length ? ru::ToLowerChar(str[i]) : u';');
+		unichar c = (i < length ? ru::ToLowerChar(text[i]) : u';');
 
 		if (ru::IsRussian(c) || c == u'-')
 		{
@@ -93,7 +95,7 @@ CardWordMatch WordDatabase::GetWordFromCard(
 			bool needsDownload = false;
 			m_wiktionary.GetTerm(part.text, part.term, needsDownload);
 			part.isLoaded = !needsDownload;
-			part.SetWord(match.key.type);
+			part.SetWord(match.wordType);
 		}
 	}
 
@@ -142,7 +144,7 @@ void WordDatabase::ProcessEvents()
 			m_taskOutputList.erase(m_taskOutputList.begin());
 		}
 
-		CMG_LOG_DEBUG() << "Completed word task: " << task.key;
+		CMG_LOG_DEBUG() << "Completed word task: " << task.text;
 		m_termDownloaded.Emit(task);
 	}
 }
@@ -181,7 +183,7 @@ bool WordDatabase::GetNextTask(CardWordMatch& outTask)
 
 void WordDatabase::LoadCardWordMatch(CardWordMatch& match)
 {
-	CMG_LOG_DEBUG() << "Loading word task: " << match.key;
+	CMG_LOG_DEBUG() << "Loading word task: " << match.text;
 
 	// Load each unloaded part
 	for (auto& variant : match.variants)
@@ -193,7 +195,7 @@ void WordDatabase::LoadCardWordMatch(CardWordMatch& match)
 				bool needsDownload = false;
 				part.term = m_wiktionary.GetTerm(part.text, true);
 				part.isLoaded = true;
-				part.SetWord(match.key.type);
+				part.SetWord(match.wordType);
 			}
 		}
 	}

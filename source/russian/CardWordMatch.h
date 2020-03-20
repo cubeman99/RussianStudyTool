@@ -37,7 +37,8 @@ struct CardVariantWordMatch
 struct CardWordMatch
 {
 	Card::sptr card;
-	CardRuKey key;
+	WordType wordType;
+	unistr text;
 	Array<CardVariantWordMatch> variants;
 
 	bool IsMatchingType() const;

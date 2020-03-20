@@ -503,7 +503,7 @@ void CardSetEditWidget::LoadRowWordMatch(CardRow::sptr row, bool download)
 {
 	auto& wordDatabase = GetApp()->GetWordDatabase();
 	CardWordMatch wordMatch = wordDatabase.GetWordFromCard(
-		row->m_ruKey, download, true);
+		row->m_wordType, row->m_text.russian.GetString(), download, true);
 	RefreshRowWordMatch(row, wordMatch);
 }
 
@@ -533,7 +533,8 @@ void CardSetEditWidget::RefreshRowWordMatch(CardRow::sptr row,
 void CardSetEditWidget::OnWordMatchLoaded(const CardWordMatch& wordMatch)
 {
 	// Find the row for this card key
-	auto cardIter = m_russianToCards.find(wordMatch.key);
+	CardRuKey key(wordMatch.wordType, AccentedText(wordMatch.text));
+	auto cardIter = m_russianToCards.find(key);
 	if (cardIter == m_russianToCards.end())
 		return;
 	Card::sptr card = cardIter->second;
