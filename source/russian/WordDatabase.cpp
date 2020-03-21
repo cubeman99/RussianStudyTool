@@ -133,6 +133,7 @@ void WordDatabase::RunThread()
 void WordDatabase::ProcessEvents()
 {
 	CardWordMatch task;
+	m_wiktionary.ProcessEvents();
 	while (true)
 	{
 		// Get the next task output

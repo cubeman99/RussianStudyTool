@@ -65,7 +65,9 @@ Term::sptr Wiktionary::DownloadTerm(const unistr& text)
 	if (term)
 	{
 		std::lock_guard<std::recursive_mutex> guard(m_mutex);
+		std::lock_guard<std::mutex> guardQueue(m_mutexLoadedTermsQueue);
 		m_terms[text] = term;
+		m_loadedTermsQueue.push_back(term);
 	}
 	else
 	{
@@ -190,6 +192,18 @@ Error Wiktionary::Save(const Path& path)
 
 	// Save to the file
 	return json::SaveDocumentToFile(path, document);
+}
+
+void Wiktionary::ProcessEvents()
+{
+	Array<Term::sptr> queue;
+	{
+		std::lock_guard<std::mutex> guardQueue(m_mutexLoadedTermsQueue);
+		queue = m_loadedTermsQueue;
+		m_loadedTermsQueue.clear();
+	}
+	for (auto term : queue)
+		m_eventTermLoaded.Emit(term);
 }
 
 unistr Wiktionary::GetTermURL(Term::sptr term, bool russianSection)

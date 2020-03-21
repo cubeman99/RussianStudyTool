@@ -10,10 +10,14 @@ class WordDefinitionWidget : public AppWidget
 public:
 	WordDefinitionWidget();
 
-	virtual void OnInitialize() override;
+	const AccentedText& GetWordText() const;
+
 	void SetWord(wiki::Word::sptr word);
 
+	virtual void OnInitialize() override;
+
 private:
+	AccentedText m_wordText;
 	wiki::Word::sptr m_wikiWord;
 	VBoxLayout m_layoutDefinitions;
 };

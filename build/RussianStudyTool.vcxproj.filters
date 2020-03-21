@@ -267,6 +267,9 @@
     <ClCompile Include="..\source\widgets\editors\CardTagEditBox.cpp">
       <Filter>Source Files\widgets\editors</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\widgets\editors\WikiTermView.cpp">
+      <Filter>Source Files\widgets\editors</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\Graphics.h">
@@ -498,6 +501,9 @@
       <Filter>Source Files\study</Filter>
     </ClInclude>
     <ClInclude Include="..\source\widgets\editors\CardTagEditBox.h">
+      <Filter>Source Files\widgets\editors</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\editors\WikiTermView.h">
       <Filter>Source Files\widgets\editors</Filter>
     </ClInclude>
   </ItemGroup>

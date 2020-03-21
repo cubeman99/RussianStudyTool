@@ -71,6 +71,12 @@ public:
 	void OnRender() override;
 
 	void PushState(Widget* widget);
+	void OpenTextInWiktionary(const AccentedText& text);
+	void OpenTermInWiktionary(wiki::Term::sptr term);
+	void OpenWikiTermView(wiki::Term::sptr term);
+	void OpenCreateCardViewFromText(const AccentedText& text);
+	void OpenCreateCardViewFromTerm(wiki::Term::sptr term);
+	void OpenCreateCardViewFromWord(wiki::Word::sptr word);
 
 	CardDatabase& GetCardDatabase() { return m_cardDatabase; }
 	StudyDatabase& GetStudyDatabase() { return m_studyDatabase; }

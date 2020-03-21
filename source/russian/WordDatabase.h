@@ -23,7 +23,7 @@ public:
 	CardWordMatch GetWordFromCard(WordType wordType, const unistr& russian,
 		bool download = true, bool downloadInThread = false);
 
-	EventSignal<const CardWordMatch&>& TermDownloaded() { return m_termDownloaded; }
+	EventSignal<const CardWordMatch&>& CardWordMatchLoaded() { return m_termDownloaded; }
 
 	void RunThread();
 	void ProcessEvents();

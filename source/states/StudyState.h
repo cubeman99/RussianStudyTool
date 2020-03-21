@@ -46,7 +46,6 @@ private:
 	void OpenInWebBrowser(const AccentedText& text);
 	bool PopulateTermList(RelatedWordList& termList, const Set<AccentedText>& terms);
 	void OnClickWordBox(RelatedWordWidget* widget);
-	void OnChooseCreateAsCard(RelatedWordWidget* widget);
 	void OnChooseAddToRelatedCards(Card::sptr card);
 	void OnChooseRemoveFromRelatedCards(Card::sptr card);
 	void OnChooseAddToCardSet(Card::sptr card);

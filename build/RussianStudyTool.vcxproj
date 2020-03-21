@@ -72,6 +72,7 @@
     <ClCompile Include="..\source\widgets\DeclensionTable.cpp" />
     <ClCompile Include="..\source\widgets\editors\CardTagEditBox.cpp" />
     <ClCompile Include="..\source\widgets\editors\CreateCardSetWidget.cpp" />
+    <ClCompile Include="..\source\widgets\editors\WikiTermView.cpp" />
     <ClCompile Include="..\source\widgets\ExampleTextWidget.cpp" />
     <ClCompile Include="..\source\widgets\GenericTableWidget.cpp" />
     <ClCompile Include="..\source\widgets\LanguageTextEdit.cpp" />
@@ -150,6 +151,7 @@
     <ClInclude Include="..\source\widgets\DeclensionTable.h" />
     <ClInclude Include="..\source\widgets\editors\CardTagEditBox.h" />
     <ClInclude Include="..\source\widgets\editors\CreateCardSetWidget.h" />
+    <ClInclude Include="..\source\widgets\editors\WikiTermView.h" />
     <ClInclude Include="..\source\widgets\ExampleTextWidget.h" />
     <ClInclude Include="..\source\widgets\GenericTableWidget.h" />
     <ClInclude Include="..\source\widgets\LanguageTextEdit.h" />
@@ -201,6 +203,7 @@
       <AdditionalIncludeDirectories>../source;../lib/curl/include;../../cmgEngine/INSTALL/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -218,6 +221,7 @@
       <AdditionalIncludeDirectories>../source;../lib/curl/include;../../cmgEngine/INSTALL/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

@@ -6,6 +6,7 @@
 #include "widgets/CardSetEditWidget.h"
 #include "widgets/CardSetBrowserWidget.h"
 #include "widgets/CardEditWidget.h"
+#include "widgets/editors/WikiTermView.h"
 #include "widgets/CardListView.h"
 #include "examples/ExampleDatabase.h"
 
@@ -90,6 +91,7 @@ void RussianStudyToolApp::OnInitialize()
 	if (m_wiktionary.GetDataPath().FileExists())
 		m_wiktionary.Load();
 
+	wiki::Term::sptr term = m_wiktionary.GetTerm(u"привет", true);
 #ifdef USE_TEST_DATA
 	CardSet::sptr cardSet = m_cardDatabase.GetCardSet(CardSetKey(u"common words"));
 	Card::sptr card = m_cardDatabase.GetCard(CardRuKey(WordType::k_noun, unistr(u"стол")));
@@ -107,7 +109,8 @@ void RussianStudyToolApp::OnInitialize()
 	//PushState(new CardSetEditWidget(cardSet));
 	//PushState(new StudyState(cardSet.get(), cardSet));
 	//PushState(new CardEditWidget(card));
-	PushState(new CardListView(cardSet.get()));
+	//PushState(new CardListView(cardSet.get()));
+	//PushState(new WikiTermView(term));
 
 	//m_cardDatabase.SaveAllCardSets();
 	//m_cardDatabase.SaveCardData();
@@ -252,3 +255,57 @@ void RussianStudyToolApp::PushState(Widget* widget)
 	m_stateStack.Push(new GUIState(widget));
 }
 
+void RussianStudyToolApp::OpenTextInWiktionary(const AccentedText& text)
+{
+	unistr url = wiki::Parser::GetTermURL(text.GetString(), true);
+	CMG_LOG_DEBUG() << "Opening web page: " << url;
+	cmg::os::OpenInWebBrowser(url);
+}
+
+void RussianStudyToolApp::OpenTermInWiktionary(wiki::Term::sptr term)
+{
+	OpenTextInWiktionary(term->GetText());
+}
+
+void RussianStudyToolApp::OpenWikiTermView(wiki::Term::sptr term)
+{
+	PushState(new WikiTermView(term));
+}
+
+void RussianStudyToolApp::OpenCreateCardViewFromText(const AccentedText & text)
+{
+	// Create card data
+	CardData cardData;
+	cardData.text.russian = text;
+	unistr termText = text.GetString();
+	ru::ToLowerIP(termText);
+	ru::TryPredictWordType(termText, cardData.type);
+
+	// Open the card editor
+	PushState(new CardEditWidget(cardData));
+}
+
+void RussianStudyToolApp::OpenCreateCardViewFromTerm(wiki::Term::sptr term)
+{
+	for (auto it : term->GetWords())
+	{
+		OpenCreateCardViewFromWord(it.second);
+		return;
+	}
+}
+
+void RussianStudyToolApp::OpenCreateCardViewFromWord(wiki::Word::sptr word)
+{
+	// Create card data
+	CardData cardData;
+	cardData.type = word->GetWordType();
+	cardData.text.russian = word->GetText();
+	if (!word->GetDefinitions().empty())
+	{
+		cardData.text.english = word->GetDefinitions()[0].GetDefinition();
+	}
+	cardData.tags = word->GetTags();
+
+	// Open the card editor
+	PushState(new CardEditWidget(cardData));
+}

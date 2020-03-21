@@ -6,6 +6,11 @@ WordDefinitionWidget::WordDefinitionWidget()
 	SetLayout(&m_layoutDefinitions);
 }
 
+const AccentedText & WordDefinitionWidget::GetWordText() const
+{
+	return m_wordText;
+}
+
 void WordDefinitionWidget::OnInitialize()
 {
 	SetWord(m_wikiWord);
@@ -19,21 +24,21 @@ void WordDefinitionWidget::SetWord(wiki::Word::sptr word)
 		return;
 
 	Font::sptr fontSmall = GetApp()->GetResourceManager()->Get<Font>(Res::FONT_SMALL);
-
-	AccentedText text = m_wikiWord->GetText() + " (";
+		
+	m_wordText = m_wikiWord->GetText() + " (";
 	if (m_wikiWord->GetWordType() == WordType::k_verb)
 	{
 		wiki::Verb::sptr verb = std::dynamic_pointer_cast<wiki::Verb>(m_wikiWord);
-		text += EnumToString(verb->GetConjugation().GetAspect()) + " ";
+		m_wordText += EnumToString(verb->GetConjugation().GetAspect()) + " ";
 	}
 	else if (m_wikiWord->GetWordType() == WordType::k_noun)
 	{
 		wiki::Noun::sptr noun = std::dynamic_pointer_cast<wiki::Noun>(m_wikiWord);
-		text += EnumToString(noun->GetDeclension().GetGender()) + ", ";
-		text += EnumToString(noun->GetDeclension().GetAnimacy()) + " ";
+		m_wordText += EnumToString(noun->GetDeclension().GetGender()) + ", ";
+		m_wordText += EnumToString(noun->GetDeclension().GetAnimacy()) + " ";
 	}
-	text += EnumToString(m_wikiWord->GetWordType()) + "):";
-	m_layoutDefinitions.Add(AllocateObject<Label>(text, fontSmall));
+	m_wordText += EnumToString(m_wikiWord->GetWordType()) + "):";
+	m_layoutDefinitions.Add(AllocateObject<Label>(m_wordText, fontSmall));
 
 	// Add definitions
 	uint32 number = 1;

@@ -51,11 +51,56 @@ RelatedWordWidget::RelatedWordWidget(const AccentedText& text) :
 void RelatedWordWidget::OnInitialize()
 {
 	auto& cardDatabase = GetApp()->GetCardDatabase();
-	auto& studyDatabase = GetApp()->GetStudyDatabase();
 	auto& wiktionary = GetApp()->GetWiktionary();
 
 	m_card = nullptr;
 	m_term = nullptr;
+	
+	CheckForCard();
+
+	unistr text = m_label.GetText().GetString();
+	ru::ToLowerIP(text);
+	m_term = wiktionary.GetTerm(text);
+
+	Refresh();
+
+	cardDatabase.CardCreated().Connect(this, &RelatedWordWidget::OnCardEdited);
+	cardDatabase.CardDataChanged().Connect(this, &RelatedWordWidget::OnCardEdited);
+	wiktionary.TermLoaded().Connect(this, &RelatedWordWidget::OnTermLoaded);
+}
+
+void RelatedWordWidget::Refresh()
+{
+	auto& studyDatabase = GetApp()->GetStudyDatabase();
+
+	Color color = GUIConfig::color_background_alternate;
+	if (m_card)
+	{
+		const CardStudyData& studyData = studyDatabase.GetCardStudyData(m_card);
+		color = Config::GetHistoryScoreColor(studyData.GetHistoryScore());
+		color = Color::Lerp(color, GUIConfig::color_background, 0.4f);
+	}
+	else if (m_term)
+	{
+		color = Color::DARK_BLUE;
+	}
+	m_label.SetBackgroundColor(color);
+}
+
+void RelatedWordWidget::OnTermLoaded(wiki::Term::sptr term)
+{
+	if (!m_term && term->GetText().GetString() == m_label.GetText().GetString())
+	{
+		m_term = term;
+		Refresh();
+	}
+}
+
+bool RelatedWordWidget::CheckForCard()
+{
+	auto& cardDatabase = GetApp()->GetCardDatabase();
+
+	Card::sptr newCard = nullptr;
 	unistr text = m_label.GetText().GetString();
 	ru::ToLowerIP(text);
 
@@ -63,24 +108,21 @@ void RelatedWordWidget::OnInitialize()
 	{
 		CardRuKey key(wordType, text);
 		cmg::string::ReplaceAll(key.russian, u"ё", u"е");
-		m_card = cardDatabase.GetCard(key);
-		if (m_card)
+		newCard = cardDatabase.GetCard(key);
+		if (newCard)
 			break;
 	}
-	m_term = wiktionary.GetTerm(text);
 
-	if (m_card)
+	if (newCard != m_card)
 	{
-		const CardStudyData& studyData = studyDatabase.GetCardStudyData(m_card);
-		m_label.SetBackgroundColor(
-			Config::GetHistoryScoreColor(studyData.GetHistoryScore()));
+		m_card = newCard;
+		return true;
 	}
-	else if (m_term)
-	{
-		m_label.SetBackgroundColor(Color::DARK_BLUE);
-	}
-	else
-	{
-		m_label.SetBackgroundColor(GUIConfig::color_background_alternate);
-	}
+	return false;
+}
+
+void RelatedWordWidget::OnCardEdited(Card::sptr card)
+{
+	if (CheckForCard())
+		Refresh();
 }

@@ -20,6 +20,11 @@ public:
 	EventSignal<>& Clicked() { return m_label.Clicked(); }
 
 private:
+	void Refresh();
+	void OnTermLoaded(wiki::Term::sptr term);
+	bool CheckForCard();
+	void OnCardEdited(Card::sptr card);
+
 	Button m_label;
 	HBoxLayout m_mainLayout;
 	Card::sptr m_card;

@@ -24,7 +24,7 @@ public:
 	const Path& GetDataPath() const;
 	void GetTerm(const unistr& text, Term::sptr& outTerm, bool& needsDownload);
 	Term::sptr GetTerm(const unistr& text, bool download = false);
-	EventSignal<Term::sptr>& TermDownloaded() { return m_termDownloaded; }
+	EventSignal<Term::sptr>& TermLoaded() { return m_eventTermLoaded; }
 
 	Term::sptr DownloadTerm(const unistr& text);
 	void SetDataPath(const Path& path);
@@ -32,6 +32,7 @@ public:
 	Error Load(const Path& path);
 	Error Save();
 	Error Save(const Path& path);
+	void ProcessEvents();
 
 	static unistr GetTermURL(Term::sptr term, bool russianSection);
 
@@ -51,9 +52,11 @@ private:
 	Set<unistr> m_404Terms;
 	Set<unistr> m_noWordTerms;
 
-	EventSignal<Term::sptr> m_termDownloaded;
+	EventSignal<Term::sptr> m_eventTermLoaded;
+	Array<Term::sptr> m_loadedTermsQueue;
 
 	std::recursive_mutex m_mutex;
+	std::mutex m_mutexLoadedTermsQueue;
 };
 
 

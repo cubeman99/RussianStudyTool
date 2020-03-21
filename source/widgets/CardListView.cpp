@@ -126,7 +126,7 @@ void CardListView::OnInitialize()
 	cardDatabase.CardDataChanged().Connect(this, &CardListView::OnCardDataChanged);
 	cardDatabase.CardAddedToSet().Connect(this, &CardListView::OnCardAddedOrRemovedFromSet);
 	cardDatabase.CardRemovedFromSet().Connect(this, &CardListView::OnCardAddedOrRemovedFromSet);
-	wordDatabase.TermDownloaded().Connect(this, &CardListView::OnTermDownloaded);
+	wordDatabase.CardWordMatchLoaded().Connect(this, &CardListView::OnTermDownloaded);
 }
 
 void CardListView::OnUpdate(float timeDelta)

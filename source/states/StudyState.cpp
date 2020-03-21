@@ -460,7 +460,10 @@ void StudyState::ShowPauseMenu()
 		new CaptureMethodDelegate(this, m_card, &StudyState::OpenRelatedCardsView));
 	menu->AddMenuOption("Add to Card Sets", true,
 		new CaptureMethodDelegate(this, m_card, &StudyState::OpenAddCardToSetView));
-	//menu->AddMenuOption("Edit Card Set", nullptr); 
+	auto menuOption = menu->AddMenuOption("View Wiktionary Term", true,
+		new CaptureMethodDelegate(
+			GetApp(), m_term, &RussianStudyToolApp::OpenWikiTermView));
+	menuOption->SetEnabled(m_term != nullptr);
 	menu->AddMenuOption("Main Menu", true,
 		new MethodDelegate((Widget*) this, &Widget::Close));
 	GetApp()->PushState(menu);
@@ -530,9 +533,13 @@ bool StudyState::PopulateTermList(RelatedWordList& termList,
 
 void StudyState::OnClickWordBox(RelatedWordWidget* widget)
 {
+	auto& wiktionary = GetApp()->GetWiktionary();
+
 	AccentedText title = widget->GetText();
 	Card::sptr card = widget->GetCard();
 	wiki::Term::sptr term = widget->GetWiktionaryTerm();
+	if (!term)
+		term = wiktionary.GetTerm(widget->GetText().GetString(), true);
 	if (card)
 	{
 		title += " - ";
@@ -545,9 +552,19 @@ void StudyState::OnClickWordBox(RelatedWordWidget* widget)
 	if (card != nullptr)
 		menuOption = menu->AddMenuOption("Edit Card", true,
 			new CaptureMethodDelegate(this, card, &StudyState::OpenCardEditView));
+	else if (term != nullptr)
+		menuOption = menu->AddMenuOption("Create Card from Term", true,
+			new CaptureMethodDelegate(
+				GetApp(), term, &RussianStudyToolApp::OpenCreateCardViewFromTerm));
 	else
 		menuOption = menu->AddMenuOption("Create as Card", true,
-			new CaptureMethodDelegate(this, widget, &StudyState::OnChooseCreateAsCard));
+			new CaptureMethodDelegate<RussianStudyToolApp, const AccentedText&, void>(
+				GetApp(), widget->GetText(), &RussianStudyToolApp::OpenCreateCardViewFromText));
+
+	menuOption = menu->AddMenuOption("View Wiktionary Term", true,
+		new CaptureMethodDelegate(
+			GetApp(), term, &RussianStudyToolApp::OpenWikiTermView));
+	menuOption->SetEnabled(term != nullptr);
 
 	menuOption = menu->AddMenuOption("Open in Wiktionary", true,
 		new CaptureMethodDelegate<StudyState, const AccentedText&, void>(
@@ -571,27 +588,6 @@ void StudyState::OnClickWordBox(RelatedWordWidget* widget)
 	menuOption->SetEnabled(card != nullptr);
 
 	GetApp()->PushState(menu);
-}
-
-void StudyState::OnChooseCreateAsCard(RelatedWordWidget* widget)
-{
-	// Create card data
-	CardData cardData;
-	cardData.text.russian = widget->GetText();
-	unistr termText = widget->GetText().GetString();
-	ru::ToLowerIP(termText);
-	ru::TryPredictWordType(termText, cardData.type);
-
-	// Get the wiki term
-	wiki::Term::sptr term = widget->GetWiktionaryTerm();
-	if (!term)
-	{
-		auto& wiktionary = GetApp()->GetWiktionary();
-		term = wiktionary.GetTerm(termText, true);
-	}
-
-	// Open the card editor
-	GetApp()->PushState(new CardEditWidget(cardData));
 }
 
 void StudyState::OnChooseAddToRelatedCards(Card::sptr card)

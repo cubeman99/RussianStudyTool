@@ -187,7 +187,7 @@ void CardSetEditWidget::OnInitialize()
 
 	// Connect signals
 	auto& wordDatabase = GetApp()->GetWordDatabase();
-	wordDatabase.TermDownloaded().Connect(this, &CardSetEditWidget::OnWordMatchLoaded);
+	wordDatabase.CardWordMatchLoaded().Connect(this, &CardSetEditWidget::OnWordMatchLoaded);
 }
 
 void CardSetEditWidget::OnRowCreated(GenericTableWidget<CardRow::sptr>::Row& rowItem)
