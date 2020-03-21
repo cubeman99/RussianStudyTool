@@ -157,6 +157,20 @@ void BoxLayout::Add(const Array<GUIObject*>& children)
 		Add(child);
 }
 
+void BoxLayout::Remove(GUIObject* child)
+{
+	for (uint32 i = 0; i < m_children.size(); i++)
+	{
+		BoxChild& item = m_children[i];
+		if (item.object == child)
+		{
+			item.object->SetParent(nullptr);
+			m_children.erase(m_children.begin() + i);
+			return;
+		}
+	}
+}
+
 void BoxLayout::AddStretch(float stretch)
 {
 	Add(AllocateObject<Widget>(), stretch);

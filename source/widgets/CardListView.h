@@ -6,6 +6,7 @@
 #include "widgets/StudyProficiencyBar.h"
 #include "widgets/AppWidget.h"
 #include "widgets/MenuWidget.h"
+#include "widgets/editors/CardTagEditBox.h"
 #include "widgets/GenericTableWidget.h"
 #include "russian/WordDatabase.h"
 
@@ -52,7 +53,7 @@ private:
 		Label m_labelType;
 		Label m_labelRussian;
 		Label m_labelEnglish;
-		HBoxLayout m_layoutTags;
+		CardTagEditBox m_tagEditBox;
 		Label m_labelScore;
 	};
 

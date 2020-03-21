@@ -264,6 +264,9 @@
     <ClCompile Include="..\source\russian\CardWordMatch.cpp">
       <Filter>Source Files\russian</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\widgets\editors\CardTagEditBox.cpp">
+      <Filter>Source Files\widgets\editors</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\source\Graphics.h">
@@ -493,6 +496,9 @@
     </ClInclude>
     <ClInclude Include="..\source\study\SchedulerBase.h">
       <Filter>Source Files\study</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\editors\CardTagEditBox.h">
+      <Filter>Source Files\widgets\editors</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

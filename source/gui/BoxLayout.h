@@ -11,6 +11,7 @@ public:
 	void Insert(uint32 index, GUIObject* child, float stretch = 0.0f);
 	void Add(GUIObject* child, float stretch = 0.0f);
 	void Add(const Array<GUIObject*>& children);
+	void Remove(GUIObject* child);
 	void AddStretch(float stretch = 1.0f);
 	void SetStretch(GUIObject* child, float stretch);
 

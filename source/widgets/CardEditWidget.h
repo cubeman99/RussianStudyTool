@@ -3,6 +3,7 @@
 #include "widgets/CardSearchWidget.h"
 #include "widgets/LanguageTextEdit.h"
 #include "widgets/WordDefinitionWidget.h"
+#include "widgets/editors/CardTagEditBox.h"
 
 
 class CardEditWidget : public AppWidget
@@ -25,6 +26,7 @@ private:
 	void OnClickCancel();
 	void OnClickDone();
 	void OnClickSave();
+	void OnTagsEdited();
 	void OnRussianEdited();
 	void OnEnglishEdited();
 	void OnTypeEdited();
@@ -47,7 +49,7 @@ private:
 	RussianTextEdit m_inputRussian;
 	EnglishTextEdit m_inputEnglish;
 	EnglishTextEdit m_inputType;
-	EnglishTextEdit m_inputCardTags;
+	CardTagEditBox m_tagEditBox;
 	Button m_buttonDone;
 	Button m_buttonSave;
 	Button m_buttonCancel;
@@ -64,7 +66,6 @@ private:
 	VBoxLayout m_mainLayout;
 
 	// Cached
-	EnumFlags<CardTags> m_cardTags;
 	WordType m_wordType;
 	TranslationPair m_text;
 	CardRuKey m_ruKey;

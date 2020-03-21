@@ -304,20 +304,7 @@ void CardListView::RefreshRow(Row::sptr row, const CardWordMatch& wordMatch)
 	row->m_labelType.SetText(EnumToShortString(row->m_card->GetWordType()));
 	row->m_labelRussian.SetText(row->m_card->GetRussian());
 	row->m_labelEnglish.SetText(row->m_card->GetEnglish());
-	row->m_layoutTags.Clear();
-	for (auto it : cardTags)
-	{
-		if (it.second)
-		{
-			Label* tagLabel = AllocateObject<Label>(
-				Config::GetCardTagShortDisplayName(it.first));
-			Color tagColor = Config::GetCardTagColor(it.first);
-			tagColor.a = 128;
-			tagLabel->SetBackgroundColor(tagColor);
-			row->m_layoutTags.Add(tagLabel);
-		}
-	}
-	row->m_layoutTags.AddStretch();
+	row->m_tagEditBox.SetTags(cardTags);
 
 	// Score
 	if (!studyData.IsEncountered())
@@ -506,8 +493,10 @@ CardListView::Row::Row(Card::sptr card) :
 	m_layout.Add(&m_labelType, 0.8f);
 	m_layout.Add(&m_labelRussian, 4.0f);
 	m_layout.Add(&m_labelEnglish, 4.0f);
-	m_layout.Add(&m_layoutTags, 1.0f);
+	m_layout.Add(&m_tagEditBox, 1.0f);
 	m_layout.Add(&m_labelScore, 0.5f);
 	
+	m_tagEditBox.SetReadOnly(true);
+
 	SetLayout(&m_layout);
 }

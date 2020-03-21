@@ -84,9 +84,6 @@ AccentedText Config::GetCardTagShortDisplayName(CardTags tag)
 	case CardTags::k_verb_suffix_zha:  return AccentedText(u"-жа");
 	case CardTags::k_obstruent_stem:   return AccentedText(u"Obstr");
 	case CardTags::k_resonant_stem:    return AccentedText(u"Reson");
-	case CardTags::k_masculine:        return AccentedText(u"M");
-	case CardTags::k_neuter:           return AccentedText(u"N");
-	case CardTags::k_feminine:         return AccentedText(u"F");
 	default:
 		return EnumToShortString(tag);
 	}

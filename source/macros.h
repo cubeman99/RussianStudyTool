@@ -164,7 +164,7 @@ public:
 	static constexpr uint32 GetElementCount()
 	{
 		uint32 count = T_Count / s_bitsPerElement;
-		if (count % 8 != 0)
+		if (count % s_bitsPerElement != 0)
 			count++;
 		return count;
 	}
@@ -269,6 +269,12 @@ public:
 	void Toggle(T_Enum item)
 	{
 		Set(item, !(*this)[item]);
+	}
+
+	void Clear()
+	{
+		for (uint32 i = 0; i < s_arrayCount; i++)
+			m_array[i] = 0;
 	}
 
 	EnumFlags& operator |=(const EnumFlags& other)

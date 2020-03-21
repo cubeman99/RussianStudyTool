@@ -70,6 +70,7 @@
     <ClCompile Include="..\source\widgets\CardSetEditWidget.cpp" />
     <ClCompile Include="..\source\widgets\CardSetSearchWidget.cpp" />
     <ClCompile Include="..\source\widgets\DeclensionTable.cpp" />
+    <ClCompile Include="..\source\widgets\editors\CardTagEditBox.cpp" />
     <ClCompile Include="..\source\widgets\editors\CreateCardSetWidget.cpp" />
     <ClCompile Include="..\source\widgets\ExampleTextWidget.cpp" />
     <ClCompile Include="..\source\widgets\GenericTableWidget.cpp" />
@@ -147,6 +148,7 @@
     <ClInclude Include="..\source\widgets\CardSetEditWidget.h" />
     <ClInclude Include="..\source\widgets\CardSetSearchWidget.h" />
     <ClInclude Include="..\source\widgets\DeclensionTable.h" />
+    <ClInclude Include="..\source\widgets\editors\CardTagEditBox.h" />
     <ClInclude Include="..\source\widgets\editors\CreateCardSetWidget.h" />
     <ClInclude Include="..\source\widgets\ExampleTextWidget.h" />
     <ClInclude Include="..\source\widgets\GenericTableWidget.h" />

@@ -119,7 +119,7 @@ void CardSetEditWidget::ApplyChanges()
 		CardData cardData;
 		cardData.text = row->m_text;
 		cardData.type = row->m_wordType;
-		cardData.tags = row->m_cardTags;
+		cardData.tags = row->m_tagEditBox.GetModifiedTags();
 
 		if (row->IsNewCard())
 		{
@@ -139,6 +139,7 @@ void CardSetEditWidget::ApplyChanges()
 			cardDatabase.AddCardToSet(card, m_cardSet);
 		}
 
+		row->m_tagEditBox.SetTags(cardData.tags);
 		row->m_isModified = false;
 		row->m_isNewCard = false;
 		row->m_isNewToSet = false;
@@ -181,7 +182,6 @@ void CardSetEditWidget::Refresh()
 
 void CardSetEditWidget::OnInitialize()
 {
-
 	if (!m_table.GetItems().empty())
 		m_table.GetItems().front()->m_inputRussian.Focus();
 
@@ -202,8 +202,7 @@ void CardSetEditWidget::OnRowCreated(GenericTableWidget<CardRow::sptr>::Row& row
 	row->m_inputType.SetText(EnumToShortString(card->GetWordType()));
 	row->m_inputRussian.SetText(card->GetRussian().ToMarkedString());
 	row->m_inputEnglish.SetText(card->GetEnglish().ToMarkedString());
-	row->m_inputCardTags.SetText("");
-	row->m_cardTags = row->m_card->GetTags();
+	row->m_tagEditBox.SetTags(row->m_card->GetTags());
 	row->m_buttonEdit.SetText("E");
 	row->m_buttonRemove.SetText("X");
 
@@ -211,7 +210,7 @@ void CardSetEditWidget::OnRowCreated(GenericTableWidget<CardRow::sptr>::Row& row
 	rowItem.widgets.push_back(&row->m_inputType);
 	rowItem.widgets.push_back(&row->m_inputRussian);
 	rowItem.widgets.push_back(&row->m_inputEnglish);
-	rowItem.widgets.push_back(&row->m_inputCardTags);
+	rowItem.widgets.push_back(&row->m_tagEditBox);
 	rowItem.widgets.push_back(&row->m_buttonEdit);
 	rowItem.widgets.push_back(&row->m_buttonRemove);
 
@@ -240,52 +239,46 @@ void CardSetEditWidget::OnRowCreated(GenericTableWidget<CardRow::sptr>::Row& row
 		this, row, &CardSetEditWidget::OnRowGainedFocus);
 	row->m_inputEnglish.GainedFocus().Connect(
 		this, row, &CardSetEditWidget::OnRowGainedFocus);
-	row->m_inputCardTags.GainedFocus().Connect(
+	row->m_tagEditBox.GainedFocus().Connect(
 		this, row, &CardSetEditWidget::OnRowGainedFocus);
 
 	row->m_inputRussian.AddKeyShortcut("Ctrl+Space", [this, row]() {
 		auto newRow = AutoCompleteRow(row);
 		if (newRow != row)
-		{
 			newRow->m_inputRussian.Focus();
-			m_lastSelectedRow = newRow;
-		}
 		return true;
 	});
 	row->m_inputEnglish.AddKeyShortcut("Ctrl+Space", [this, row]() {
 		auto newRow = AutoCompleteRow(row);
 		if (newRow != row)
-		{
 			newRow->m_inputEnglish.Focus();
-			m_lastSelectedRow = newRow;
-		}
 		return true;
 	});
 	row->m_inputEnglish.AddKeyShortcut("Ctrl+P", [this, row]() {
-		row->m_cardTags.Toggle(CardTags::k_perfective);
-		if (row->m_cardTags[CardTags::k_perfective])
-			row->m_cardTags.Set(CardTags::k_imperfective, false);
+		row->m_tagEditBox.ToggleTag(CardTags::k_perfective);
+		if (row->m_tagEditBox.GetModifiedTags()[CardTags::k_perfective])
+			row->m_tagEditBox.SetTag(CardTags::k_imperfective, false);
 		Refresh();
 		return true;
 	});
 	row->m_inputEnglish.AddKeyShortcut("Ctrl+I", [this, row]() {
-		row->m_cardTags.Toggle(CardTags::k_imperfective);
-		if (row->m_cardTags[CardTags::k_imperfective])
-			row->m_cardTags.Set(CardTags::k_perfective, false);
+		row->m_tagEditBox.ToggleTag(CardTags::k_imperfective);
+		if (row->m_tagEditBox.GetModifiedTags()[CardTags::k_imperfective])
+			row->m_tagEditBox.SetTag(CardTags::k_perfective, false);
 		Refresh();
 		return true;
 	});
 	row->m_inputEnglish.AddKeyShortcut("Ctrl+U", [this, row]() {
-		row->m_cardTags.Toggle(CardTags::k_unidirectional);
-		if (row->m_cardTags[CardTags::k_unidirectional])
-			row->m_cardTags.Set(CardTags::k_multidirectional, false);
+		row->m_tagEditBox.ToggleTag(CardTags::k_unidirectional);
+		if (row->m_tagEditBox.GetModifiedTags()[CardTags::k_unidirectional])
+			row->m_tagEditBox.SetTag(CardTags::k_multidirectional, false);
 		Refresh();
 		return true;
 	});
 	row->m_inputEnglish.AddKeyShortcut("Ctrl+M", [this, row]() {
-		row->m_cardTags.Toggle(CardTags::k_multidirectional);
-		if (row->m_cardTags[CardTags::k_multidirectional])
-			row->m_cardTags.Set(CardTags::k_unidirectional, false);
+		row->m_tagEditBox.ToggleTag(CardTags::k_multidirectional);
+		if (row->m_tagEditBox.GetModifiedTags()[CardTags::k_multidirectional])
+			row->m_tagEditBox.SetTag(CardTags::k_unidirectional, false);
 		Refresh();
 		return true;
 	});
@@ -361,14 +354,12 @@ void CardSetEditWidget::RemoveRow(CardRow::sptr row)
 
 void CardSetEditWidget::OnCardWordTypeModified(CardRow::sptr row)
 {
-	m_lastSelectedRow = row;
 }
 
 void CardSetEditWidget::OnCardRussianModified(CardRow::sptr row)
 {
 	if (row->m_inputRussian.IsFocused())
 	{
-		m_lastSelectedRow = row;
 		auto str = row->GetRussian().GetString();
 		if (!str.empty())
 			m_searchWidget.SetSearchText(str);
@@ -379,7 +370,6 @@ void CardSetEditWidget::OnCardEnglishModified(CardRow::sptr row)
 {
 	if (row->m_inputEnglish.IsFocused())
 	{
-		m_lastSelectedRow = row;
 		auto str = row->GetEnglish().GetString();
 		if (!str.empty())
 			m_searchWidget.SetSearchText(str);
@@ -396,6 +386,7 @@ void CardSetEditWidget::OnCardEdited(CardRow::sptr row)
 
 void CardSetEditWidget::OnRowGainedFocus(CardRow::sptr row)
 {
+	m_lastSelectedRow = row;
 	m_wordDefinitionWidget.SetWord(row->m_wordMatch.GetWord());
 }
 
@@ -443,10 +434,7 @@ void CardSetEditWidget::OnClickSearchedCard(Card::sptr card)
 	{
 		auto newRow = SetCardForRow(m_lastSelectedRow, card);
 		if (newRow)
-		{
 			newRow->m_inputRussian.Focus();
-			m_lastSelectedRow = newRow;
-		}
 	}
 }
 
@@ -601,6 +589,7 @@ void CardRow::Initialize()
 	m_inputRussian.TextEdited().Connect(this, &CardRow::OnRussianModified);
 	m_inputEnglish.TextEdited().Connect(this, &CardRow::OnEnglishModified);
 	m_inputType.TextEdited().Connect(this, &CardRow::OnTypeModified);
+	m_tagEditBox.TagsEdited().Connect(this, &CardRow::OnTagsModified);
 }
 
 void CardRow::UpdateState()
@@ -614,7 +603,7 @@ void CardRow::UpdateState()
 	m_text.russian = AccentedText(m_inputRussian.GetText());
 	m_text.english = AccentedText(m_inputEnglish.GetText());
 	m_ruKey = CardRuKey(m_wordType, m_text.russian);
-	m_enKey = CardEnKey(m_wordType, m_text.english, m_cardTags);
+	m_enKey = CardEnKey(m_wordType, m_text.english, m_tagEditBox.GetModifiedTags());
 	m_isEmpty = (m_isNewCard && typeText.empty() && m_text.russian.empty() &&
 		m_text.english.empty());
 	m_validRussian = m_isRuKeyUnique && !m_text.russian.empty();
@@ -672,28 +661,6 @@ void CardRow::Refresh()
 		m_inputEnglish.SetBackgroundColor(Config::k_colorEditedMatched);
 	else
 		m_inputEnglish.SetBackgroundColor(GUIConfig::color_text_box_background);
-
-	// Card tags color
-	if (m_isEmpty)
-		m_inputCardTags.SetBackgroundColor(GUIConfig::color_text_box_background);
-	else if (m_isNewCard)
-		m_inputCardTags.SetBackgroundColor(Config::k_colorEditedNew);
-	else if (m_cardTags != m_card->GetTags())
-		m_inputCardTags.SetBackgroundColor(Config::k_colorEditedModified);
-	else
-		m_inputCardTags.SetBackgroundColor(GUIConfig::color_text_box_background);
-
-	String tagStr = "";
-	for (auto it : m_cardTags)
-	{
-		if (it.second)
-		{
-			if (!tagStr.empty())
-				tagStr += ", ";
-			tagStr += EnumToShortString(it.first);
-		}
-	}
-	m_inputCardTags.SetText(tagStr);
 }
 
 void CardRow::OnTypeModified()
@@ -721,5 +688,10 @@ void CardRow::OnRussianModified()
 	}
 
 	russianModified.Emit();
+	modified.Emit();
+}
+
+void CardRow::OnTagsModified()
+{
 	modified.Emit();
 }

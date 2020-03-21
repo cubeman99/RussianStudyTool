@@ -37,7 +37,7 @@ CardEditWidget::CardEditWidget() :
 	m_layoutType.Add(&m_labelType);
 	m_layoutType.Add(&m_inputType);
 	m_layoutCardTags.Add(&m_labelCardTags);
-	m_layoutCardTags.Add(&m_inputCardTags);
+	m_layoutCardTags.Add(&m_tagEditBox);
 	m_layoutButtons.Add(&m_buttonSave);
 	m_layoutButtons.Add(&m_buttonDone);
 	m_layoutButtons.Add(&m_buttonCancel);
@@ -62,7 +62,8 @@ CardEditWidget::CardEditWidget() :
 	m_inputType.TextEdited().Connect(this, &CardEditWidget::OnTypeEdited);
 	m_inputRussian.ReturnPressed().Connect(this, &CardEditWidget::OnRussianReturnPressed);
 	m_inputEnglish.ReturnPressed().Connect((Widget*) &m_inputType, &Widget::Focus);
-	m_inputType.ReturnPressed().Connect((Widget*) &m_inputCardTags, &Widget::Focus);
+	m_inputType.ReturnPressed().Connect((Widget*) &m_tagEditBox, &Widget::Focus);
+	m_tagEditBox.TagsEdited().Connect(this, &CardEditWidget::OnTagsEdited);
 	AddKeyShortcut("Ctrl+S", [this]() {
 		if (m_buttonSave.IsEnabled())
 		{
@@ -111,19 +112,7 @@ void CardEditWidget::SetCardData(const CardData& cardData)
 	m_inputRussian.SetText(cardData.text.russian.ToMarkedString());
 	m_inputEnglish.SetText(cardData.text.english.ToMarkedString());
 	m_inputType.SetText(EnumToShortString(cardData.type));
-	m_cardTags = cardData.tags;
-
-	String tagStr = "";
-	for (auto it : m_cardTags)
-	{
-		if (it.second)
-		{
-			if (!tagStr.empty())
-				tagStr += ", ";
-			tagStr += EnumToShortString(it.first);
-		}
-	}
-	m_inputCardTags.SetText(tagStr);
+	m_tagEditBox.SetTags(cardData.tags);
 }
 
 void CardEditWidget::UpdateState()
@@ -137,7 +126,7 @@ void CardEditWidget::UpdateState()
 	m_text.russian = AccentedText(m_inputRussian.GetText());
 	m_text.english = AccentedText(m_inputEnglish.GetText());
 	m_ruKey = CardRuKey(m_wordType, m_text.russian);
-	m_enKey = CardEnKey(m_wordType, m_text.english, m_cardTags);
+	m_enKey = CardEnKey(m_wordType, m_text.english, m_tagEditBox.GetModifiedTags());
 
 	Card::sptr cardFromEnKey = cardDatabase.GetCard(m_enKey);
 	Card::sptr cardFromRuKey = cardDatabase.GetCard(m_ruKey);
@@ -147,7 +136,8 @@ void CardEditWidget::UpdateState()
 	m_validRussian = m_isRuKeyUnique && !m_text.russian.empty();
 	m_validEnglish = m_isEnKeyUnique && !m_text.english.empty();
 	m_isModified = (m_card == nullptr || m_ruKey != m_card->GetRuKey() ||
-		m_enKey != m_card->GetEnKey() || m_text != m_card->GetText());
+		m_enKey != m_card->GetEnKey() || m_text != m_card->GetText() ||
+		m_tagEditBox.IsModified());
 }
 
 void CardEditWidget::Refresh()
@@ -190,14 +180,6 @@ void CardEditWidget::Refresh()
 	else
 		m_inputEnglish.SetBackgroundColor(GUIConfig::color_text_box_background);
 
-	// Card tags color
-	if (m_card == nullptr)
-		m_inputCardTags.SetBackgroundColor(Config::k_colorEditedNew);
-	else if (m_cardTags != m_card->GetTags())
-		m_inputCardTags.SetBackgroundColor(Config::k_colorEditedModified);
-	else
-		m_inputCardTags.SetBackgroundColor(GUIConfig::color_text_box_background);
-
 	bool valid = (m_validType && m_validRussian && m_validEnglish);
 	m_buttonSave.SetEnabled(valid && m_isModified);
 	m_buttonDone.SetEnabled(valid);
@@ -207,6 +189,11 @@ void CardEditWidget::OnClickSave()
 {
 	auto& cardDatabase = GetApp()->GetCardDatabase();
 	ApplyChanges();
+}
+
+void CardEditWidget::OnTagsEdited()
+{
+	Refresh();
 }
 
 void CardEditWidget::OnRussianEdited()
@@ -274,7 +261,7 @@ void CardEditWidget::ApplyChanges()
 		cardData = m_card->GetData();
 	cardData.text = m_text;
 	cardData.type = m_wordType;
-	cardData.tags = m_cardTags;
+	cardData.tags = m_tagEditBox.GetModifiedTags();
 
 	if (!m_card)
 	{

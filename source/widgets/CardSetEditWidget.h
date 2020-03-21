@@ -3,6 +3,7 @@
 #include "widgets/CardSearchWidget.h"
 #include "widgets/LanguageTextEdit.h"
 #include "widgets/WordDefinitionWidget.h"
+#include "widgets/editors/CardTagEditBox.h"
 #include "cards/CardSet.h"
 #include "russian/CardWordMatch.h"
 
@@ -29,6 +30,7 @@ private:
 	void OnTypeModified();
 	void OnEnglishModified();
 	void OnRussianModified();
+	void OnTagsModified();
 
 public:
 	Card::sptr m_card;
@@ -37,12 +39,11 @@ public:
 	RussianStudyToolApp* m_app = nullptr;
 	CardSet::sptr m_cardSet;
 
-	EnumFlags<CardTags> m_cardTags;
 	Label m_labelNumber;
 	RussianTextEdit m_inputRussian;
 	EnglishTextEdit m_inputEnglish;
 	EnglishTextEdit m_inputType;
-	EnglishTextEdit m_inputCardTags;
+	CardTagEditBox m_tagEditBox;
 	Button m_buttonEdit;
 	Button m_buttonRemove;
 	EventSignal<> typeModified;
