@@ -514,7 +514,7 @@ void CardSetEditWidget::RefreshRowWordMatch(CardRow::sptr row,
 		labelColor = Config::k_colorRed;
 	row->m_labelNumber.SetColor(labelColor);
 
-	if (row == m_lastSelectedRow)
+	if (row == m_lastSelectedRow || (m_lastSelectedRow && m_lastSelectedRow->IsEmpty()))
 		m_wordDefinitionWidget.SetWord(wordMatch.GetWord());
 }
 

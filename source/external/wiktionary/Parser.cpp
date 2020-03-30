@@ -96,10 +96,13 @@ Word::sptr ParseWord(PageSection* wordSection,
 	else
 		word = cmg::make_shared<Word>(wordType);
 
-	CMG_LOG_DEBUG() << "  " << text << " [" <<
-		EnumToString(wordType) << "]";
-
 	xml::Node infoNode = wordSection->FindFirst("p");
+	word->SetText(text);
+	if (infoNode)
+	{
+		xml::Node headWord = infoNode.FindFirst(".//*[@lang='ru']");
+		word->SetText(headWord.Text());
+	}
 
 	// Parse list of definitions
 	xml::Node defList = wordSection->FindFirst("ol");
@@ -107,10 +110,7 @@ Word::sptr ParseWord(PageSection* wordSection,
 	for (uint32 index = 0; index < items.size(); index++)
 	{
 		Definition definition = ParseDefinition(items[index]);
-		word->SetText(text);
 		word->GetDefinitions().push_back(definition);
-		CMG_LOG_DEBUG() << "    " << (index + 1) << ". " <<
-			definition.GetDefinition();
 	}
 
 	// Parse etymology information
@@ -330,11 +330,43 @@ ru::VerbConjugation ParseVerbConjugation(PageSection* section)
 	if (!navFrame)
 		return conjugation;
 	String label;
+	ru::VerbConjugationClass verbClass;
+
 
 	Gender columnGenders[4] = {
 		Gender::k_masculine, Gender::k_neuter,
 		Gender::k_feminine, Gender::k_plural};
 	uint32 nonPastColumn = 0;
+
+	auto navHead = section->FindFirst(".//*[@class='NavHead']");
+	if (navHead)
+	{
+		unistr conjugationClassText = ConvertFromUTF8(navHead.Text());
+		if (conjugationClassText.find(u"reflexive") != String::npos)
+			conjugation.SetTransitivity(Transitivity::k_reflexive);
+		else if (conjugationClassText.find(u"intransitive") != String::npos)
+			conjugation.SetTransitivity(Transitivity::k_intransitive);
+		else if (conjugationClassText.find(u"transitive") != String::npos)
+			conjugation.SetTransitivity(Transitivity::k_transitive);
+		conjugation.SetImpersonal(conjugationClassText.find(u"impersonal") != String::npos);
+		bool found = false;
+		for (verbClass.classNumber = 0;
+			verbClass.classNumber <= 16 && !found; verbClass.classNumber++)
+		{
+			for (VerbAccentPattern accentPattern : EnumValues<VerbAccentPattern>())
+			{
+				verbClass.accentPattern = accentPattern;
+				for (verbClass.variantIndex = 0;
+					verbClass.variantIndex < 2 && !found; verbClass.variantIndex++)
+				{
+					found = (conjugationClassText.find(
+						verbClass.ToString()) != String::npos);
+					if (found)
+						conjugation.SetVerbClass(verbClass);
+				}
+			}
+		}
+	}
 
 	// Parse each row in the table
 	for (auto row : navFrame.FindAll(".//tr"))
@@ -546,13 +578,45 @@ Term::sptr Parser::DownloadTerm(const unistr& text)
 		PageSection* wordSection = russianSection->GetSection(wordTypeName);
 		if (!wordSection && wordType == WordType::k_adjective)
 			wordSection = russianSection->GetSection("determiner");
+		if (!wordSection && (wordType == WordType::k_adjective || wordType == WordType::k_adverb))
+			wordSection = russianSection->GetSection("participle");
+		if (!wordSection && wordType == WordType::k_adverb)
+			wordSection = russianSection->GetSection("predicative");
 		if (!wordSection)
 			continue;
 		Word::sptr word = ParseWord(wordSection, wordType, text);
 		if (word)
 			term->m_words[wordType] = word;
 	}
-	
+
+	// Log info about the term
+	for (auto it : term->GetWords())
+	{
+		WordType wordType = it.first;
+		Word::sptr word = it.second;
+
+		/*auto tags = word->GetTags();
+		String tagString = "";
+		for (auto it : tags)
+		{
+			if (it.second)
+			{
+				CardTags tag = it.first;
+				tagString += EnumToString(tag) + ", ";
+			}
+		}*/
+
+		CMG_LOG_DEBUG() << "  " << word->GetInfoString().ToMarkedString();
+
+		uint32 index = 0;
+		for (auto definition : word->GetDefinitions())
+		{
+			CMG_LOG_DEBUG() << "    " << (index + 1) << ". " <<
+				definition.GetDefinition();
+			index++;
+		}
+	}
+
 	term->m_downloadTimestamp = GetAppTimestamp();
 	return term;
 }

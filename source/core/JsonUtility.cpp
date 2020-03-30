@@ -32,7 +32,7 @@ Error ParseDocument(rapidjson::Document& outDocument, const char* str)
 	{
 		rapidjson::ParseResult result = (rapidjson::ParseResult) outDocument;
 		CMG_LOG_ERROR() << "JSON Parse error!";
-		return CMG_ERROR(Error::k_file_corrupt);
+		return CMG_ERROR(Error::kFileCorrupt);
 	}
 	return CMG_ERROR_SUCCESS;
 }
@@ -69,6 +69,46 @@ Error SaveDocumentToFile(FILE* file, const rapidjson::Document& document)
 	writer.SetIndent('\t', 1);
 	document.Accept(writer);
 	return CMG_ERROR_SUCCESS;
+}
+
+void Serialize(Value& data, const char * key,
+	const AccentedText & text, Allocator& allocator)
+{
+	String str = ConvertToUTF8(text.ToMarkedString());
+	data.AddMember(Value::StringRefType(key),
+		Value(str.c_str(), allocator).Move(), allocator);
+}
+
+void Deserialize(Value & data, const char * key, AccentedText & outValue)
+{
+	outValue = data[key].GetString();
+}
+
+Value::StringRefType Val(const char * text, Allocator & allocator)
+{
+	return Value::StringRefType(text);
+}
+
+Value Val(const String & str, Allocator & allocator)
+{
+	return rapidjson::Value(str.c_str(), allocator);
+}
+
+Value Val(const AccentedText & text, Allocator& allocator)
+{
+	String str = ConvertToUTF8(text.ToMarkedString());
+	return rapidjson::Value(str.c_str(), allocator);
+}
+
+Value& Val(const Value& value, Allocator & allocator)
+{
+	return (Value&) value;
+}
+
+void DeserializeBool(Value & data, const char * key, bool & outValue)
+{
+	if (data.HasMember(key))
+		outValue = data[key].GetBool();
 }
 
 } // namespace json

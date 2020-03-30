@@ -82,7 +82,6 @@
     <ClCompile Include="..\source\widgets\RelatedWordList.cpp" />
     <ClCompile Include="..\source\widgets\StudyHistoryTimeline.cpp" />
     <ClCompile Include="..\source\widgets\StudyProficiencyBar.cpp" />
-    <ClCompile Include="..\source\widgets\TestWidget.cpp" />
     <ClCompile Include="..\source\widgets\WordDefinitionWidget.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -162,7 +161,6 @@
     <ClInclude Include="..\source\widgets\SearchWidget.h" />
     <ClInclude Include="..\source\widgets\StudyHistoryTimeline.h" />
     <ClInclude Include="..\source\widgets\StudyProficiencyBar.h" />
-    <ClInclude Include="..\source\widgets\TestWidget.h" />
     <ClInclude Include="..\source\widgets\WordDefinitionWidget.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

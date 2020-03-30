@@ -36,16 +36,26 @@ void Config::Initialize()
 	k_mapCardTagColors[CardTags::k_masculine] = Color(255, 0, 0);
 	k_mapCardTagColors[CardTags::k_feminine] = Color(255, 128, 200);
 	k_mapCardTagColors[CardTags::k_neuter] = Color(128, 128, 128);
-	k_mapCardTagColors[CardTags::k_perfective] = Color(128, 0, 128);
-	k_mapCardTagColors[CardTags::k_imperfective] = Color(0, 160, 180);
-	k_mapCardTagColors[CardTags::k_unidirectional] = Color(0, 180, 0);
-	k_mapCardTagColors[CardTags::k_multidirectional] = Color(180, 180, 0);
+	k_mapCardTagColors[CardTags::k_animate] = Color(170, 40, 140);
+
 	k_mapCardTagColors[CardTags::k_nominative] = Color(50, 50, 50);
 	k_mapCardTagColors[CardTags::k_accusative] = Color(160, 0, 0);
 	k_mapCardTagColors[CardTags::k_dative] = Color(100, 0, 0);
 	k_mapCardTagColors[CardTags::k_genitive] = Color(80, 15, 0);
 	k_mapCardTagColors[CardTags::k_prepositional] = Color(0, 100, 0);
 	k_mapCardTagColors[CardTags::k_instrumental] = Color(100, 100, 0);
+
+	k_mapCardTagColors[CardTags::k_imperfective] = Color(0, 160, 180);
+	k_mapCardTagColors[CardTags::k_perfective] = Color(128, 0, 128);
+	k_mapCardTagColors[CardTags::k_unidirectional] = Color(0, 180, 0);
+	k_mapCardTagColors[CardTags::k_multidirectional] = Color(180, 180, 0);
+	k_mapCardTagColors[CardTags::k_reflexive] = Color(0, 0, 100);
+	k_mapCardTagColors[CardTags::k_transitive] = Color(0, 100, 0);
+	k_mapCardTagColors[CardTags::k_intransitive] = Color(80, 15, 0);
+	k_mapCardTagColors[CardTags::k_stem_stressed] = Color(200, 0, 0);
+	k_mapCardTagColors[CardTags::k_ending_stressed] = Color(100, 100, 0);
+	k_mapCardTagColors[CardTags::k_shifting_stress] = Color(120, 60, 0);
+
 }
 
 const Color& Config::GetCardTagColor(CardTags tag)
@@ -69,22 +79,66 @@ AccentedText Config::GetCardTagShortDisplayName(CardTags tag)
 {
 	switch (tag)
 	{
-	case CardTags::k_verb_suffix_ai:   return AccentedText(u"-ай");
-	case CardTags::k_verb_suffix_ei:   return AccentedText(u"-ей");
-	case CardTags::k_verb_suffix_ova:  return AccentedText(u"-ова");
-	case CardTags::k_verb_suffix_nu:   return AccentedText(u"-ну");
-	case CardTags::k_verb_suffix_nu2:  return AccentedText(u"-(ну)");
-	case CardTags::k_verb_suffix_a1:   return AccentedText(u"-а");
-	case CardTags::k_verb_suffix_a2:   return AccentedText(u"-а");
-	case CardTags::k_verb_suffix_a3:   return AccentedText(u"-а");
-	case CardTags::k_verb_suffix_avai: return AccentedText(u"-авай");
-	case CardTags::k_verb_suffix_o:    return AccentedText(u"-о");
-	case CardTags::k_verb_suffix_i:    return AccentedText(u"-и");
-	case CardTags::k_verb_suffix_e:    return AccentedText(u"-е");
-	case CardTags::k_verb_suffix_zha:  return AccentedText(u"-жа");
-	case CardTags::k_obstruent_stem:   return AccentedText(u"Obstr");
-	case CardTags::k_resonant_stem:    return AccentedText(u"Reson");
+	case CardTags::k_verb_class_1:     return AccentedText(u"class 1");
+	case CardTags::k_verb_class_2:     return AccentedText(u"class 2");
+	case CardTags::k_verb_class_3:     return AccentedText(u"class 3");
+	case CardTags::k_verb_class_3o:    return AccentedText(u"class 3°");
+	case CardTags::k_verb_class_4:     return AccentedText(u"class 4");
+	case CardTags::k_verb_class_5:     return AccentedText(u"class 5");
+	case CardTags::k_verb_class_5o:    return AccentedText(u"class 5°");
+	case CardTags::k_verb_class_6:     return AccentedText(u"class 6");
+	case CardTags::k_verb_class_6o:    return AccentedText(u"class 6°");
+	case CardTags::k_verb_class_7:     return AccentedText(u"class 7");
+	case CardTags::k_verb_class_8:     return AccentedText(u"class 8");
+	case CardTags::k_verb_class_9:     return AccentedText(u"class 9");
+	case CardTags::k_verb_class_10:    return AccentedText(u"class 10");
+	case CardTags::k_verb_class_11:    return AccentedText(u"class 11");
+	case CardTags::k_verb_class_12:    return AccentedText(u"class 12");
+	case CardTags::k_verb_class_13:    return AccentedText(u"class 13");
+	case CardTags::k_verb_class_14:    return AccentedText(u"class 14");
+	case CardTags::k_verb_class_15:    return AccentedText(u"class 15");
+	case CardTags::k_verb_class_16:    return AccentedText(u"class 16");
+
+	case CardTags::k_stem_stressed:    return AccentedText(u"a");
+	case CardTags::k_ending_stressed:  return AccentedText(u"b");
+	case CardTags::k_shifting_stress:  return AccentedText(u"c");
+
 	default:
 		return EnumToShortString(tag);
 	}
 }
+
+
+AccentedText Config::GetCardTagLongDisplayName(CardTags tag)
+{
+	switch (tag)
+	{
+	case CardTags::k_verb_class_1:     return AccentedText(u"-ай/-ей/-яй");
+	case CardTags::k_verb_class_2:     return AccentedText(u"-ова(уй)");
+	case CardTags::k_verb_class_3:     return AccentedText(u"-ну");
+	case CardTags::k_verb_class_3o:    return AccentedText(u"-(ну)");
+	case CardTags::k_verb_class_4:     return AccentedText(u"-и");
+	case CardTags::k_verb_class_5:     return AccentedText(u"-е/-жа/-я");
+	case CardTags::k_verb_class_5o:    return AccentedText(u"-е/-жа/-я");
+	case CardTags::k_verb_class_6:     return AccentedText(u"-а(я)");
+	case CardTags::k_verb_class_6o:    return AccentedText(u"-а(я)");
+	case CardTags::k_verb_class_7:     return AccentedText(u"-з/-с/-д/-т/-б");
+	case CardTags::k_verb_class_8:     return AccentedText(u"-г/-к");
+	case CardTags::k_verb_class_9:     return AccentedText(u"-р");
+	case CardTags::k_verb_class_10:    return AccentedText(u"-о");
+	case CardTags::k_verb_class_11:    return AccentedText(u"-ий");
+	case CardTags::k_verb_class_12:    return AccentedText(u"-ой/-й");
+	case CardTags::k_verb_class_13:    return AccentedText(u"-авай");
+	case CardTags::k_verb_class_14:    return AccentedText(u"-м/-н");
+	case CardTags::k_verb_class_15:    return AccentedText(u"-н");
+	case CardTags::k_verb_class_16:    return AccentedText(u"-в");
+
+	case CardTags::k_stem_stressed:    return AccentedText(u"Stem Stress");
+	case CardTags::k_ending_stressed:  return AccentedText(u"End Stress");
+	case CardTags::k_shifting_stress:  return AccentedText(u"Shifting Stress");
+
+	default:
+		return EnumToString(tag);
+	}
+}
+

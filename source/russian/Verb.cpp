@@ -35,6 +35,21 @@ Aspect VerbConjugation::GetAspect() const
 	return m_aspect;
 }
 
+Transitivity VerbConjugation::GetTransitivity() const
+{
+	return m_transitivity;
+}
+
+bool VerbConjugation::IsImpersonal() const
+{
+	return m_isImpersonal;
+}
+
+const VerbConjugationClass & VerbConjugation::GetVerbClass() const
+{
+	return m_verbClass;
+}
+
 const AccentedText& VerbConjugation::GetNonPast(uint32 index) const
 {
 	CMG_ASSERT(index < 6);
@@ -115,6 +130,21 @@ void VerbConjugation::SetImperative(Plurality plurality, const AccentedText & te
 	m_imperative[plurality] = text;
 }
 
+void VerbConjugation::SetVerbClass(const VerbConjugationClass & verbClass)
+{
+	m_verbClass = verbClass;
+}
+
+void VerbConjugation::SetTransitivity(Transitivity transitivity)
+{
+	m_transitivity = transitivity;
+}
+
+void VerbConjugation::SetImpersonal(bool impersonal)
+{
+	m_isImpersonal = impersonal;
+}
+
 void VerbConjugation::GetAllForms(Set<AccentedText>& outForms) const
 {
 	outForms.insert(m_infinitive);
@@ -131,7 +161,7 @@ void VerbConjugation::GetAllForms(Set<AccentedText>& outForms) const
 	}
 }
 
-void VerbConjugation::Serialize(rapidjson::Value& value,
+void VerbConjugation::Serialize(json::Value& value,
 	rapidjson::Document::AllocatorType& allocator)
 {
 	String form;
@@ -144,73 +174,62 @@ void VerbConjugation::Serialize(rapidjson::Value& value,
 	};
 
 	// Infinitive
-	form = ConvertToUTF8(m_infinitive.ToMarkedString());
-	value.AddMember("infinitive", rapidjson::Value(
-		form.c_str(), allocator).Move(), allocator);
+	json::Serialize(value, "infinitive", m_infinitive, allocator);
 
 	// Aspect
-	String aspectName = EnumToString(m_aspect);
-	value.AddMember("aspect", rapidjson::Value(
-		aspectName.c_str(), allocator).Move(), allocator);
+	json::SerializeEnum(value, "aspect", m_aspect, allocator);
+
+	// Transitivity
+	if (m_transitivity != Transitivity::k_unknown)
+		json::SerializeEnum(value, "transitivity", m_transitivity, allocator);
+
+	if (m_isImpersonal)
+		value.AddMember("impersonal", m_isImpersonal, allocator);
 
 	// Non-past tense
-	rapidjson::Value nonPastData(rapidjson::kArrayType);
+	json::Value nonPastData(rapidjson::kArrayType);
 	for (uint32 index = 0; index < 6; index++)
-	{
-		form = ConvertToUTF8(GetNonPast(index).ToMarkedString());
-		nonPastData.PushBack(rapidjson::Value(
-			form.c_str(), allocator).Move(), allocator);
-	}
+		json::PushBack(nonPastData, GetNonPast(index), allocator);
 	value.AddMember("non_past", nonPastData, allocator);
 
 	// Past tense
-	rapidjson::Value pastData(rapidjson::kObjectType);
+	json::Value pastData(rapidjson::kObjectType);
 	for (Gender gender : genderList)
-	{
-		String genderName = EnumToShortString(gender);
-		form = ConvertToUTF8(GetPast(gender).ToMarkedString());
-		pastData.AddMember(
-			rapidjson::Value(genderName.c_str(), allocator).Move(),
-			rapidjson::Value(form.c_str(), allocator).Move(), allocator);
-	}
+		json::AddMember(pastData, EnumToShortString(gender),
+			GetPast(gender), allocator);
 	value.AddMember("past", pastData, allocator);
 
 	// Imperative
-	rapidjson::Value imperativeData(rapidjson::kObjectType);
+	json::Value imperativeData(rapidjson::kObjectType);
 	for (Plurality plurality : {Plurality::k_singular, Plurality::k_plural})
-	{
-		String pluralityName = EnumToShortString(plurality);
-		form = ConvertToUTF8(GetImperative(plurality).ToMarkedString());
-		imperativeData.AddMember(
-			rapidjson::Value(pluralityName.c_str(), allocator).Move(),
-			rapidjson::Value(form.c_str(), allocator).Move(), allocator);
-	}
+		json::AddMember(imperativeData, EnumToShortString(plurality),
+			GetImperative(plurality), allocator);
 	value.AddMember("imperative", imperativeData, allocator);
 
 	// Participles
-	rapidjson::Value participleData(rapidjson::kObjectType);
+	json::Value participleData(rapidjson::kObjectType);
 	for (Tense tense : {Tense::k_present, Tense::k_past})
 	{
-		String tenseName = EnumToShortString(tense);
-		rapidjson::Value tenseData(rapidjson::kObjectType);
-
+		json::Value tenseData(rapidjson::kObjectType);
 		for (Participle participle : EnumValues<Participle>())
-		{
-			String participleName = EnumToShortString(participle);
-			form = ConvertToUTF8(GetParticiple(
-				participle, tense).ToMarkedString());
-			tenseData.AddMember(
-				rapidjson::Value(participleName.c_str(), allocator).Move(),
-				rapidjson::Value(form.c_str(), allocator).Move(), allocator);
-		}
-		participleData.AddMember(
-			rapidjson::Value(tenseName.c_str(), allocator).Move(),
-			tenseData, allocator);
+			json::AddMember(tenseData, EnumToShortString(participle),
+				GetParticiple(participle, tense), allocator);
+		json::AddMember(participleData, EnumToShortString(tense), tenseData, allocator);
 	}
 	value.AddMember("participles", participleData, allocator);
+
+	// Verb class
+	if (m_verbClass.IsValid())
+	{
+		json::Value verbClassData(rapidjson::kObjectType);
+		verbClassData.AddMember("class", m_verbClass.classNumber, allocator);
+		verbClassData.AddMember("variant", m_verbClass.variantIndex, allocator);
+		json::AddMember(verbClassData, "accent", EnumToShortString(m_verbClass.accentPattern), allocator);
+		value.AddMember("verb_class", verbClassData, allocator);
+	}
 }
 
-Error VerbConjugation::Deserialize(rapidjson::Value& data)
+Error VerbConjugation::Deserialize(json::Value& data)
 {
 	auto genderList = {
 		Gender::k_masculine,
@@ -219,14 +238,13 @@ Error VerbConjugation::Deserialize(rapidjson::Value& data)
 		Gender::k_plural,
 	};
 
-	// Infinitive
-	m_infinitive = data["infinitive"].GetString();
-
-	// Aspect
-	TryStringToEnum<Aspect>(data["aspect"].GetString(), m_aspect);
+	json::Deserialize(data, "infinitive", m_infinitive);
+	json::DeserializeEnum(data, "aspect", m_aspect);
+	json::DeserializeEnum(data, "transitivity", m_transitivity);
+	json::DeserializeBool(data, "impersonal", m_isImpersonal);
 
 	// Non-past
-	rapidjson::Value& nonPastData = data["non_past"];
+	json::Value& nonPastData = data["non_past"];
 	uint32 index = 0;
 	for (auto it = nonPastData.Begin();
 		it != nonPastData.End(); it++, index++)
@@ -235,7 +253,7 @@ Error VerbConjugation::Deserialize(rapidjson::Value& data)
 	}
 
 	// Past
-	rapidjson::Value& pastData = data["past"];
+	json::Value& pastData = data["past"];
 	for (Gender gender : genderList)
 	{
 		String genderName = EnumToShortString(gender);
@@ -243,7 +261,7 @@ Error VerbConjugation::Deserialize(rapidjson::Value& data)
 	}
 
 	// Imperative
-	rapidjson::Value& imperativeData = data["imperative"];
+	json::Value& imperativeData = data["imperative"];
 	for (Plurality plurality : {Plurality::k_singular, Plurality::k_plural})
 	{
 		String pluralityName = EnumToShortString(plurality);
@@ -251,11 +269,11 @@ Error VerbConjugation::Deserialize(rapidjson::Value& data)
 	}
 
 	// Participles
-	rapidjson::Value& participleData = data["participles"];
+	json::Value& participleData = data["participles"];
 	for (Tense tense : {Tense::k_present, Tense::k_past})
 	{
 		String tenseName = EnumToShortString(tense);
-		rapidjson::Value& tenseData = participleData[tenseName.c_str()];
+		json::Value& tenseData = participleData[tenseName.c_str()];
 		for (Participle participle : EnumValues<Participle>())
 		{
 			String participleName = EnumToShortString(participle);
@@ -264,7 +282,41 @@ Error VerbConjugation::Deserialize(rapidjson::Value& data)
 		}
 	}
 
+	// Verb class
+	if (data.HasMember("verb_class"))
+	{
+		json::Value& verbClassData = data["verb_class"];
+		m_verbClass.classNumber = verbClassData["class"].GetInt();
+		if (verbClassData.HasMember("variant"))
+			m_verbClass.variantIndex = verbClassData["variant"].GetInt();
+		json::DeserializeShortEnum(verbClassData, "accent", m_verbClass.accentPattern);
+	}
+
 	return CMG_ERROR_SUCCESS;
+}
+
+bool VerbConjugationClass::IsValid() const
+{
+	return (classNumber >= 0 && classNumber <= 16 &&
+		variantIndex >= 0 && variantIndex <= 1);
+}
+
+bool VerbConjugationClass::IsIrregular() const
+{
+	return (classNumber == 0);
+}
+
+unistr VerbConjugationClass::ToString() const
+{
+	unistr str = u"class ";
+	if (IsIrregular())
+		str += u"irreg-";
+	else
+		str += ConvertFromUTF8(std::to_string(classNumber));
+	if (variantIndex == 1)
+		str += u"°";
+	str += ConvertFromUTF8(EnumToShortString(accentPattern));
+	return str;
 }
 
 } // namespace ru

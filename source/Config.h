@@ -43,12 +43,23 @@ public:
 	static constexpr uint32 k_minRepeatInterval = 8;
 	static constexpr uint32 k_newCardInterval = 4;
 	static constexpr uint32 k_studyScoreHistogramBinCount = 10;
+	static constexpr const char* k_keyShortcutEditCard = "e";
+	static constexpr const char* k_keyShortcutEditRelatedCards = "r";
+	static constexpr const char* k_keyShortcutAddToCardSets = "s";
+	static constexpr const char* k_keyShortcutShowWikiTerm = "w";
+	static constexpr const char* k_keyShortcutOpenInWebBrowser = "i";
+	static constexpr const char* k_keyShortcutReshowCard = "o";
+	static constexpr const char* k_keyShortcutSwapLanguage = "Ctrl+q";
+	static constexpr const char* k_keyShortcutMarkGood = "enter";
+	static constexpr const char* k_keyShortcutMarkBad = "backspace";
+	static constexpr const char* k_keyShortcutOpenMenu = "end";
 
 	static void Initialize();
 
 	static const Color& GetCardTagColor(CardTags tag);
 	static Color GetHistoryScoreColor(float score);
 	static AccentedText GetCardTagShortDisplayName(CardTags tag);
+	static AccentedText GetCardTagLongDisplayName(CardTags tag);
 
 private:
 	static Map<CardTags, Color> k_mapCardTagColors;

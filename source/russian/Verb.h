@@ -5,6 +5,17 @@
 
 namespace ru {
 
+struct VerbConjugationClass
+{
+	VerbAccentPattern accentPattern = VerbAccentPattern::k_stem_stressed;
+	int classNumber = -1;  // 1 - 16, 0 = irregular
+	int variantIndex = -1;  // 0 or 1
+
+	bool IsValid() const;
+	bool IsIrregular() const;
+	unistr ToString() const;
+};
+
 class VerbConjugation
 {
 public:
@@ -12,6 +23,9 @@ public:
 
 	const AccentedText& GetInfinitive() const;
 	Aspect GetAspect() const;
+	Transitivity GetTransitivity() const;
+	bool IsImpersonal() const;
+	const VerbConjugationClass& GetVerbClass() const;
 	const AccentedText& GetNonPast(uint32 index) const;
 	const AccentedText& GetNonPast(Person person, Plurality plurality) const;
 	const AccentedText& GetPast(uint32 index) const;
@@ -27,6 +41,9 @@ public:
 	void SetPast(Gender gender, const AccentedText& text);
 	void SetParticiple(Participle participle, Tense tense, const AccentedText& text);
 	void SetImperative(Plurality plurality, const AccentedText& text);
+	void SetVerbClass(const VerbConjugationClass& verbClass);
+	void SetTransitivity(Transitivity transitivity);
+	void SetImpersonal(bool impersonal);
 
 	virtual void GetAllForms(Set<AccentedText>& outForms) const;
 	void Serialize(rapidjson::Value& value,
@@ -35,7 +52,10 @@ public:
 
 private:
 	AccentedText m_infinitive;
+	VerbConjugationClass m_verbClass;
 	Aspect m_aspect;
+	Transitivity m_transitivity = Transitivity::k_unknown;
+	bool m_isImpersonal = false;
 	Map<std::pair<Person, Plurality>, AccentedText> m_nonPast;
 	Map<Gender, AccentedText> m_past;
 	Map<Plurality, AccentedText> m_imperative;

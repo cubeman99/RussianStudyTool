@@ -41,8 +41,16 @@ void WikiTermView::SetTerm(wiki::Term::sptr term)
 	bool first = true;
 	for (auto it : m_term->GetWords())
 	{
+		auto word = it.second;
 		WikiWordWidget* wordWidget = AllocateObject<WikiWordWidget>(it.second);
+
+		// Connect signals
 		wordWidget->Clicked().Connect(this, wordWidget, &WikiTermView::OpenOptionsMenu);
+		wordWidget->AddKeyShortcut(Config::k_keyShortcutEditCard,
+			[this, word]() { GetApp()->OpenCreateCardViewFromWord(word); return true; });
+		wordWidget->AddKeyShortcut(Config::k_keyShortcutOpenInWebBrowser,
+			[this, term]() { GetApp()->OpenTermInWiktionary(term); return true; });
+
 		m_layoutWordList.Add(wordWidget);
 		if (first)
 			wordWidget->Focus();

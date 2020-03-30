@@ -2,7 +2,6 @@
 #include "Resources.h"
 #include "states/GUIState.h"
 #include "widgets/CardSearchWidget.h"
-#include "widgets/TestWidget.h"
 #include "widgets/CardSetEditWidget.h"
 #include "widgets/CardSetBrowserWidget.h"
 #include "widgets/CardEditWidget.h"
@@ -114,6 +113,12 @@ void RussianStudyToolApp::OnInitialize()
 
 	//m_cardDatabase.SaveAllCardSets();
 	//m_cardDatabase.SaveCardData();
+	//for (auto it : m_wiktionary.GetAllTerms())
+	//{
+	//	if (m_wiktionary.TermNeedsReDownload(it.second))
+	//		m_wiktionary.DownloadTerm(it.first);
+	//}
+	//m_wiktionary.Save();
 
 	m_stateStack.Begin(this);
 

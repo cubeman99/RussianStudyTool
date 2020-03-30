@@ -64,7 +64,7 @@ private:
 	void OpenRelatedCardsView(Card::sptr card);
 	void OpenAddCardToSetView(Card::sptr card);
 	void OpenCardInWebBrowser(Card::sptr card);
-	void OpenInWebBrowser(const unistr& text);
+	void OpenWikiTermView(Card::sptr card);
 	void OnCardDataChanged(Card::sptr card);
 	void OnCardAddedOrRemovedFromSet(Card::sptr card, CardSet::sptr cardSet);
 	void OnTermDownloaded(const CardWordMatch& wordMatch);

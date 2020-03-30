@@ -49,6 +49,9 @@
     <Filter Include="Source Files\examples">
       <UniqueIdentifier>{bf5c8c7b-4f0f-4790-9464-5c10e2ceaf44}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\views">
+      <UniqueIdentifier>{a20cd78e-e56c-45f9-bc98-c3c607fa10b0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\source\main.cpp">
@@ -126,9 +129,6 @@
     <ClCompile Include="..\source\study\Scheduler.cpp">
       <Filter>Source Files\study</Filter>
     </ClCompile>
-    <ClCompile Include="..\source\widgets\MainMenuWidget.cpp">
-      <Filter>Source Files\widgets</Filter>
-    </ClCompile>
     <ClCompile Include="..\source\cards\Card.cpp">
       <Filter>Source Files\cards</Filter>
     </ClCompile>
@@ -156,9 +156,6 @@
     <ClCompile Include="..\source\gui\GridLayout.cpp">
       <Filter>Source Files\gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\source\widgets\TestWidget.cpp">
-      <Filter>Source Files\widgets</Filter>
-    </ClCompile>
     <ClCompile Include="..\source\core\Unicode.cpp">
       <Filter>Source Files\core</Filter>
     </ClCompile>
@@ -176,9 +173,6 @@
     </ClCompile>
     <ClCompile Include="..\source\gui\KeyShortcut.cpp">
       <Filter>Source Files\gui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\states\StudyState.cpp">
-      <Filter>Source Files\widgets</Filter>
     </ClCompile>
     <ClCompile Include="..\source\external\wiktionary\Wiktionary.cpp">
       <Filter>Source Files\external\wiktionary</Filter>
@@ -210,26 +204,11 @@
     <ClCompile Include="..\source\widgets\RelatedWordList.cpp">
       <Filter>Source Files\widgets</Filter>
     </ClCompile>
-    <ClCompile Include="..\source\widgets\AddCardToSetWidget.cpp">
-      <Filter>Source Files\widgets\editors</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\widgets\CardEditWidget.cpp">
-      <Filter>Source Files\widgets\editors</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\widgets\CardSetEditWidget.cpp">
-      <Filter>Source Files\widgets\editors</Filter>
-    </ClCompile>
     <ClCompile Include="..\source\widgets\CardSetSearchWidget.cpp">
-      <Filter>Source Files\widgets\editors</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\widgets\RelatedCardsWidget.cpp">
       <Filter>Source Files\widgets\editors</Filter>
     </ClCompile>
     <ClCompile Include="..\source\widgets\CardSetBrowserWidget.cpp">
       <Filter>Source Files\widgets</Filter>
-    </ClCompile>
-    <ClCompile Include="..\source\widgets\editors\CreateCardSetWidget.cpp">
-      <Filter>Source Files\widgets\editors</Filter>
     </ClCompile>
     <ClCompile Include="..\source\examples\ExampleDatabase.cpp">
       <Filter>Source Files\examples</Filter>
@@ -246,9 +225,6 @@
     <ClCompile Include="..\source\widgets\StudyHistoryTimeline.cpp">
       <Filter>Source Files\widgets</Filter>
     </ClCompile>
-    <ClCompile Include="..\source\widgets\LanguageTextEdit.cpp">
-      <Filter>Source Files\widgets</Filter>
-    </ClCompile>
     <ClCompile Include="..\source\widgets\WordDefinitionWidget.cpp">
       <Filter>Source Files\widgets</Filter>
     </ClCompile>
@@ -258,16 +234,40 @@
     <ClCompile Include="..\source\widgets\CardSearchWidget.cpp">
       <Filter>Source Files\widgets\editors</Filter>
     </ClCompile>
-    <ClCompile Include="..\source\widgets\CardListView.cpp">
-      <Filter>Source Files\widgets\editors</Filter>
-    </ClCompile>
     <ClCompile Include="..\source\russian\CardWordMatch.cpp">
       <Filter>Source Files\russian</Filter>
     </ClCompile>
     <ClCompile Include="..\source\widgets\editors\CardTagEditBox.cpp">
       <Filter>Source Files\widgets\editors</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\widgets\AddCardToSetWidget.cpp">
+      <Filter>Source Files\views</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\widgets\CardEditWidget.cpp">
+      <Filter>Source Files\views</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\widgets\CardListView.cpp">
+      <Filter>Source Files\views</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\widgets\CardSetEditWidget.cpp">
+      <Filter>Source Files\views</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\widgets\editors\CreateCardSetWidget.cpp">
+      <Filter>Source Files\views</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\widgets\RelatedCardsWidget.cpp">
+      <Filter>Source Files\views</Filter>
+    </ClCompile>
     <ClCompile Include="..\source\widgets\editors\WikiTermView.cpp">
+      <Filter>Source Files\views</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\widgets\MainMenuWidget.cpp">
+      <Filter>Source Files\views</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\states\StudyState.cpp">
+      <Filter>Source Files\views</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\widgets\LanguageTextEdit.cpp">
       <Filter>Source Files\widgets\editors</Filter>
     </ClCompile>
   </ItemGroup>
@@ -353,9 +353,6 @@
     <ClInclude Include="..\source\study\Scheduler.h">
       <Filter>Source Files\study</Filter>
     </ClInclude>
-    <ClInclude Include="..\source\widgets\MainMenuWidget.h">
-      <Filter>Source Files\widgets</Filter>
-    </ClInclude>
     <ClInclude Include="..\source\cards\Card.h">
       <Filter>Source Files\cards</Filter>
     </ClInclude>
@@ -383,9 +380,6 @@
     <ClInclude Include="..\source\gui\GridLayout.h">
       <Filter>Source Files\gui</Filter>
     </ClInclude>
-    <ClInclude Include="..\source\widgets\TestWidget.h">
-      <Filter>Source Files\widgets</Filter>
-    </ClInclude>
     <ClInclude Include="..\source\core\Unicode.h">
       <Filter>Source Files\core</Filter>
     </ClInclude>
@@ -406,9 +400,6 @@
     </ClInclude>
     <ClInclude Include="..\source\core\Delegate.h">
       <Filter>Source Files\core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\states\StudyState.h">
-      <Filter>Source Files\widgets</Filter>
     </ClInclude>
     <ClInclude Include="..\source\widgets\SearchWidget.h">
       <Filter>Source Files\widgets</Filter>
@@ -443,26 +434,11 @@
     <ClInclude Include="..\source\widgets\RelatedWordList.h">
       <Filter>Source Files\widgets</Filter>
     </ClInclude>
-    <ClInclude Include="..\source\widgets\AddCardToSetWidget.h">
-      <Filter>Source Files\widgets\editors</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\widgets\CardEditWidget.h">
-      <Filter>Source Files\widgets\editors</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\widgets\CardSetEditWidget.h">
-      <Filter>Source Files\widgets\editors</Filter>
-    </ClInclude>
     <ClInclude Include="..\source\widgets\CardSetSearchWidget.h">
-      <Filter>Source Files\widgets\editors</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\widgets\RelatedCardsWidget.h">
       <Filter>Source Files\widgets\editors</Filter>
     </ClInclude>
     <ClInclude Include="..\source\widgets\CardSetBrowserWidget.h">
       <Filter>Source Files\widgets</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\widgets\editors\CreateCardSetWidget.h">
-      <Filter>Source Files\widgets\editors</Filter>
     </ClInclude>
     <ClInclude Include="..\source\examples\ExampleDatabase.h">
       <Filter>Source Files\examples</Filter>
@@ -479,9 +455,6 @@
     <ClInclude Include="..\source\widgets\StudyHistoryTimeline.h">
       <Filter>Source Files\widgets</Filter>
     </ClInclude>
-    <ClInclude Include="..\source\widgets\LanguageTextEdit.h">
-      <Filter>Source Files\widgets</Filter>
-    </ClInclude>
     <ClInclude Include="..\source\widgets\WordDefinitionWidget.h">
       <Filter>Source Files\widgets</Filter>
     </ClInclude>
@@ -489,9 +462,6 @@
       <Filter>Source Files\russian</Filter>
     </ClInclude>
     <ClInclude Include="..\source\widgets\CardSearchWidget.h">
-      <Filter>Source Files\widgets\editors</Filter>
-    </ClInclude>
-    <ClInclude Include="..\source\widgets\CardListView.h">
       <Filter>Source Files\widgets\editors</Filter>
     </ClInclude>
     <ClInclude Include="..\source\russian\CardWordMatch.h">
@@ -503,7 +473,34 @@
     <ClInclude Include="..\source\widgets\editors\CardTagEditBox.h">
       <Filter>Source Files\widgets\editors</Filter>
     </ClInclude>
+    <ClInclude Include="..\source\widgets\AddCardToSetWidget.h">
+      <Filter>Source Files\views</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\CardEditWidget.h">
+      <Filter>Source Files\views</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\CardListView.h">
+      <Filter>Source Files\views</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\CardSetEditWidget.h">
+      <Filter>Source Files\views</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\editors\CreateCardSetWidget.h">
+      <Filter>Source Files\views</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\RelatedCardsWidget.h">
+      <Filter>Source Files\views</Filter>
+    </ClInclude>
     <ClInclude Include="..\source\widgets\editors\WikiTermView.h">
+      <Filter>Source Files\views</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\MainMenuWidget.h">
+      <Filter>Source Files\views</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\states\StudyState.h">
+      <Filter>Source Files\views</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\widgets\LanguageTextEdit.h">
       <Filter>Source Files\widgets\editors</Filter>
     </ClInclude>
   </ItemGroup>

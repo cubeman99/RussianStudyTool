@@ -37,13 +37,13 @@ public:
 	void OpenRelatedCardsView(Card::sptr card);
 	void OpenAddCardToSetView(Card::sptr card);
 	void OpenCardInWebBrowser();
+	void OpenWikiTermView();
 	void Copy();
 
 	void OnCardDataChanged(Card::sptr card);
 	void OnCardAddedOrRemovedFromSet(Card::sptr card, CardSet::sptr cardSet);
 
 private:
-	void OpenInWebBrowser(const AccentedText& text);
 	bool PopulateTermList(RelatedWordList& termList, const Set<AccentedText>& terms);
 	void OnClickWordBox(RelatedWordWidget* widget);
 	void OnChooseAddToRelatedCards(Card::sptr card);

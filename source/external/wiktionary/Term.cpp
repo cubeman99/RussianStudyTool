@@ -67,6 +67,12 @@ EnumFlags<CardTags> Word::GetTags() const
 	return tags;
 }
 
+AccentedText Word::GetInfoString() const
+{
+	AccentedText info = m_text + " (" + EnumToString(m_wordType) + "):";
+	return info;
+}
+
 void Word::GetAllForms(Set<AccentedText>& outForms) const
 {
 	outForms.insert(m_text);
@@ -200,6 +206,8 @@ Term::Term()
 Term::Term(const AccentedText& text) :
 	m_text(text)
 {
+	m_key = text.GetString();
+	ru::ToLowerIP(m_key);
 }
 
 Word::sptr Term::GetWord(WordType wordType)
@@ -232,25 +240,16 @@ Map<WordType, Word::sptr>& Term::GetWords()
 void Term::Serialize(rapidjson::Value& value,
 	rapidjson::Document::AllocatorType& allocator)
 {
-	value.AddMember("download_timestamp", m_downloadTimestamp, allocator);
-
-	String text = ConvertToUTF8(m_text.ToMarkedString());
-	value.AddMember("text", rapidjson::Value(
-		text.c_str(), allocator).Move(), allocator);
-
-	String etymology = ConvertToUTF8(m_etymology.ToMarkedString());
-	value.AddMember("etymology", rapidjson::Value(
-		etymology.c_str(), allocator).Move(), allocator);
+	value.AddMember("download_timestamp", int32(m_downloadTimestamp), allocator);
+	json::AddMember(value, "text", m_text, allocator);
+	json::AddMember(value, "etymology", m_etymology, allocator);
 
 	rapidjson::Value wordListData(rapidjson::kObjectType);
 	for (auto it : m_words)
 	{
 		rapidjson::Value wordData(rapidjson::kObjectType);
-		String wordTypeName = EnumToString(it.first);
-		Word::sptr word = it.second;
-		word->Serialize(wordData, allocator);
-		wordListData.AddMember(rapidjson::Value(
-			wordTypeName.c_str(), allocator).Move(), wordData, allocator);
+		it.second->Serialize(wordData, allocator);
+		json::AddMember(wordListData, EnumToString(it.first), wordData, allocator);
 	}
 	value.AddMember("words", wordListData, allocator);
 }
@@ -263,7 +262,7 @@ Error Term::Deserialize(rapidjson::Value& data)
 	m_downloadTimestamp = data["download_timestamp"].GetDouble();
 
 	if (data.HasMember("etymology"))
-		m_etymology = AccentedText(data["etymology"].GetString());
+		json::Deserialize(data, "etymology", m_etymology);
 	else
 		m_etymology = "";
 
@@ -321,6 +320,15 @@ EnumFlags<CardTags> Noun::GetTags() const
 		tags.Set(CardTags::k_inanimate, true);
 
 	return tags;
+}
+
+AccentedText Noun::GetInfoString() const
+{
+	AccentedText info = m_text + " (" +
+		EnumToString(m_declension.GetGender()) + ", " +
+		EnumToString(m_declension.GetAnimacy()) + " " +
+		EnumToString(m_wordType) + "):";
+	return info;
 }
 
 void Noun::GetAllForms(Set<AccentedText>& outForms) const
@@ -396,8 +404,111 @@ EnumFlags<CardTags> Verb::GetTags() const
 		tags.Set(CardTags::k_perfective, true);
 	else if (m_conjugation.GetAspect() == Aspect::k_imperfective)
 		tags.Set(CardTags::k_imperfective, true);
-	// TODO: transitive, reflexive, stem
+	if (m_conjugation.GetTransitivity() == Transitivity::k_reflexive)
+		tags.Set(CardTags::k_reflexive, true);
+	else if (m_conjugation.GetTransitivity() == Transitivity::k_intransitive)
+		tags.Set(CardTags::k_intransitive, true);
+	else if (m_conjugation.GetTransitivity() == Transitivity::k_transitive)
+		tags.Set(CardTags::k_transitive, true);
+	if (m_conjugation.IsImpersonal())
+		tags.Set(CardTags::k_impersonal, true);
+	if (m_conjugation.GetVerbClass().IsIrregular())
+		tags.Set(CardTags::k_irregular, true);
+
+	// Verb classification
+	const auto& verbClass = m_conjugation.GetVerbClass();
+	auto classNumber = verbClass.classNumber;
+	auto variantIndex = verbClass.variantIndex;
+	
+	/*if (classNumber == 2)
+		tags.Set(CardTags::k_verb_suffix_ova, true);
+	else if (classNumber == 3 && variantIndex == 0)
+		tags.Set(CardTags::k_verb_suffix_nu, true);
+	else if (classNumber == 3 && variantIndex == 1)
+		tags.Set(CardTags::k_verb_suffix_nu2, true);
+	else if (classNumber == 4)
+		tags.Set(CardTags::k_verb_suffix_i, true);
+	else if (classNumber == 7 || classNumber == 8)
+		tags.Set(CardTags::k_obstruent_stem, true);
+	else if (classNumber == 9 || classNumber == 11 || classNumber == 14
+		|| classNumber == 15 || classNumber == 16)
+		tags.Set(CardTags::k_resonant_stem, true);
+	else if (classNumber == 10)
+		tags.Set(CardTags::k_verb_suffix_o, true);
+	else if (classNumber == 13)
+		tags.Set(CardTags::k_verb_suffix_avai, true);*/
+
+	if (verbClass.IsValid())
+	{
+		if (verbClass.IsIrregular())
+			tags.Set(CardTags::k_irregular, true);
+		else if (verbClass.classNumber == 1)
+			tags.Set(CardTags::k_verb_class_1, true);
+		else if (verbClass.classNumber == 2)
+			tags.Set(CardTags::k_verb_class_2, true);
+		else if (verbClass.classNumber == 3 && verbClass.variantIndex == 0)
+			tags.Set(CardTags::k_verb_class_3, true);
+		else if (verbClass.classNumber == 3 && verbClass.variantIndex == 1)
+			tags.Set(CardTags::k_verb_class_3o, true);
+		else if (verbClass.classNumber == 4)
+			tags.Set(CardTags::k_verb_class_4, true);
+		else if (verbClass.classNumber == 5 && verbClass.variantIndex == 0)
+			tags.Set(CardTags::k_verb_class_5, true);
+		else if (verbClass.classNumber == 5 && verbClass.variantIndex == 1)
+			tags.Set(CardTags::k_verb_class_5o, true);
+		else if (verbClass.classNumber == 6 && verbClass.variantIndex == 0)
+			tags.Set(CardTags::k_verb_class_6, true);
+		else if (verbClass.classNumber == 6 && verbClass.variantIndex == 1)
+			tags.Set(CardTags::k_verb_class_6o, true);
+		else if (verbClass.classNumber == 7)
+			tags.Set(CardTags::k_verb_class_7, true);
+		else if (verbClass.classNumber == 8)
+			tags.Set(CardTags::k_verb_class_8, true);
+		else if (verbClass.classNumber == 9)
+			tags.Set(CardTags::k_verb_class_9, true);
+		else if (verbClass.classNumber == 10)
+			tags.Set(CardTags::k_verb_class_10, true);
+		else if (verbClass.classNumber == 11)
+			tags.Set(CardTags::k_verb_class_11, true);
+		else if (verbClass.classNumber == 12)
+			tags.Set(CardTags::k_verb_class_12, true);
+		else if (verbClass.classNumber == 13)
+			tags.Set(CardTags::k_verb_class_13, true);
+		else if (verbClass.classNumber == 14)
+			tags.Set(CardTags::k_verb_class_14, true);
+		else if (verbClass.classNumber == 15)
+			tags.Set(CardTags::k_verb_class_15, true);
+		else if (verbClass.classNumber == 16)
+			tags.Set(CardTags::k_verb_class_16, true);
+	
+		if (verbClass.accentPattern == VerbAccentPattern::k_stem_stressed)
+			tags.Set(CardTags::k_stem_stressed, true);
+		else if (verbClass.accentPattern == VerbAccentPattern::k_ending_stressed)
+			tags.Set(CardTags::k_ending_stressed, true);
+		else if (verbClass.accentPattern == VerbAccentPattern::k_changing_stress)
+			tags.Set(CardTags::k_shifting_stress, true);
+	}
+
+	// TODO: stem
 	return tags;
+}
+
+AccentedText Verb::GetInfoString() const
+{
+	AccentedText info = m_text + " (";
+	if (m_conjugation.GetVerbClass().IsValid())
+		info += m_conjugation.GetVerbClass().ToString() + " ";
+	info += EnumToString(m_conjugation.GetAspect()) + " ";
+	if (m_conjugation.GetTransitivity() == Transitivity::k_reflexive)
+		info += "reflexive ";
+	else if (m_conjugation.GetTransitivity() == Transitivity::k_intransitive)
+		info += "intransitive ";
+	else if (m_conjugation.GetTransitivity() == Transitivity::k_transitive)
+		info += "transitive ";
+	if (m_conjugation.IsImpersonal())
+		info += "impersonal ";
+	info += EnumToString(m_wordType) + "):";
+	return info;
 }
 
 void Verb::GetAllForms(Set<AccentedText>& outForms) const

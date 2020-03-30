@@ -25,19 +25,7 @@ void WordDefinitionWidget::SetWord(wiki::Word::sptr word)
 
 	Font::sptr fontSmall = GetApp()->GetResourceManager()->Get<Font>(Res::FONT_SMALL);
 		
-	m_wordText = m_wikiWord->GetText() + " (";
-	if (m_wikiWord->GetWordType() == WordType::k_verb)
-	{
-		wiki::Verb::sptr verb = std::dynamic_pointer_cast<wiki::Verb>(m_wikiWord);
-		m_wordText += EnumToString(verb->GetConjugation().GetAspect()) + " ";
-	}
-	else if (m_wikiWord->GetWordType() == WordType::k_noun)
-	{
-		wiki::Noun::sptr noun = std::dynamic_pointer_cast<wiki::Noun>(m_wikiWord);
-		m_wordText += EnumToString(noun->GetDeclension().GetGender()) + ", ";
-		m_wordText += EnumToString(noun->GetDeclension().GetAnimacy()) + " ";
-	}
-	m_wordText += EnumToString(m_wikiWord->GetWordType()) + "):";
+	m_wordText = m_wikiWord->GetInfoString();
 	m_layoutDefinitions.Add(AllocateObject<Label>(m_wordText, fontSmall));
 
 	// Add definitions

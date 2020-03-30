@@ -56,12 +56,13 @@ public:
 	void SetEtymology(const AccentedText& etymology) { m_etymology = etymology; }
 
 	virtual EnumFlags<CardTags> GetTags() const;
+	virtual AccentedText GetInfoString() const;
 	virtual void GetAllForms(Set<AccentedText>& outForms) const;
 	virtual void Serialize(rapidjson::Value& value,
 		rapidjson::Document::AllocatorType& allocator);
 	virtual Error Deserialize(rapidjson::Value& data);
 
-private:
+protected:
 	WordType m_wordType;
 	AccentedText m_text;
 	AccentedText m_etymology;
@@ -87,6 +88,7 @@ public:
 	void SetDeclension(const ru::NounDeclension& declension) { m_declension = declension; }
 
 	virtual EnumFlags<CardTags> GetTags() const override;
+	virtual AccentedText GetInfoString() const;
 	virtual void GetAllForms(Set<AccentedText>& outForms) const;
 	void Serialize(rapidjson::Value& value,
 		rapidjson::Document::AllocatorType& allocator) override;
@@ -134,6 +136,7 @@ public:
 	void SetConjugation(const ru::VerbConjugation& conjugation) { m_conjugation = conjugation; }
 
 	virtual EnumFlags<CardTags> GetTags() const override;
+	virtual AccentedText GetInfoString() const;
 	virtual void GetAllForms(Set<AccentedText>& outForms) const;
 	void Serialize(rapidjson::Value& value,
 		rapidjson::Document::AllocatorType& allocator) override;
@@ -154,6 +157,7 @@ public:
 	Term();
 	Term(const AccentedText& text);
 
+	const unistr& GetKey() const { return m_key; }
 	const AccentedText& GetText() const { return m_text; }
 	const AccentedText& GetEtymology() const { return  m_etymology; }
 	AppTimestamp GetDownloadTimestamp() const { return m_downloadTimestamp; }
@@ -167,6 +171,7 @@ public:
 	Error Deserialize(rapidjson::Value& data);
 
 private:
+	unistr m_key;
 	AccentedText m_text;
 	AccentedText m_etymology;
 	AppTimestamp m_downloadTimestamp;

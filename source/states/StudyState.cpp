@@ -30,9 +30,9 @@ StudyState::StudyState(IStudySet* studySet, CardSet::sptr cardSet, const StudyPa
 	m_listAntonyms.SetLabel("Antonyms:");
 		
 	m_layoutTagsRevealed.SetMargins(0.0f);
-	m_layoutTagsRevealed.SetSpacing(4.0f);
+	m_layoutTagsRevealed.SetSpacing(8.0f);
 	m_layoutTagsShown.SetMargins(0.0f);
-	m_layoutTagsShown.SetSpacing(4.0f);
+	m_layoutTagsShown.SetSpacing(8.0f);
 	m_widgetTagsShown.SetLayout(&m_layoutTagsShown);
 	m_widgetTagsRevealed.SetLayout(&m_layoutTagsRevealed);
 
@@ -120,14 +120,15 @@ StudyState::StudyState(IStudySet* studySet, CardSet::sptr cardSet, const StudyPa
 	m_labelCardTextRevealed.SetAlign(TextAlign::TOP_CENTER);
 
 	// Connect signals
-	AddKeyShortcut("e", [this]() { OpenCardEditView(m_card); return true; });
-	AddKeyShortcut("r", [this]() { OpenRelatedCardsView(m_card); return true; });
-	AddKeyShortcut("s", [this]() { OpenAddCardToSetView(m_card); return true; });
-	AddKeyShortcut("o", [this]() { ReshowCard(); return true; });
-	AddKeyShortcut("enter", [this]() { MarkGoodAndNext(); return true; });
-	AddKeyShortcut("backspace", [this]() { RevealOrMarkBadAndNext(); return true; });
-	//AddKeyShortcut("escape", [this]() { ShowPauseMenu(); return true; });
-	AddKeyShortcut("i", [this]() { OpenCardInWebBrowser(); return true; });
+	AddKeyShortcut(Config::k_keyShortcutEditCard, [this]() { OpenCardEditView(m_card); return true; });
+	AddKeyShortcut(Config::k_keyShortcutEditRelatedCards, [this]() { OpenRelatedCardsView(m_card); return true; });
+	AddKeyShortcut(Config::k_keyShortcutAddToCardSets, [this]() { OpenAddCardToSetView(m_card); return true; });
+	AddKeyShortcut(Config::k_keyShortcutReshowCard, [this]() { ReshowCard(); return true; });
+	AddKeyShortcut(Config::k_keyShortcutShowWikiTerm, [this]() { OpenWikiTermView(); return true; });
+	AddKeyShortcut(Config::k_keyShortcutOpenInWebBrowser, [this]() { OpenCardInWebBrowser(); return true; });
+	AddKeyShortcut(Config::k_keyShortcutMarkGood, [this]() { MarkGoodAndNext(); return true; });
+	AddKeyShortcut(Config::k_keyShortcutMarkBad, [this]() { RevealOrMarkBadAndNext(); return true; });
+	AddKeyShortcut(Config::k_keyShortcutOpenMenu, [this]() { ShowPauseMenu(); return true; });
 	AddKeyShortcut("Ctrl+C", [this]() { Copy(); return true; });
 }
 
@@ -364,12 +365,12 @@ void StudyState::ShowCard(Card::sptr card, Language shownSide)
 			CardTags tag = it.first;
 			if (IsKeyCardTag(tag))
 			{
-				tagLabel = AllocateObject<Label>(EnumToString(tag));
+				tagLabel = AllocateObject<Label>(Config::GetCardTagLongDisplayName(tag));
 				tagLabel->SetColor(Color::WHITE);
 				tagLabel->SetBackgroundColor(Config::GetCardTagColor(tag));
 				m_layoutTagsShown.Add(tagLabel);
 			}
-			tagLabel = AllocateObject<Label>(EnumToString(tag));
+			tagLabel = AllocateObject<Label>(Config::GetCardTagLongDisplayName(tag));
 			tagLabel->SetColor(Color::WHITE);
 			tagLabel->SetBackgroundColor(Config::GetCardTagColor(tag));
 			m_layoutTagsRevealed.Add(tagLabel);
@@ -453,17 +454,22 @@ void StudyState::RevealOrMarkBadAndNext()
 void StudyState::ShowPauseMenu()
 {
 	MenuWidget* menu = new MenuWidget("Options");
-	menu->AddCancelOption("Resume");
-	menu->AddMenuOption("Edit Card", true,
+	menu->AddCancelOption("(esc) Resume");
+	menu->AddMenuOption("(e) Edit Card", true,
 		new CaptureMethodDelegate(this, m_card, &StudyState::OpenCardEditView));
-	menu->AddMenuOption("Edit Related Card", true,
+	menu->AddMenuOption("(r) Edit Related Card", true,
 		new CaptureMethodDelegate(this, m_card, &StudyState::OpenRelatedCardsView));
-	menu->AddMenuOption("Add to Card Sets", true,
+	menu->AddMenuOption("(s) Add to Card Sets", true,
 		new CaptureMethodDelegate(this, m_card, &StudyState::OpenAddCardToSetView));
-	auto menuOption = menu->AddMenuOption("View Wiktionary Term", true,
-		new CaptureMethodDelegate(
-			GetApp(), m_term, &RussianStudyToolApp::OpenWikiTermView));
+	
+	auto menuOption = menu->AddMenuOption("(w) View Wiktionary Term", true,
+		new MethodDelegate(this, &StudyState::OpenWikiTermView));
 	menuOption->SetEnabled(m_term != nullptr);
+	
+	menuOption = menu->AddMenuOption("(i) Open Term in Web Browser", true,
+		new MethodDelegate(this, &StudyState::OpenCardInWebBrowser));
+	menuOption->SetEnabled(m_term != nullptr);
+
 	menu->AddMenuOption("Main Menu", true,
 		new MethodDelegate((Widget*) this, &Widget::Close));
 	GetApp()->PushState(menu);
@@ -487,14 +493,13 @@ void StudyState::OpenAddCardToSetView(Card::sptr card)
 void StudyState::OpenCardInWebBrowser()
 {
 	if (m_term)
-		OpenInWebBrowser(m_term->GetText().GetString());
+		GetApp()->OpenTermInWiktionary(m_term);
 }
 
-void StudyState::OpenInWebBrowser(const AccentedText& text)
+void StudyState::OpenWikiTermView()
 {
-	unistr url = wiki::Parser::GetTermURL(text.GetString(), true);
-	CMG_LOG_DEBUG() << "Opening web page: " << url;
-	cmg::os::OpenInWebBrowser(url);
+	if (m_term)
+		GetApp()->OpenWikiTermView(m_term);
 }
 
 void StudyState::Copy()
@@ -567,8 +572,8 @@ void StudyState::OnClickWordBox(RelatedWordWidget* widget)
 	menuOption->SetEnabled(term != nullptr);
 
 	menuOption = menu->AddMenuOption("Open in Wiktionary", true,
-		new CaptureMethodDelegate<StudyState, const AccentedText&, void>(
-			this, widget->GetText(), &StudyState::OpenInWebBrowser));
+		new CaptureMethodDelegate<RussianStudyToolApp, const AccentedText&, void>(
+			GetApp(), widget->GetText(), &RussianStudyToolApp::OpenTextInWiktionary));
 
 
 	if (!card || !m_cardSet || !m_cardSet->HasCard(card))

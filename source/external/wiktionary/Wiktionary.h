@@ -25,7 +25,9 @@ public:
 	void GetTerm(const unistr& text, Term::sptr& outTerm, bool& needsDownload);
 	Term::sptr GetTerm(const unistr& text, bool download = false);
 	EventSignal<Term::sptr>& TermLoaded() { return m_eventTermLoaded; }
+	Map<unistr, Term::sptr>& GetAllTerms();
 
+	Term::sptr DownloadTerm(Term::sptr term);
 	Term::sptr DownloadTerm(const unistr& text);
 	void SetDataPath(const Path& path);
 	Error Load();
@@ -36,8 +38,8 @@ public:
 
 	static unistr GetTermURL(Term::sptr term, bool russianSection);
 
-private:
 	bool TermNeedsReDownload(wiki::Term::sptr term);
+private:
 
 	Wiktionary(const Wiktionary& copy) = delete;
 	Wiktionary& operator=(const Wiktionary& copy) = delete;

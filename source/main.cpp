@@ -106,17 +106,14 @@ int main(int argc, char* argv[])
 	return 0;
 	*/
 
-	/*
-	RequestInterface requests;
+	
+	/*RequestInterface requests;
 	wiki::Wiktionary wiki(requests);
-	wiki::Term::sptr term = wiki.DownloadTerm(u"человек");
-	wiki::Word::sptr word = term->GetWord(WordType::k_noun);
-	wiki::Noun::sptr noun = std::dynamic_pointer_cast<wiki::Noun>(word);
-	CMG_LOG_DEBUG() << "Gender  = " << EnumToString(noun->GetDeclension().GetGender());
-	CMG_LOG_DEBUG() << "Animacy = " << EnumToString(noun->GetDeclension().GetAnimacy());
+	for (unistr text : {u"тошнить", u"находиться", u"набухнуть", u"зародить"})
+		wiki::Term::sptr term = wiki.DownloadTerm(text);
 	system("pause");
-	return 0;
-	*/
+	return 0;*/
+	
 
 	RussianStudyToolApp app;
 	app.Initialize("Russian Study Tool", 1000, 800);

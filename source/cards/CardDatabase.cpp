@@ -82,7 +82,7 @@ Error CardDatabase::LoadCardData(const Path& path)
 	File::OpenAndGetContents(path, json);
 	document.Parse(json.c_str());
 	if (document.HasParseError())
-		return CMG_ERROR(Error::k_file_corrupt);
+		return CMG_ERROR(Error::kFileCorrupt);
 
 	// Gather all card data
 	Array<rapidjson::Value*> cardData;

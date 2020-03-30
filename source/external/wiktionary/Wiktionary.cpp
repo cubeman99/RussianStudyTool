@@ -55,6 +55,21 @@ Term::sptr Wiktionary::GetTerm(const unistr& text, bool download)
 	return term;
 }
 
+Map<unistr, Term::sptr>& Wiktionary::GetAllTerms()
+{
+	return m_terms;
+}
+
+Term::sptr Wiktionary::DownloadTerm(Term::sptr term)
+{
+	if (term)
+	{
+		std::lock_guard<std::recursive_mutex> guard(m_mutex);
+		m_terms.erase(term->GetKey());
+	}
+	return DownloadTerm(term->GetKey());
+}
+
 Term::sptr Wiktionary::DownloadTerm(const unistr& text)
 {
 	if (cmg::container::Contains(m_404Terms, text))
@@ -74,7 +89,8 @@ Term::sptr Wiktionary::DownloadTerm(const unistr& text)
 		m_404Terms.insert(text);
 	}
 
-	Save();
+	if (!m_savePath.ToString().empty())
+		Save();
 
 	return term;
 }
@@ -118,6 +134,8 @@ Error Wiktionary::Load(const Path& path)
 		m_noWordTerms.insert(ConvertFromUTF8(it->GetString()));
 
 	// Deserialize all terms
+	Array<wiki::Term::sptr> noWordTerms;
+	Array<wiki::Term::sptr> termsNeedRedownload;
 	rapidjson::Value& termsDataList = document["terms"];
 	for (auto it = termsDataList.MemberBegin();
 		it != termsDataList.MemberEnd(); it++)
@@ -128,9 +146,27 @@ Error Wiktionary::Load(const Path& path)
 		if (error.Failed())
 			return error.Uncheck();
 		m_terms[key] = term;
+
+		if (TermNeedsReDownload(term))
+		{
+			termsNeedRedownload.push_back(term);
+		}
+		if (term->GetWords().empty())
+		{
+			noWordTerms.push_back(term);
+			CMG_LOG_WARN() << "No words: " << term->GetKey();
+		}
 	}
 
-	CMG_LOG_DEBUG() << "Loaded " << m_terms.size() << " Wiktionary terms";
+	CMG_LOG_DEBUG() << "Loaded " << m_terms.size() << " Wiktionary terms (" <<
+		m_404Terms.size() << " not-found terms)";
+	if (!termsNeedRedownload.empty())
+		CMG_LOG_DEBUG() << termsNeedRedownload.size() << " terms need to be re-downloaded";
+
+	for (auto term : noWordTerms)
+	{
+		//DownloadTerm(term);
+	}
 
 	return CMG_ERROR_SUCCESS;
 }
@@ -224,6 +260,10 @@ bool Wiktionary::TermNeedsReDownload(wiki::Term::sptr term)
 			if (noun->GetDeclension().GetGender() == Gender::k_unknown ||
 				noun->GetDeclension().GetAnimacy() == Animacy::k_unknown)
 				return true;
+		}
+		else if (wordType == WordType::k_verb)
+		{
+			Verb::sptr verb = std::dynamic_pointer_cast<Verb>(word);
 		}
 	}
 	return false;

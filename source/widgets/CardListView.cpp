@@ -28,7 +28,7 @@ CardListView::CardListView(IStudySet* studySet) :
 	m_layoutTableHeader.Add(&m_labelHeaderWordType, 0.8f);
 	m_layoutTableHeader.Add(&m_labelHeaderRussian, 4.0f);
 	m_layoutTableHeader.Add(&m_labelHeaderEnglish, 4.0f);
-	m_layoutTableHeader.Add(&m_labelHeaderTags, 1.0f);
+	m_layoutTableHeader.Add(&m_labelHeaderTags, 1.8f);
 	m_layoutTableHeader.Add(&m_labelHeaderScore, 0.5f);
 	m_headerLabelMap[SortKey::kNumber] = &m_labelHeaderNumber;
 	m_headerLabelMap[SortKey::kWordType] = &m_labelHeaderWordType;
@@ -153,10 +153,16 @@ CardListView::Row::sptr CardListView::AddRow(Card::sptr card)
 	
 	// Connect signals
 	row->Clicked().Connect(this, card, &CardListView::OpenPauseMenu);
-	row->AddKeyShortcut("e", [this, card]() { OpenCardEditView(card); return true; });
-	row->AddKeyShortcut("r", [this, card]() { OpenRelatedCardsView(card); return true; });
-	row->AddKeyShortcut("s", [this, card]() { OpenAddCardToSetView(card); return true; });
-	row->AddKeyShortcut("i", [this, card]() { OpenCardInWebBrowser(card); return true; });
+	row->AddKeyShortcut(Config::k_keyShortcutEditCard,
+		[this, card]() { OpenCardEditView(card); return true; });
+	row->AddKeyShortcut(Config::k_keyShortcutEditRelatedCards,
+		[this, card]() { OpenRelatedCardsView(card); return true; });
+	row->AddKeyShortcut(Config::k_keyShortcutAddToCardSets,
+		[this, card]() { OpenAddCardToSetView(card); return true; });
+	row->AddKeyShortcut(Config::k_keyShortcutOpenInWebBrowser,
+		[this, card]() { OpenCardInWebBrowser(card); return true; });
+	row->AddKeyShortcut(Config::k_keyShortcutShowWikiTerm,
+		[this, card]() { OpenWikiTermView(card); return true; });
 
 	m_layoutCardList.Add(row.get());
 	m_rows.push_back(row);
@@ -181,9 +187,15 @@ void CardListView::OpenPauseMenu(Card::sptr card)
 		new CaptureMethodDelegate(this, card, &CardListView::OpenRelatedCardsView));
 	menu->AddMenuOption("Add to Card Sets", true,
 		new CaptureMethodDelegate(this, card, &CardListView::OpenAddCardToSetView));
-	auto option = menu->AddMenuOption(u"Open in Wiktionary: " + termName, true,
+
+	auto option = menu->AddMenuOption(u"View Wiktionary Term: " + termName, true,
+		new CaptureMethodDelegate(this, card, &CardListView::OpenWikiTermView));
+	option->SetEnabled(wikiTerm != nullptr);
+
+	option = menu->AddMenuOption(u"Open in Wiktionary: " + termName, true,
 		new CaptureMethodDelegate(this, card, &CardListView::OpenCardInWebBrowser));
 	option->SetEnabled(wikiTerm != nullptr);
+
 	menu->AddMenuOption("Main Menu", true,
 		new MethodDelegate((Widget*) this, &Widget::Close));
 
@@ -209,14 +221,14 @@ void CardListView::OpenCardInWebBrowser(Card::sptr card)
 {
 	Row::sptr row = GetRow(card);
 	if (row && row->m_wikiTerm)
-		OpenInWebBrowser(row->m_wikiTerm->GetText().GetString());
+		GetApp()->OpenTermInWiktionary(row->m_wikiTerm);
 }
 
-void CardListView::OpenInWebBrowser(const unistr& text)
+void CardListView::OpenWikiTermView(Card::sptr card)
 {
-	unistr url = wiki::Parser::GetTermURL(text, true);
-	CMG_LOG_DEBUG() << "Opening web page: " << url;
-	cmg::os::OpenInWebBrowser(url);
+	Row::sptr row = GetRow(card);
+	if (row && row->m_wikiTerm)
+		GetApp()->OpenWikiTermView(row->m_wikiTerm);
 }
 
 void CardListView::OnCardDataChanged(Card::sptr card)
@@ -493,7 +505,7 @@ CardListView::Row::Row(Card::sptr card) :
 	m_layout.Add(&m_labelType, 0.8f);
 	m_layout.Add(&m_labelRussian, 4.0f);
 	m_layout.Add(&m_labelEnglish, 4.0f);
-	m_layout.Add(&m_tagEditBox, 1.0f);
+	m_layout.Add(&m_tagEditBox, 1.8f);
 	m_layout.Add(&m_labelScore, 0.5f);
 	
 	m_tagEditBox.SetReadOnly(true);

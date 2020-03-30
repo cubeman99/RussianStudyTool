@@ -29,7 +29,9 @@ DECLARE_ENUM_WITH_COUNT(Language, ENUM_MACRO_LANGUAGE)
 	_ex(_context, phrase, , ph) \
 	_ex(_context, interjection, , int) \
 	_ex(_context, particle, , part) \
-	_ex(_context, numeral, , num)
+	_ex(_context, numeral, , num) \
+	_ex(_context, suffix, , suf) \
+	_ex(_context, prefix, , pref)
 DECLARE_ENUM_WITH_COUNT(WordType, ENUM_MACRO_WORD_TYPE)
 
 // Includes 'plural' as a gender to make declension easier
@@ -72,6 +74,13 @@ DECLARE_ENUM_WITH_COUNT(Case, ENUM_MACRO_CASE)
 	_ex(_context, perfective, , pf)
 DECLARE_ENUM_WITH_COUNT(Aspect, ENUM_MACRO_ASPECT)
 
+#define ENUM_MACRO_TRANSITIVITY(_context, _ex) \
+	_ex(_context, transitive, , trans) \
+	_ex(_context, intransitive, , intrans) \
+	_ex(_context, reflexive, , reflex) \
+	_ex(_context, unknown, , unknown)
+DECLARE_ENUM_WITH_COUNT(Transitivity, ENUM_MACRO_TRANSITIVITY)
+
 #define ENUM_MACRO_TENSE(_context, _ex) \
 	_ex(_context, present, , pres) \
 	_ex(_context, past, , past) \
@@ -98,14 +107,14 @@ DECLARE_ENUM_WITH_COUNT(CardSetType, ENUM_MACRO_CARD_SET_TYPE)
 	_ex(_context, imperfective,      , impf) \
 	_ex(_context, unidirectional,    , uni) \
 	_ex(_context, multidirectional,  , multi) \
-	_ex(_context, masculine, = 32     , m) \
+	_ex(_context, masculine, = 32    , m) \
 	_ex(_context, feminine,          , f) \
 	_ex(_context, neuter,            , n) \
 	_ex(_context, singular,          , sing) \
 	_ex(_context, plural,            , pl) \
-	_ex(_context, nopural,           , nopl) \
-	_ex(_context, plural_only,       , pluronly) \
-	_ex(_context, singular_only,     , singonly) \
+	_ex(_context, past,              , past) \
+	_ex(_context, infinitive,        , infinitive) \
+	_ex(_context, non_past,          , nonpast) \
 	_ex(_context, first_person,      , 1st) \
 	_ex(_context, second_person,     , 2nd) \
 	_ex(_context, third_person,      , 3rd) \
@@ -117,40 +126,56 @@ DECLARE_ENUM_WITH_COUNT(CardSetType, ENUM_MACRO_CARD_SET_TYPE)
 	_ex(_context, dative,            , dat) \
 	_ex(_context, prepositional,     , prep) \
 	_ex(_context, instrumental,      , instr) \
+	_ex(_context, locative,          , loc) \
+	_ex(_context, short,             , short) \
+	_ex(_context, long,              , long) \
+	_ex(_context, nopural,           , nopl) \
+	_ex(_context, plural_only,       , pluronly) \
+	_ex(_context, singular_only,     , singonly) \
 	_ex(_context, indeclinable,      , indec) \
 	_ex(_context, irregular,         , irreg) \
 	_ex(_context, animate,           , anim) \
 	_ex(_context, inanimate,         , inanim) \
-	_ex(_context, transative,        , trans) \
-	_ex(_context, intransative,      , intrans) \
+	_ex(_context, transitive,        , trans) \
+	_ex(_context, intransitive,      , intrans) \
 	_ex(_context, reflexive,         , reflex) \
-	_ex(_context, short,             , short) \
-	_ex(_context, long,              , long) \
-	_ex(_context, infinitive,        , infinitive) \
-	_ex(_context, verb_suffix_ai,    , verb.suffix.ai  ) \
-	_ex(_context, verb_suffix_ei,    , verb.suffix.ei  ) \
-	_ex(_context, verb_suffix_ova,   , verb.suffix.ova ) \
-	_ex(_context, verb_suffix_nu,    , verb.suffix.nu  ) \
-	_ex(_context, verb_suffix_nu2,   , verb.suffix.nu2 ) \
-	_ex(_context, verb_suffix_a1,    , verb.suffix.a1  ) \
-	_ex(_context, verb_suffix_a2,    , verb.suffix.a2  ) \
-	_ex(_context, verb_suffix_a3,    , verb.suffix.a3  ) \
-	_ex(_context, verb_suffix_avai,  , verb.suffix.avai) \
-	_ex(_context, verb_suffix_o,     , verb.suffix.o   ) \
-	_ex(_context, verb_suffix_i,     , verb.suffix.i   ) \
-	_ex(_context, verb_suffix_e,     , verb.suffix.e   ) \
-	_ex(_context, verb_suffix_zha,   , verb.suffix.zha ) \
-	_ex(_context, resonant_stem,     , stem.resonant   ) \
-	_ex(_context, obstruent_stem,    , stem.obstruent  ) \
-	_ex(_context, past,              , past) \
-	_ex(_context, non_past,          , nonpast) \
+	_ex(_context, impersonal,        , impers) \
+	_ex(_context, predicative,       , predic) \
+	_ex(_context, participle,        , participle) \
 	_ex(_context, adjective_as_noun, , adjasnoun) \
-	_ex(_context, verb_of_motion,    , verb_of_motion) \
 	_ex(_context, curse,             , curse) \
 	_ex(_context, idiom,             , idiom) \
-	_ex(_context, diminutive,        , dim)
+	_ex(_context, diminutive,        , dim) \
+	_ex(_context, verb_class_1,      , verbclass1) \
+	_ex(_context, verb_class_2,      , verbclass2) \
+	_ex(_context, verb_class_3,      , verbclass3) \
+	_ex(_context, verb_class_3o,     , verbclass3o) \
+	_ex(_context, verb_class_4,      , verbclass4) \
+	_ex(_context, verb_class_5,      , verbclass5) \
+	_ex(_context, verb_class_5o,     , verbclass5o) \
+	_ex(_context, verb_class_6,      , verbclass6) \
+	_ex(_context, verb_class_6o,     , verbclass6o) \
+	_ex(_context, verb_class_7,      , verbclass7) \
+	_ex(_context, verb_class_8,      , verbclass8) \
+	_ex(_context, verb_class_9,      , verbclass9) \
+	_ex(_context, verb_class_10,     , verbclass10) \
+	_ex(_context, verb_class_11,     , verbclass11) \
+	_ex(_context, verb_class_12,     , verbclass12) \
+	_ex(_context, verb_class_13,     , verbclass13) \
+	_ex(_context, verb_class_14,     , verbclass14) \
+	_ex(_context, verb_class_15,     , verbclass15) \
+	_ex(_context, verb_class_16,     , verbclass16) \
+	_ex(_context, stem_stressed,     , stemstress) \
+	_ex(_context, ending_stressed,   , endstress) \
+	_ex(_context, shifting_stress,   , shiftstress) \
+	_ex(_context, verb_of_motion,    , verb_of_motion)
 DECLARE_ENUM_WITH_COUNT(CardTags, ENUM_MACRO_CARD_TAG)
 
+#define ENUM_MACRO_VERB_ACCENT_PATTERN(_context, _ex) \
+	_ex(_context, stem_stressed,   , a) \
+	_ex(_context, ending_stressed, , b) \
+	_ex(_context, changing_stress, , c)
+DECLARE_ENUM_WITH_COUNT(VerbAccentPattern, ENUM_MACRO_VERB_ACCENT_PATTERN)
 
 AppTimestamp GetAppTimestamp();
 bool IsKeyCardTag(CardTags tag);
